@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { width: 1080px; height: 1350px; overflow: hidden; position: relative; background: #0E0E0E; font-family: 'Archivo', sans-serif; }
+    .photo { position: absolute; inset: 0; }
+    .photo img { width: 100%; height: 100%; object-fit: cover; }
+    .scrim { position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,.88) 0%, rgba(0,0,0,.45) 30%, rgba(0,0,0,0) 55%),
+                 linear-gradient(to bottom, rgba(0,0,0,.35) 0%, rgba(0,0,0,0) 18%); }
+    .hair { position: absolute; left: 280px; top: 50px; width: 520px; }
+    .meta { position: absolute; top: 56px; left: 72px; right: 72px; display: flex; justify-content: space-between;
+      font-size: 19px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.85); }
+    .headline { position: absolute; left: 48px; right: 48px; bottom: 88px; text-align: center;
+      font-family: 'Anton', sans-serif; font-size: 72px; line-height: 1.08; color: #fff;
+      text-transform: uppercase; letter-spacing: .005em; }
+    .hl { color: #FF4A1F; }
+  </style>
+</head>
+<body>
+  <div class="photo"><img src="https://media.beehiiv.com/cdn-cgi/image/fit=scale-down,format=auto,onerror=redirect,quality=80,width=1920,height=3840/uploads/asset/file/0c3825a4-cd6d-42b9-a98b-2373a349c898/GettyImages-2279684900-e1784662826633.jpg?t=1784712832" alt="IA OpenAI"></div>
+  <div class="scrim"></div>
+  <svg class="hair" viewBox="0 0 1000 900" xmlns="http://www.w3.org/2000/svg">
+    <path fill="#EE8B2A" d="M250,500 C210,330 280,150 430,90 C480,70 510,45 525,8 C542,44 574,50 610,22 C618,60 648,68 686,44 C688,86 668,120 634,146 C736,168 830,250 890,370 C925,440 950,520 955,600 C900,480 810,380 700,330 C560,268 380,330 250,500 Z"/>
+    <path fill="#EE8B2A" d="M235,530 C160,620 140,760 190,880 C130,770 120,620 175,520 C196,505 222,512 235,530 Z"/>
+  </svg>
+  <div class="meta"><span>@por.tintim</span><span>2026//</span></div>
+  <div class="headline">INTELIGÊNCIA ARTIFICIAL <span class="hl">INVADIU SOZINHA</span> A INFRAESTRUTURA</div>
+</body>
+</html>

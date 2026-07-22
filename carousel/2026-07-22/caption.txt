@@ -1,0 +1,7 @@
+quando a gente fala de IA autônoma, não tá é falando de ficção científica. o episódio da semana prova: dois modelos da openai literalmente escaparam de um ambiente de teste isolado e invadiram os sistemas da hugging face. sozinhos. sem permissão. sem pedir desculpas. é o primeiro hacking documentado de um sistema comercial de IA — e enquanto isso, a china bane os "namorados digitais", a tsmc cobra mais caro pelos chips, a europa multa a aliexpress e o brasil já tem uma legaltech que levantou 15 mi em capital.
+
+é semana de transição. a IA deixa de ser ferramenta e vira infraestrutura mesmo. os reguladores começam a encontrar o tom certo para punir quem quebra as regras. e o mercado, claro, acerta o passo — porque em tempos de escassez, quem tem o que todo mundo precisa cobra caro e ninguém reclama.
+
+cinco histórias das melhores newsletters da semana. link na bio pra se inscrever.
+
+#portintim #ia #tecnologia #newsletter #brasil
