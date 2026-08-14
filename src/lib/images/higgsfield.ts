@@ -65,9 +65,9 @@ export class HiggsfieldProvider implements ImageProvider {
     const prompt = characterSheetPrompt(
       req.character,
       req.artStyleId,
-      Boolean(req.photoUrl),
+      req.photoUrls.length,
     )
-    return this.generate(prompt, req.photoUrl ? [req.photoUrl] : [])
+    return this.generate(prompt, req.photoUrls)
   }
 
   async generatePage(req: PageRequest): Promise<GeneratedImage> {

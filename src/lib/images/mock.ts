@@ -27,7 +27,7 @@ export class MockProvider implements ImageProvider {
       promptPreview: characterSheetPrompt(
         req.character,
         req.artStyleId,
-        Boolean(req.photoUrl),
+        req.photoUrls.length,
       ),
     }
   }

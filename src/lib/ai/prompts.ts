@@ -1,5 +1,6 @@
 import {
   getArtStyle,
+  getBookLanguage,
   getBookSize,
   getOccasion,
   getStoryType,
@@ -10,9 +11,15 @@ import type { BookBrief, Character, StoryIdea } from '../types'
 /**
  * Prompt construction for the writing model.
  *
- * All prompts are written in English — the model is told which language to
- * *write the book in* separately. This keeps one set of prompts working for
- * every locale we add.
+ * All prompts are written in English; which language to *write in* is stated
+ * per call. Two different languages are in play and mixing them up is the
+ * easy mistake here:
+ *
+ *   - the site locale, which the buyer reads (questions, ideas)
+ *   - the book language, which the recipient reads (narration)
+ *
+ * A Brazilian buying a gift for someone learning English gets Portuguese
+ * questions and an English book.
  */
 
 const LANGUAGE_NAMES: Record<string, string> = {
@@ -20,8 +27,9 @@ const LANGUAGE_NAMES: Record<string, string> = {
   en: 'English',
 }
 
-export function languageName(locale: string): string {
-  return LANGUAGE_NAMES[locale] ?? 'English'
+/** The language the buyer reads the site in. */
+export function uiLanguage(brief: BookBrief): string {
+  return LANGUAGE_NAMES[brief.locale] ?? 'English'
 }
 
 function describeCharacter(c: Character): string {
@@ -76,14 +84,22 @@ Rules:
 - Every question must be answerable in one or two sentences by someone who is not a writer.
 - Use the characters' actual names in the questions.
 - Each question needs a short hint explaining why we are asking, and a placeholder showing the kind of answer we want.
-- Vary the angles: origin, habits, relationships, a favourite place, something funny, something tender.
 - Never ask anything the customer has already told us.
-- Write the questions, hints and placeholders in the requested language.`
+
+Organise the questions into themed groups of two or three. Each group is shown on one screen, so the questions inside it should belong to the same train of thought — one group about how they met, another about everyday habits, another about the funny stuff. Give each group a short title, two or three words. Questions in the same group must carry exactly the same group title.
+
+For every question, also write three suggested answers:
+- Each one short, one sentence, in the customer's own register — the way a parent would actually reply, not the way a copywriter would.
+- Make them concrete and plausible for these specific characters. If the pet is a one-eared dog called Biscoito, the suggestions mention Biscoito.
+- The three must differ from each other in substance, so picking one is a real choice.
+- They are starting points the customer will edit, not guesses at the truth. Never phrase them as if you know the answer.
+
+Write the questions, hints, placeholders, group titles and suggestions in the requested language.`
 
 export function interviewUser(brief: BookBrief, count: number): string {
   const occasion = getOccasion(brief.occasionId)
   return [
-    `Write ${count} interview questions in ${languageName(brief.locale)}.`,
+    `Write ${count} interview questions in ${uiLanguage(brief)}, organised into three or four themed groups.`,
     '',
     `For this occasion, the most fertile ground is: ${occasion.interviewFocus}.`,
     '',
@@ -101,11 +117,13 @@ Rules:
 - Every idea must be drawable: things that happen in places, with characters doing things. Avoid inner monologue and abstraction.
 - The title should sound like a real children's book, not a summary.
 - Highlights are three concrete scenes, each one sentence, in story order.
-- Write everything in the requested language.`
+
+Two languages are involved. The buyer is choosing between these four ideas, so the logline, summary and highlights are written in their language. The title is printed on the cover of the book, so it is written in the book's language. When the two differ, that is deliberate — do not "fix" it by translating the title.`
 
 export function ideasUser(brief: BookBrief): string {
+  const language = getBookLanguage(brief.bookLanguage)
   return [
-    `Propose four story ideas in ${languageName(brief.locale)}.`,
+    `Propose four story ideas. Write the logline, summary and highlights in ${uiLanguage(brief)}. Write the title in ${language.primary}.`,
     '',
     briefContext(brief),
   ].join('\n')
@@ -118,6 +136,8 @@ Each page is one full-page illustration with one or two sentences of narration p
 For every page you produce two things:
 
 1. "narration" — the text printed on the page, in the requested language, in the narrator's voice. One or two short sentences. It should read aloud well.
+
+   When a second language is requested, also write "narrationSecondary": the same sentence in that language, printed smaller underneath. This book is often a gift for someone learning the first language, so the second line has to be a natural translation a reader can check themselves against — not a word-for-word gloss, and never extra story the first line does not contain.
 
 2. "sceneDescription" — a visual description IN ENGLISH, written for an image generator. Describe only what is visible: who is in frame, what they are doing, where they are, and the framing (wide shot, close-up). Name characters by the exact names given, so the illustrator knows which reference to use. Do NOT mention art style, line weight, black and white, or coloring pages — that is added separately. Do NOT describe emotions the drawing cannot show; show them through posture and expression instead.
 
@@ -141,9 +161,14 @@ export function storyboardUser(
         ? 'Scenes can carry rich background detail worth colouring.'
         : 'Scenes should have a clear focus with some supporting background.'
 
+  const language = getBookLanguage(brief.bookLanguage)
+  const narrationRule = language.secondary
+    ? `Narration must be in ${language.primary}, with "narrationSecondary" carrying the same sentence in ${language.secondary}.`
+    : `Narration must be in ${language.primary}. Leave "narrationSecondary" empty.`
+
   return [
     `Write the full ${pageCount}-page storyboard for the chosen story.`,
-    `Narration must be in ${languageName(brief.locale)}. Scene descriptions must be in English.`,
+    `${narrationRule} Scene descriptions must always be in English — they are read by the image model, not by a person.`,
     detail,
     '',
     'CHOSEN STORY:',

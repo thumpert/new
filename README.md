@@ -12,11 +12,13 @@ brief  →  entrevista  →  4 ideias  →  roteiro  →  ilustrações  →  PD
          (Claude)       (Claude)     (Claude)     (Higgsfield)    (pdf-lib)
 ```
 
-1. **Brief** — ocasião, tipo de história, tom do narrador, estilo do desenho,
-   tamanho, personagens (com foto opcional) e o lugar onde a história acontece.
+1. **Brief** — idioma do livro, ocasião, tipo de história, tom do narrador,
+   estilo do desenho, tamanho, personagens (até 3 fotos cada) e o lugar onde a
+   história acontece.
 2. **Entrevista** — a Claude API escreve 8–10 perguntas feitas sob medida para
-   *aqueles* personagens ("O que a Lila faz assim que chega da escola?"). O
-   cliente responde as que quiser.
+   *aqueles* personagens ("O que a Lila faz assim que chega da escola?"),
+   agrupadas por tema — um bloco por tela. Cada pergunta vem com três sugestões
+   de resposta clicáveis, que o cliente usa como ponto de partida e edita.
 3. **Ideias** — quatro histórias possíveis, com estruturas diferentes entre si,
    construídas a partir dos detalhes reais que o cliente contou.
 4. **Roteiro** — a história escolhida vira um storyboard página a página. Cada
@@ -27,6 +29,22 @@ brief  →  entrevista  →  4 ideias  →  roteiro  →  ilustrações  →  PD
    traço; depois cada página é gerada usando essas fichas como referência.
 6. **PDF** — capa, dedicatória, páginas ilustradas em A4 com a narração
    embaixo, e contracapa.
+
+Qualquer página pode ser refeita depois, sozinha. Como as fichas de personagem
+já estão guardadas, a cena muda e os personagens continuam idênticos.
+
+## Idioma do livro ≠ idioma do site
+
+São duas coisas separadas, de propósito. O site é lido pelo comprador; o livro,
+por quem recebe. Um brasileiro comprando presente para alguém que está
+aprendendo inglês navega em português e encomenda um livro em inglês.
+
+Três opções: **português**, **inglês**, e **inglês com apoio em português** — a
+narração em inglês e, embaixo e menor, a tradução, para quem está treinando.
+
+Isso atravessa os prompts: perguntas da entrevista e resumos das ideias saem no
+idioma do site, títulos e narração no idioma do livro, e as descrições de cena
+sempre em inglês, porque quem lê é o modelo de imagem.
 
 ## Rodando
 

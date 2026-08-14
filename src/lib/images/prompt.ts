@@ -20,14 +20,17 @@ const PAGE_FRAMING =
 export function characterSheetPrompt(
   character: Character,
   artStyleId: ArtStyleId,
-  fromPhoto: boolean,
+  photoCount: number,
 ): string {
   const style = getArtStyle(artStyleId)
   const subject = character.kind === 'pet' ? 'animal character' : 'character'
 
-  const source = fromPhoto
-    ? `Turn the person in the reference photo into a ${subject} drawing, keeping their recognisable features: face shape, hairstyle, and anything distinctive.`
-    : `Design a ${subject} from this description alone.`
+  const source =
+    photoCount === 0
+      ? `Design a ${subject} from this description alone.`
+      : photoCount === 1
+        ? `Turn the subject in the reference photo into a ${subject} drawing, keeping their recognisable features: face shape, hairstyle, and anything distinctive.`
+        : `The ${photoCount} reference photos are all the same individual from different angles. Read them together to work out the face, hair and build, and draw that ${subject}. Where the photos disagree — different lighting, a different haircut, a different day — follow whatever is consistent across most of them rather than any single photo.`
 
   return [
     `Character model sheet for a children’s coloring book: three views of the same ${subject} side by side on one white sheet — full body facing forward, full body from the side, and a head-and-shoulders close-up.`,

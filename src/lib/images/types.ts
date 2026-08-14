@@ -3,8 +3,8 @@ import type { ArtStyleId, Character } from '../types'
 export interface CharacterSheetRequest {
   character: Character
   artStyleId: ArtStyleId
-  /** Absolute URL of the customer's reference photo, when they uploaded one. */
-  photoUrl?: string
+  /** Reference photos the customer uploaded, if any. */
+  photoUrls: string[]
 }
 
 export interface PageRequest {

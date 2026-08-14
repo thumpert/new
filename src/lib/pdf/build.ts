@@ -7,7 +7,7 @@ import {
   type RGB,
 } from 'pdf-lib'
 import { fetchBinary, putFile } from '../storage'
-import type { Locale, Order } from '../types'
+import type { Locale, Order, StoryPage } from '../types'
 
 /**
  * Builds the print-ready A4 PDF.
@@ -23,6 +23,8 @@ const A4 = { width: 595.28, height: 841.89 }
 const MARGIN = 36
 /** Vertical space reserved under the drawing for the narration. */
 const NARRATION_BLOCK = 88
+/** Extra room when a bilingual book prints a support line underneath. */
+const NARRATION_BLOCK_BILINGUAL = 122
 
 const INK = rgb(0.1, 0.1, 0.12)
 const MUTED = rgb(0.45, 0.45, 0.5)
@@ -80,11 +82,20 @@ export async function buildBookPdf(order: Order): Promise<Uint8Array> {
     (order.renders ?? []).map((r) => [r.index, r]),
   )
 
+  // One page carrying a translation sets the layout for the whole book —
+  // pages must not shift height depending on whether a line happened to fit.
+  const bilingual = order.storyboard.pages.some((p) =>
+    p.narrationSecondary?.trim(),
+  )
+  const narrationBlock = bilingual
+    ? NARRATION_BLOCK_BILINGUAL
+    : NARRATION_BLOCK
+
   for (const page of order.storyboard.pages) {
     const render = rendersByIndex.get(page.index)
     const sheet = pdf.addPage([A4.width, A4.height])
 
-    const imageBottom = MARGIN + NARRATION_BLOCK
+    const imageBottom = MARGIN + narrationBlock
     const box = {
       x: MARGIN,
       y: imageBottom,
@@ -101,7 +112,7 @@ export async function buildBookPdf(order: Order): Promise<Uint8Array> {
       })
     }
 
-    drawNarration(sheet, fonts, page.narration, page.index)
+    drawNarration(sheet, fonts, page, page.index, narrationBlock)
   }
 
   drawClosing(pdf, fonts, t)
@@ -232,15 +243,28 @@ function drawPlaceholder(
 function drawNarration(
   page: PDFPage,
   fonts: Fonts,
-  narration: string,
+  story: StoryPage,
   pageNumber: number,
+  block: number,
 ) {
-  const lines = wrap(narration, fonts.bodyItalic, 13, A4.width - MARGIN * 3)
-  let y = MARGIN + NARRATION_BLOCK - 30
+  const lines = wrap(story.narration, fonts.bodyItalic, 13, A4.width - MARGIN * 3)
+  let y = MARGIN + block - 30
 
   for (const line of lines.slice(0, 4)) {
     drawCentered(page, line, fonts.bodyItalic, 13, y, INK)
     y -= 19
+  }
+
+  // The translation sits smaller and lighter: there to be checked against,
+  // not to compete with the line the reader is meant to read first.
+  const secondary = story.narrationSecondary?.trim()
+  if (secondary) {
+    y -= 8
+    const support = wrap(secondary, fonts.body, 10, A4.width - MARGIN * 3)
+    for (const line of support.slice(0, 3)) {
+      drawCentered(page, line, fonts.body, 10, y, MUTED)
+      y -= 14
+    }
   }
 
   drawCentered(page, String(pageNumber), fonts.body, 9, MARGIN - 4, MUTED)

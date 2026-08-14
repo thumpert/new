@@ -1,5 +1,6 @@
 import type {
   ArtStyleId,
+  BookLanguageId,
   BookSizeId,
   OccasionId,
   StoryTypeId,
@@ -172,6 +173,20 @@ export const ART_STYLES: ArtStyleDef[] = [
   },
 ]
 
+export interface BookLanguageDef {
+  id: BookLanguageId
+  /** Language the narration is written in. */
+  primary: string
+  /** Second language printed smaller underneath, when the book is bilingual. */
+  secondary?: string
+}
+
+export const BOOK_LANGUAGES: BookLanguageDef[] = [
+  { id: 'pt', primary: 'Brazilian Portuguese' },
+  { id: 'en', primary: 'English' },
+  { id: 'en-pt', primary: 'English', secondary: 'Brazilian Portuguese' },
+]
+
 export interface BookSizeDef {
   id: BookSizeId
   /** Number of illustrated pages. Multiples of 4 keep the printer happy. */
@@ -205,6 +220,12 @@ export function getTone(id: ToneId): ToneDef {
 export function getArtStyle(id: ArtStyleId): ArtStyleDef {
   const found = ART_STYLES.find((a) => a.id === id)
   if (!found) throw new Error(`Unknown art style: ${id}`)
+  return found
+}
+
+export function getBookLanguage(id: BookLanguageId): BookLanguageDef {
+  const found = BOOK_LANGUAGES.find((b) => b.id === id)
+  if (!found) throw new Error(`Unknown book language: ${id}`)
   return found
 }
 

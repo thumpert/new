@@ -119,8 +119,8 @@ export function CharactersStep({
           <div className="mt-4">
             <PhotoUpload
               dict={dict}
-              photoUrl={character.photoUrl}
-              onUploaded={(photoUrl) => update(character.id, { photoUrl })}
+              photoUrls={character.photoUrls ?? []}
+              onChange={(photoUrls) => update(character.id, { photoUrls })}
             />
           </div>
         </article>
@@ -140,30 +140,40 @@ export function CharactersStep({
   )
 }
 
+/** Three is where extra angles stop adding information about a face. */
+const MAX_PHOTOS = 3
+
 function PhotoUpload({
   dict,
-  photoUrl,
-  onUploaded,
+  photoUrls,
+  onChange,
 }: {
   dict: Dictionary
-  photoUrl?: string
-  onUploaded: (url: string) => void
+  photoUrls: string[]
+  onChange: (urls: string[]) => void
 }) {
   const copy = dict.wizard.characters
   const inputRef = useRef<HTMLInputElement>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  async function upload(file: File) {
+  async function upload(files: File[]) {
     setBusy(true)
     setError(null)
     try {
-      const body = new FormData()
-      body.append('file', file)
-      const res = await fetch('/api/uploads', { method: 'POST', body })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error ?? dict.common.error)
-      onUploaded(data.url)
+      const room = MAX_PHOTOS - photoUrls.length
+      const uploaded: string[] = []
+
+      for (const file of files.slice(0, room)) {
+        const body = new FormData()
+        body.append('file', file)
+        const res = await fetch('/api/uploads', { method: 'POST', body })
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.error ?? dict.common.error)
+        uploaded.push(data.url)
+      }
+
+      onChange([...photoUrls, ...uploaded])
     } catch (err) {
       setError(err instanceof Error ? err.message : dict.common.error)
     } finally {
@@ -178,38 +188,52 @@ function PhotoUpload({
         <span className="font-normal text-ink-soft">({dict.common.optional})</span>
       </span>
 
-      <div className="flex items-center gap-4">
-        {photoUrl && (
-          // Plain <img>: these are user uploads served from our own API route,
-          // and next/image's optimiser adds nothing for a 64px thumbnail.
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={photoUrl}
-            alt=""
-            className="size-16 rounded-xl border border-line object-cover"
-          />
+      <div className="flex flex-wrap items-center gap-3">
+        {photoUrls.map((url, i) => (
+          <span key={url} className="relative">
+            {/* Plain <img>: user uploads served from our own API route, and
+                next/image's optimiser adds nothing for a 64px thumbnail. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={url}
+              alt=""
+              className="size-16 rounded-xl border border-line object-cover"
+            />
+            <button
+              type="button"
+              aria-label={copy.removePhoto}
+              onClick={() => onChange(photoUrls.filter((_, j) => j !== i))}
+              className="absolute -right-1.5 -top-1.5 flex size-5 items-center justify-center rounded-full border border-line bg-paper-raised text-xs leading-none text-ink-soft hover:text-accent"
+            >
+              ×
+            </button>
+          </span>
+        ))}
+
+        {photoUrls.length < MAX_PHOTOS && (
+          <Button
+            variant="ghost"
+            disabled={busy}
+            onClick={() => inputRef.current?.click()}
+          >
+            {busy
+              ? dict.common.loading
+              : photoUrls.length === 0
+                ? copy.upload
+                : copy.addPhoto}
+          </Button>
         )}
-        <Button
-          variant="ghost"
-          disabled={busy}
-          onClick={() => inputRef.current?.click()}
-        >
-          {busy
-            ? dict.common.loading
-            : photoUrl
-              ? copy.change
-              : copy.upload}
-        </Button>
       </div>
 
       <input
         ref={inputRef}
         type="file"
+        multiple
         accept="image/jpeg,image/png,image/webp"
         className="hidden"
         onChange={(e) => {
-          const file = e.target.files?.[0]
-          if (file) void upload(file)
+          const files = Array.from(e.target.files ?? [])
+          if (files.length) void upload(files)
           e.target.value = ''
         }}
       />

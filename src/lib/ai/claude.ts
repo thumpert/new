@@ -39,9 +39,15 @@ const InterviewSchema = z.object({
   questions: z
     .array(
       z.object({
+        group: z
+          .string()
+          .describe('Short theme title. Questions shown together share it.'),
         question: z.string().describe('The question, addressed to the customer.'),
         hint: z.string().describe('One short line on why we are asking.'),
         placeholder: z.string().describe('An example answer, shown greyed out.'),
+        suggestions: z
+          .array(z.string())
+          .describe('Three short, concrete answers the customer can click.'),
       }),
     )
     .describe('The interview questions, in the order they should be asked.'),
@@ -68,6 +74,11 @@ const StoryboardSchema = z.object({
     .array(
       z.object({
         narration: z.string().describe('Text printed under the illustration.'),
+        narrationSecondary: z
+          .string()
+          .describe(
+            'The same sentence in the support language, or empty when the book is single-language.',
+          ),
         sceneDescription: z
           .string()
           .describe('English visual description of the scene for the image model.'),
@@ -97,12 +108,25 @@ export async function generateInterviewQuestions(
   })
 
   const parsed = expectParsed(response.parsed_output, 'interview questions')
-  return parsed.questions.slice(0, count).map((q, i) => ({
-    id: `q${i + 1}`,
-    question: q.question,
-    hint: q.hint,
-    placeholder: q.placeholder,
-  }))
+
+  // Keep same-group questions adjacent even if the model interleaves them —
+  // the UI shows one group per screen and a split group reads as a bug.
+  const order: string[] = []
+  for (const q of parsed.questions) {
+    if (!order.includes(q.group)) order.push(q.group)
+  }
+
+  return parsed.questions
+    .slice(0, count)
+    .sort((a, b) => order.indexOf(a.group) - order.indexOf(b.group))
+    .map((q, i) => ({
+      id: `q${i + 1}`,
+      group: q.group,
+      question: q.question,
+      hint: q.hint,
+      placeholder: q.placeholder,
+      suggestions: q.suggestions.slice(0, 3),
+    }))
 }
 
 export async function generateIdeas(brief: BookBrief): Promise<StoryIdea[]> {
@@ -149,6 +173,7 @@ export async function generateStoryboard(
     pages: parsed.pages.slice(0, pageCount).map((page, i) => ({
       index: i + 1,
       narration: page.narration,
+      narrationSecondary: page.narrationSecondary?.trim() || undefined,
       sceneDescription: page.sceneDescription,
       // The model occasionally answers with names instead of ids; drop
       // anything we cannot resolve rather than passing it downstream.

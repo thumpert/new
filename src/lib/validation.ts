@@ -1,5 +1,12 @@
 import * as z from 'zod'
-import { ART_STYLES, BOOK_SIZES, OCCASIONS, STORY_TYPES, TONES } from './catalog'
+import {
+  ART_STYLES,
+  BOOK_LANGUAGES,
+  BOOK_SIZES,
+  OCCASIONS,
+  STORY_TYPES,
+  TONES,
+} from './catalog'
 import { LOCALES } from './types'
 
 /** Runtime validation for everything that arrives from the browser. */
@@ -14,7 +21,7 @@ export const characterSchema = z.object({
   role: z.string().max(120).optional(),
   age: z.string().max(60).optional(),
   traits: z.string().max(1200).default(''),
-  photoUrl: z.string().max(500).optional(),
+  photoUrls: z.array(z.string().max(500)).max(3).optional(),
   referenceSheetUrl: z.string().max(500).optional(),
 })
 
@@ -26,6 +33,7 @@ export const interviewAnswerSchema = z.object({
 
 export const briefSchema = z.object({
   locale: z.enum(LOCALES as [string, ...string[]]),
+  bookLanguage: z.enum(ids(BOOK_LANGUAGES)),
   occasionId: z.enum(ids(OCCASIONS)),
   storyTypeId: z.enum(ids(STORY_TYPES)),
   toneId: z.enum(ids(TONES)),

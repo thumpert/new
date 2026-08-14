@@ -8,7 +8,7 @@
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
 import { buildBookPdf } from '../src/lib/pdf/build'
-import { renderOrder } from '../src/lib/render'
+import { regeneratePage, renderOrder } from '../src/lib/render'
 import { getOrder, newOrderId, saveOrder } from '../src/lib/store'
 import type { Order } from '../src/lib/types'
 
@@ -23,6 +23,9 @@ const order: Order = {
   status: 'storyboard',
   brief: {
     locale: 'pt',
+    // The bilingual book is the layout most likely to break: it is the only
+    // one printing two text blocks under the drawing.
+    bookLanguage: 'en-pt',
     occasionId: 'birthday',
     storyTypeId: 'adventure',
     toneId: 'warm',
@@ -39,6 +42,7 @@ const order: Order = {
         age: '6 anos',
         role: 'aniversariante',
         traits: 'cabelo cacheado castanho, óculos redondos, adora dinossauros',
+        photoUrls: [],
       },
       {
         id: 'c2',
@@ -55,7 +59,8 @@ const order: Order = {
     dedication: 'Para a Lila, que transforma qualquer quintal em floresta.',
     pages: Array.from({ length: 12 }, (_, i) => ({
       index: i + 1,
-      narration: `Página ${i + 1}: a Lila e o Biscoito seguem a trilha entre as mangueiras, e o quintal fica cada vez maior.`,
+      narration: `Page ${i + 1}: Lila and Biscoito follow the path between the mango trees, and the backyard keeps growing.`,
+      narrationSecondary: `Página ${i + 1}: a Lila e o Biscoito seguem a trilha entre as mangueiras, e o quintal fica cada vez maior.`,
       sceneDescription: `Wide shot of Lila and her dog Biscoito walking along a garden path between mango trees, page ${i + 1} of the journey.`,
       charactersOnPage: ['c1', 'c2'],
     })),
@@ -75,7 +80,15 @@ async function main() {
   console.log(`pages rendered: ${done}/${renders.length}`)
   if (rendered.error) console.log(`error: ${rendered.error}`)
 
-  const bytes = await buildBookPdf(rendered)
+  // Redrawing one page must not disturb the other eleven.
+  await regeneratePage(order.id, 5)
+  const afterRedraw = await getOrder(order.id)
+  const stillDone = (afterRedraw?.renders ?? []).filter(
+    (r) => r.status === 'done',
+  ).length
+  console.log(`after redrawing page 5: ${stillDone}/${renders.length} done`)
+
+  const bytes = await buildBookPdf(afterRedraw ?? rendered)
   const out = path.join(process.cwd(), '.data', 'smoke.pdf')
   await fs.writeFile(out, bytes)
 

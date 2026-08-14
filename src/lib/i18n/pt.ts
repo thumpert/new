@@ -38,6 +38,11 @@ export const pt = {
     ],
   },
   wizard: {
+    bookLanguage: {
+      title: 'Em que idioma será o livro?',
+      subtitle:
+        'O site continua em português — isso vale só para o livro impresso.',
+    },
     occasion: {
       title: 'Qual é a ocasião?',
       subtitle: 'Isso define o tom e o coração da história.',
@@ -78,11 +83,12 @@ export const pt = {
       traits: 'Como ele(a) é?',
       traitsPlaceholder:
         'Aparência e jeito: cabelo cacheado castanho, óculos, adora dinossauros, ri de tudo…',
-      photo: 'Foto de referência',
+      photo: 'Fotos de referência',
       photoHint:
-        'Uma foto nítida, de frente e com boa luz. Usamos só para desenhar o personagem.',
+        'Até 3 fotos nítidas e com boa luz: uma de frente, uma de lado e uma sorrindo. Usamos só para desenhar o personagem, uma única vez.',
       upload: 'Enviar foto',
-      change: 'Trocar foto',
+      addPhoto: 'Mais uma foto',
+      removePhoto: 'Remover foto',
     },
     place: {
       title: 'Onde a história acontece?',
@@ -97,6 +103,9 @@ export const pt = {
       allQuestions: 'Todas as perguntas',
       current: 'Atual',
       close: 'Fechar',
+      suggestions: 'Sugestões — clique para usar e edite depois',
+      block: 'Bloco',
+      answered: 'respondidas',
     },
     title: {
       title: 'Qual o título do livro?',
@@ -132,6 +141,26 @@ export const pt = {
     done: 'Seu livro está pronto!',
     download: 'Baixar PDF',
     preview: 'Ver prévia',
+    page: 'Página',
+    regenerate: 'Refazer esta página',
+    regenerating: 'Refazendo…',
+    regenerateHint:
+      'Os personagens continuam iguais — só esta cena é desenhada de novo.',
+  },
+  bookLanguages: {
+    pt: {
+      label: 'Português',
+      description: 'A história inteira em português.',
+    },
+    en: {
+      label: 'Inglês',
+      description: 'A história inteira em inglês, sem tradução.',
+    },
+    'en-pt': {
+      label: 'Inglês com apoio em português',
+      description:
+        'A narração em inglês e, embaixo e menor, a tradução — para quem está aprendendo.',
+    },
   },
   occasions: {
     child: {

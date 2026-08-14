@@ -1,13 +1,21 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import type { Dictionary } from '@/lib/i18n'
 import type { InterviewQuestion } from '@/lib/types'
 import { Button, TextArea } from './ui'
 
+interface Block {
+  title: string
+  questions: InterviewQuestion[]
+}
+
 /**
- * The interview: one question at a time, with a panel listing all of them so
- * the customer can jump to whichever they actually have an answer for.
+ * The interview, one themed block per screen.
+ *
+ * Grouping matters more than it looks: answering three questions about the
+ * same thing keeps the customer in one train of thought, where answering nine
+ * unrelated ones in a row feels like a form.
  */
 export function InterviewStep({
   dict,
@@ -20,74 +28,74 @@ export function InterviewStep({
   answers: Record<string, string>
   onAnswer: (questionId: string, answer: string) => void
 }) {
-  const [index, setIndex] = useState(0)
+  const copy = dict.wizard.interview
+  const [blockIndex, setBlockIndex] = useState(0)
   const [listOpen, setListOpen] = useState(false)
 
-  const question = questions[index]
-  if (!question) return null
+  const blocks = useMemo(() => groupQuestions(questions), [questions])
+  const block = blocks[blockIndex]
+  if (!block) return null
 
   const answered = questions.filter((q) => answers[q.id]?.trim()).length
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between gap-4">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-ink-soft">
-          {answered}/{questions.length}
+          {copy.block} {blockIndex + 1}/{blocks.length} · {answered}/
+          {questions.length} {copy.answered}
         </p>
         <button
           type="button"
           onClick={() => setListOpen(true)}
           className="text-sm text-accent underline underline-offset-4"
         >
-          {dict.wizard.interview.allQuestions}
+          {copy.allQuestions}
         </button>
       </div>
 
-      <div className="rounded-2xl border border-line bg-paper-raised p-6">
-        <h2 className="font-serif text-xl text-ink">{question.question}</h2>
-        {question.hint && (
-          <p className="mt-1.5 text-sm text-ink-soft">{question.hint}</p>
-        )}
+      <section className="rounded-2xl border border-line bg-paper-raised p-6">
+        <h2 className="font-serif text-2xl text-ink">{block.title}</h2>
 
-        <div className="mt-5">
-          <TextArea
-            value={answers[question.id] ?? ''}
-            onChange={(value) => onAnswer(question.id, value)}
-            placeholder={
-              question.placeholder ?? dict.wizard.interview.answerPlaceholder
-            }
-            rows={5}
-            maxLength={2000}
-          />
+        <div className="mt-6 space-y-8">
+          {block.questions.map((question) => (
+            <QuestionField
+              key={question.id}
+              dict={dict}
+              question={question}
+              value={answers[question.id] ?? ''}
+              onChange={(value) => onAnswer(question.id, value)}
+            />
+          ))}
         </div>
 
-        <div className="mt-5 flex items-center gap-3">
+        <div className="mt-7 flex items-center gap-3 border-t border-line pt-5">
           <Button
             variant="ghost"
-            onClick={() => setIndex((i) => Math.max(0, i - 1))}
-            disabled={index === 0}
+            onClick={() => setBlockIndex((i) => Math.max(0, i - 1))}
+            disabled={blockIndex === 0}
           >
             {dict.common.back}
           </Button>
           <Button
             onClick={() =>
-              setIndex((i) => Math.min(questions.length - 1, i + 1))
+              setBlockIndex((i) => Math.min(blocks.length - 1, i + 1))
             }
-            disabled={index === questions.length - 1}
+            disabled={blockIndex === blocks.length - 1}
           >
             {dict.common.next}
           </Button>
         </div>
-      </div>
+      </section>
 
       {listOpen && (
         <QuestionList
           dict={dict}
-          questions={questions}
+          blocks={blocks}
           answers={answers}
-          currentIndex={index}
+          currentBlock={blockIndex}
           onPick={(i) => {
-            setIndex(i)
+            setBlockIndex(i)
             setListOpen(false)
           }}
           onClose={() => setListOpen(false)}
@@ -97,21 +105,90 @@ export function InterviewStep({
   )
 }
 
+function QuestionField({
+  dict,
+  question,
+  value,
+  onChange,
+}: {
+  dict: Dictionary
+  question: InterviewQuestion
+  value: string
+  onChange: (value: string) => void
+}) {
+  const copy = dict.wizard.interview
+
+  /** Appends a suggestion, so picking a second one builds on the first. */
+  function applySuggestion(text: string) {
+    const current = value.trim()
+    if (!current) return onChange(text)
+    if (current.includes(text)) return
+    onChange(`${current} ${text}`)
+  }
+
+  return (
+    <div>
+      <h3 className="font-medium text-ink">{question.question}</h3>
+      {question.hint && (
+        <p className="mt-1 text-sm text-ink-soft">{question.hint}</p>
+      )}
+
+      <div className="mt-3">
+        <TextArea
+          value={value}
+          onChange={onChange}
+          placeholder={question.placeholder ?? copy.answerPlaceholder}
+          rows={3}
+          maxLength={2000}
+        />
+      </div>
+
+      {question.suggestions.length > 0 && (
+        <div className="mt-3">
+          <p className="mb-2 text-xs text-ink-soft">{copy.suggestions}</p>
+          <div className="flex flex-wrap gap-2">
+            {question.suggestions.map((suggestion, i) => {
+              const used = value.includes(suggestion)
+              return (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => applySuggestion(suggestion)}
+                  disabled={used}
+                  className={`rounded-full border px-3.5 py-1.5 text-left text-sm transition ${
+                    used
+                      ? 'cursor-default border-accent/30 bg-accent-soft text-accent/60'
+                      : 'border-line bg-paper text-ink-soft hover:border-accent hover:text-accent'
+                  }`}
+                >
+                  {suggestion}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function QuestionList({
   dict,
-  questions,
+  blocks,
   answers,
-  currentIndex,
+  currentBlock,
   onPick,
   onClose,
 }: {
   dict: Dictionary
-  questions: InterviewQuestion[]
+  blocks: Block[]
   answers: Record<string, string>
-  currentIndex: number
+  currentBlock: number
   onPick: (index: number) => void
   onClose: () => void
 }) {
+  const copy = dict.wizard.interview
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-ink/30 p-4"
@@ -125,70 +202,86 @@ function QuestionList({
       >
         <header className="flex items-start justify-between gap-4 border-b border-line px-6 py-5">
           <div>
-            <h2 className="font-serif text-2xl text-ink">
-              {dict.wizard.interview.allQuestions}
-            </h2>
-            <p className="mt-1 text-sm text-ink-soft">
-              {dict.wizard.interview.subtitle}
-            </p>
+            <h2 className="font-serif text-2xl text-ink">{copy.allQuestions}</h2>
+            <p className="mt-1 text-sm text-ink-soft">{copy.subtitle}</p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            aria-label={dict.wizard.interview.close}
+            aria-label={copy.close}
             className="rounded-full p-1 text-2xl leading-none text-ink-soft hover:text-ink"
           >
             ×
           </button>
         </header>
 
-        <ul className="flex-1 overflow-y-auto px-4 py-3">
-          {questions.map((q, i) => {
-            const isCurrent = i === currentIndex
-            const isAnswered = Boolean(answers[q.id]?.trim())
+        <div className="flex-1 overflow-y-auto px-4 py-3">
+          {blocks.map((block, i) => {
+            const isCurrent = i === currentBlock
+            const done = block.questions.filter((q) =>
+              answers[q.id]?.trim(),
+            ).length
+
             return (
-              <li key={q.id}>
-                <button
-                  type="button"
-                  onClick={() => onPick(i)}
-                  className={`flex w-full items-center gap-4 rounded-xl px-4 py-4 text-left transition ${
-                    isCurrent
-                      ? 'bg-accent-soft ring-1 ring-accent'
-                      : 'hover:bg-paper'
-                  }`}
-                >
+              <button
+                key={block.title}
+                type="button"
+                onClick={() => onPick(i)}
+                className={`mb-1 flex w-full flex-col gap-2 rounded-xl px-4 py-4 text-left transition ${
+                  isCurrent ? 'bg-accent-soft ring-1 ring-accent' : 'hover:bg-paper'
+                }`}
+              >
+                <span className="flex items-center justify-between gap-3">
                   <span
-                    aria-hidden
-                    className={`size-4 shrink-0 rounded-full border-2 ${
-                      isAnswered
-                        ? 'border-accent bg-accent'
-                        : isCurrent
-                          ? 'border-accent'
-                          : 'border-line'
-                    }`}
-                  />
-                  <span
-                    className={`flex-1 ${isCurrent ? 'font-medium text-accent' : 'text-ink'}`}
+                    className={`font-medium ${isCurrent ? 'text-accent' : 'text-ink'}`}
                   >
-                    {q.question}
+                    {block.title}
                   </span>
-                  {isCurrent && (
-                    <span className="rounded-full bg-paper px-3 py-1 text-xs text-ink-soft">
-                      {dict.wizard.interview.current}
+                  <span className="text-xs text-ink-soft">
+                    {done}/{block.questions.length}
+                  </span>
+                </span>
+                <span className="space-y-1">
+                  {block.questions.map((q) => (
+                    <span
+                      key={q.id}
+                      className="flex items-center gap-3 text-sm text-ink-soft"
+                    >
+                      <span
+                        aria-hidden
+                        className={`size-3 shrink-0 rounded-full border-2 ${
+                          answers[q.id]?.trim()
+                            ? 'border-accent bg-accent'
+                            : 'border-line'
+                        }`}
+                      />
+                      {q.question}
                     </span>
-                  )}
-                </button>
-              </li>
+                  ))}
+                </span>
+              </button>
             )
           })}
-        </ul>
+        </div>
 
         <footer className="border-t border-line px-6 py-4">
           <Button variant="ghost" className="w-full" onClick={onClose}>
-            {dict.wizard.interview.close}
+            {copy.close}
           </Button>
         </footer>
       </div>
     </div>
   )
+}
+
+/** Preserves the order the questions arrived in, one entry per theme. */
+function groupQuestions(questions: InterviewQuestion[]): Block[] {
+  const blocks: Block[] = []
+  for (const question of questions) {
+    const title = question.group?.trim() || '—'
+    const existing = blocks.find((b) => b.title === title)
+    if (existing) existing.questions.push(question)
+    else blocks.push({ title, questions: [question] })
+  }
+  return blocks
 }

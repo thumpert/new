@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   ART_STYLES,
+  BOOK_LANGUAGES,
   BOOK_SIZES,
   OCCASIONS,
   STORY_TYPES,
@@ -14,6 +15,7 @@ import type { Dictionary } from '@/lib/i18n'
 import type {
   ArtStyleId,
   BookBrief,
+  BookLanguageId,
   BookSizeId,
   Character,
   InterviewQuestion,
@@ -37,6 +39,7 @@ import {
 } from './ui'
 
 const STEPS = [
+  'bookLanguage',
   'occasion',
   'storyType',
   'tone',
@@ -59,6 +62,7 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
   const [error, setError] = useState<string | null>(null)
 
   const [orderId, setOrderId] = useState<string | null>(null)
+  const [bookLanguage, setBookLanguage] = useState<BookLanguageId>(locale)
   const [occasionId, setOccasionId] = useState<OccasionId>('child')
   const [storyTypeId, setStoryTypeId] = useState<StoryTypeId>('adventure')
   const [toneId, setToneId] = useState<ToneId>('warm')
@@ -89,6 +93,7 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
 
   const brief = (): BookBrief => ({
     locale,
+    bookLanguage,
     occasionId,
     storyTypeId,
     toneId,
@@ -212,6 +217,26 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
         <div className="mb-6">
           <ErrorNote message={error} />
         </div>
+      )}
+
+      {current === 'bookLanguage' && (
+        <StepShell
+          title={dict.wizard.bookLanguage.title}
+          subtitle={dict.wizard.bookLanguage.subtitle}
+          footer={footer(next)}
+        >
+          <div className="grid gap-3">
+            {BOOK_LANGUAGES.map((b) => (
+              <OptionCard
+                key={b.id}
+                label={dict.bookLanguages[b.id].label}
+                description={dict.bookLanguages[b.id].description}
+                selected={bookLanguage === b.id}
+                onSelect={() => setBookLanguage(b.id)}
+              />
+            ))}
+          </div>
+        </StepShell>
       )}
 
       {current === 'occasion' && (

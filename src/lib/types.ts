@@ -37,6 +37,13 @@ export type BookSizeId = 'short' | 'medium' | 'long'
 
 export type CharacterKind = 'person' | 'pet'
 
+/**
+ * The language the *book* is written in — independent of the language the
+ * site is shown in. A Brazilian buying a gift for someone learning English
+ * browses in Portuguese and orders an English book.
+ */
+export type BookLanguageId = 'pt' | 'en' | 'en-pt'
+
 export interface Character {
   id: string
   name: string
@@ -47,8 +54,11 @@ export interface Character {
   age?: string
   /** Physical + personality traits written by the customer. */
   traits: string
-  /** Reference photo uploaded by the customer (public URL). */
-  photoUrl?: string
+  /**
+   * Reference photos uploaded by the customer. More angles give the model a
+   * better read on the face; they are used once, to draw the model sheet.
+   */
+  photoUrls?: string[]
   /**
    * Line-art model sheet generated from the photo. Used as the reference for
    * every page so the character stays consistent across the whole book.
@@ -62,6 +72,16 @@ export interface InterviewQuestion {
   /** Why we are asking — shown as a subtle helper under the question. */
   hint?: string
   placeholder?: string
+  /**
+   * Theme this question belongs to. Questions sharing a group are shown
+   * together on one screen, so the customer answers in one train of thought.
+   */
+  group: string
+  /**
+   * Plausible answers the customer can click instead of typing. They are
+   * starting points, not the model's guesses about the truth.
+   */
+  suggestions: string[]
 }
 
 export interface InterviewAnswer {
@@ -71,7 +91,10 @@ export interface InterviewAnswer {
 }
 
 export interface BookBrief {
+  /** Language the site is being browsed in. */
   locale: Locale
+  /** Language the book itself is written in. Chosen explicitly. */
+  bookLanguage: BookLanguageId
   occasionId: OccasionId
   storyTypeId: StoryTypeId
   toneId: ToneId
@@ -103,6 +126,11 @@ export interface StoryPage {
   index: number
   /** Narration text printed under the illustration. */
   narration: string
+  /**
+   * Support line printed smaller under the narration, used by the bilingual
+   * book so a learner can check themselves without leaving the page.
+   */
+  narrationSecondary?: string
   /**
    * Visual description of the scene in English, written to be fed to the
    * image model. Describes action, setting and framing — never art style,

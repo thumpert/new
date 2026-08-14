@@ -1,7 +1,13 @@
 import { getImageProvider, type ImageProvider } from './images'
 import { fetchBinary, putFile } from './storage'
 import { getOrder, saveOrder, updateOrder } from './store'
-import type { Character, Order, PageRender } from './types'
+import type {
+  ArtStyleId,
+  Character,
+  Order,
+  PageRender,
+  StoryPage,
+} from './types'
 
 /**
  * Turns a storyboard into rendered pages.
@@ -44,7 +50,11 @@ export async function renderOrder(orderId: string): Promise<void> {
 
   const characters = await renderCharacterSheets(orderId, provider)
   await renderPages(orderId, provider, characters)
+  await settleStatus(orderId)
+}
 
+/** Marks the book ready, or failed if any page did not come back. */
+async function settleStatus(orderId: string): Promise<void> {
   await updateOrder(orderId, (current) => {
     const failed = (current.renders ?? []).filter((r) => r.status === 'failed')
     return {
@@ -70,7 +80,7 @@ async function renderCharacterSheets(
     const image = await provider.generateCharacterSheet({
       character,
       artStyleId: order.brief.artStyleId,
-      photoUrl: character.photoUrl,
+      photoUrls: character.photoUrls ?? [],
     })
     sheets.push({
       ...character,
@@ -106,43 +116,82 @@ async function renderPages(
       while (true) {
         const i = cursor++
         if (i >= pages.length) return
-        const page = pages[i]
-
-        await patchRender(orderId, page.index, { status: 'generating' })
-
-        const onPage = page.charactersOnPage
-          .map((id) => byId.get(id))
-          .filter((c): c is Character => Boolean(c))
-
-        try {
-          const image = await provider.generatePage({
-            index: page.index,
-            sceneDescription: page.sceneDescription,
-            artStyleId,
-            characterNames: onPage.map((c) => c.name),
-            referenceUrls: onPage
-              .map((c) => c.referenceSheetUrl)
-              .filter((u): u is string => Boolean(u)),
-          })
-
-          await patchRender(orderId, page.index, {
-            status: 'done',
-            imageUrl: image.placeholder ? undefined : await store(image.url),
-            requestId: image.requestId,
-            placeholder: image.placeholder,
-            promptPreview: image.promptPreview,
-          })
-        } catch (err) {
-          await patchRender(orderId, page.index, {
-            status: 'failed',
-            error: err instanceof Error ? err.message : String(err),
-          })
-        }
+        await renderOnePage(orderId, pages[i], byId, provider, artStyleId)
       }
     },
   )
 
   await Promise.all(workers)
+}
+
+/**
+ * Draws one page against the already-generated character sheets.
+ *
+ * This is the whole reason the two-stage design pays off: redrawing a page
+ * reuses the same sheets, so the characters come back identical and only the
+ * scene changes.
+ */
+async function renderOnePage(
+  orderId: string,
+  page: StoryPage,
+  byId: Map<string, Character>,
+  provider: ImageProvider,
+  artStyleId: ArtStyleId,
+): Promise<void> {
+  await patchRender(orderId, page.index, {
+    status: 'generating',
+    error: undefined,
+  })
+
+  const onPage = page.charactersOnPage
+    .map((id) => byId.get(id))
+    .filter((c): c is Character => Boolean(c))
+
+  try {
+    const image = await provider.generatePage({
+      index: page.index,
+      sceneDescription: page.sceneDescription,
+      artStyleId,
+      characterNames: onPage.map((c) => c.name),
+      referenceUrls: onPage
+        .map((c) => c.referenceSheetUrl)
+        .filter((u): u is string => Boolean(u)),
+    })
+
+    await patchRender(orderId, page.index, {
+      status: 'done',
+      imageUrl: image.placeholder ? undefined : await store(image.url),
+      requestId: image.requestId,
+      placeholder: image.placeholder,
+      promptPreview: image.promptPreview,
+    })
+  } catch (err) {
+    await patchRender(orderId, page.index, {
+      status: 'failed',
+      error: err instanceof Error ? err.message : String(err),
+    })
+  }
+}
+
+/**
+ * Redraws a single page, keeping every character exactly as they already are.
+ * Runs in the background; the caller polls the order for the new status.
+ */
+export async function regeneratePage(
+  orderId: string,
+  index: number,
+): Promise<void> {
+  const order = await getOrder(orderId)
+  if (!order?.storyboard) throw new Error('This book has no storyboard yet.')
+
+  const page = order.storyboard.pages.find((p) => p.index === index)
+  if (!page) throw new Error(`This book has no page ${index}.`)
+
+  const byId = new Map(order.brief.characters.map((c) => [c.id, c]))
+
+  await updateOrder(orderId, (current) => ({ ...current, status: 'rendering' }))
+  await renderOnePage(orderId, page, byId, getImageProvider(), order.brief.artStyleId)
+  await settleStatus(orderId)
 }
 
 /**

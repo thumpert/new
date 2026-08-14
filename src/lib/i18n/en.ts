@@ -40,6 +40,10 @@ export const en: Dictionary = {
     ],
   },
   wizard: {
+    bookLanguage: {
+      title: 'What language should the book be in?',
+      subtitle: 'The site stays as it is — this is only about the printed book.',
+    },
     occasion: {
       title: 'What is the occasion?',
       subtitle: 'This sets the tone and the heart of the story.',
@@ -80,11 +84,12 @@ export const en: Dictionary = {
       traits: 'What are they like?',
       traitsPlaceholder:
         'Looks and personality: curly brown hair, glasses, obsessed with dinosaurs, laughs at everything…',
-      photo: 'Reference photo',
+      photo: 'Reference photos',
       photoHint:
-        'A sharp, well-lit, front-facing photo. We only use it to draw the character.',
+        'Up to 3 sharp, well-lit photos: one front-on, one from the side, one smiling. We only use them to draw the character, once.',
       upload: 'Upload photo',
-      change: 'Change photo',
+      addPhoto: 'Add another photo',
+      removePhoto: 'Remove photo',
     },
     place: {
       title: 'Where does the story happen?',
@@ -99,6 +104,9 @@ export const en: Dictionary = {
       allQuestions: 'All questions',
       current: 'Current',
       close: 'Close',
+      suggestions: 'Suggestions — click to use one, then edit it',
+      block: 'Block',
+      answered: 'answered',
     },
     title: {
       title: 'What is the book called?',
@@ -134,6 +142,26 @@ export const en: Dictionary = {
     done: 'Your book is ready!',
     download: 'Download PDF',
     preview: 'See preview',
+    page: 'Page',
+    regenerate: 'Redraw this page',
+    regenerating: 'Redrawing…',
+    regenerateHint:
+      'The characters stay the same — only this scene is drawn again.',
+  },
+  bookLanguages: {
+    pt: {
+      label: 'Portuguese',
+      description: 'The whole story in Portuguese.',
+    },
+    en: {
+      label: 'English',
+      description: 'The whole story in English, no translation.',
+    },
+    'en-pt': {
+      label: 'English with Portuguese support',
+      description:
+        'Narration in English with the translation smaller underneath — for someone learning.',
+    },
   },
   occasions: {
     child: {

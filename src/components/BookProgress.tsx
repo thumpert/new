@@ -15,6 +15,10 @@ export function BookProgress({
 }) {
   const [order, setOrder] = useState<Order | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [selected, setSelected] = useState<number | null>(null)
+  const [regenerating, setRegenerating] = useState<number | null>(null)
+  /** Bumped after a redraw so the poller restarts and picks the page up. */
+  const [reloadKey, setReloadKey] = useState(0)
 
   useEffect(() => {
     let cancelled = false
@@ -46,9 +50,30 @@ export function BookProgress({
       cancelled = true
       clearTimeout(timer)
     }
-  }, [orderId, dict.common.error])
+  }, [orderId, dict.common.error, reloadKey])
+
+  /** Redraws one page. The characters are already fixed, so only this scene changes. */
+  async function regenerate(index: number) {
+    setRegenerating(index)
+    setError(null)
+    try {
+      const res = await fetch(
+        `/api/orders/${orderId}/pages/${index}/regenerate`,
+        { method: 'POST' },
+      )
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? dict.common.error)
+      // Restart polling: the order has gone back to "rendering".
+      setReloadKey((k) => k + 1)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : dict.common.error)
+    } finally {
+      setRegenerating(null)
+    }
+  }
 
   const renders = order?.renders ?? []
+  const selectedRender = renders.find((r) => r.index === selected)
   const done = renders.filter((r) => r.status === 'done').length
   const failed = renders.filter((r) => r.status === 'failed').length
   const total = renders.length
@@ -98,23 +123,58 @@ export function BookProgress({
         </div>
 
         {total > 0 && (
-          <ul className="mt-6 grid grid-cols-8 gap-2">
+          <ul className="mt-6 grid grid-cols-6 gap-2 sm:grid-cols-8">
             {renders.map((r) => (
-              <li
-                key={r.index}
-                title={r.error ?? `${r.index}`}
-                className={`aspect-[3/4] rounded border text-[10px] leading-none ${
-                  r.status === 'done'
-                    ? 'border-accent bg-accent-soft'
-                    : r.status === 'failed'
-                      ? 'border-accent bg-accent/20'
-                      : r.status === 'generating'
-                        ? 'animate-pulse border-accent/40 bg-paper'
-                        : 'border-line bg-paper'
-                }`}
-              />
+              <li key={r.index}>
+                <button
+                  type="button"
+                  onClick={() => setSelected(r.index)}
+                  title={r.error ?? `${dict.progress.page} ${r.index}`}
+                  className={`flex aspect-[3/4] w-full items-end justify-center rounded border pb-1 text-[10px] leading-none transition ${
+                    selected === r.index ? 'ring-2 ring-accent ring-offset-1' : ''
+                  } ${
+                    r.status === 'done'
+                      ? 'border-accent bg-accent-soft text-accent'
+                      : r.status === 'failed'
+                        ? 'border-accent bg-accent/20 text-accent'
+                        : r.status === 'generating'
+                          ? 'animate-pulse border-accent/40 bg-paper text-ink-soft'
+                          : 'border-line bg-paper text-ink-soft'
+                  }`}
+                >
+                  {r.index}
+                </button>
+              </li>
             ))}
           </ul>
+        )}
+
+        {selectedRender && (
+          <div className="mt-5 rounded-xl border border-line bg-paper p-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-sm font-medium text-ink">
+                {dict.progress.page} {selectedRender.index}
+              </p>
+              <Button
+                variant="ghost"
+                disabled={
+                  regenerating === selectedRender.index ||
+                  selectedRender.status === 'generating'
+                }
+                onClick={() => void regenerate(selectedRender.index)}
+              >
+                {regenerating === selectedRender.index
+                  ? dict.progress.regenerating
+                  : dict.progress.regenerate}
+              </Button>
+            </div>
+            <p className="mt-2 text-xs text-ink-soft">
+              {dict.progress.regenerateHint}
+            </p>
+            {selectedRender.error && (
+              <p className="mt-2 text-xs text-accent">{selectedRender.error}</p>
+            )}
+          </div>
         )}
 
         {failed > 0 && (
