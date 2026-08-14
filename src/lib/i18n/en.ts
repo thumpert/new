@@ -112,7 +112,7 @@ export const en: Dictionary = {
       title: 'What is the book called?',
       subtitle: 'You can change it later, once you pick the story.',
       placeholder: 'e.g. The Great Adventures of Lila',
-      suggest: 'Suggest titles',
+      suggest: 'Suggestions for this story — click to pick one',
     },
     dedication: {
       title: 'Want to write a dedication?',

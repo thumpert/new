@@ -48,8 +48,10 @@ const STEPS = [
   'characters',
   'place',
   'interview',
-  'title',
+  // The title comes after the story is chosen, so the suggestions can be
+  // drawn from that story rather than guessed from the brief.
   'ideas',
+  'title',
 ] as const
 
 type Step = (typeof STEPS)[number]
@@ -79,6 +81,7 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [ideas, setIdeas] = useState<StoryIdea[]>([])
   const [chosenIdeaId, setChosenIdeaId] = useState<string | null>(null)
+  const [titleSuggestions, setTitleSuggestions] = useState<string[]>([])
 
   const current: Step = STEPS[step]
 
@@ -170,7 +173,24 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
       )
       setIdeas(result.ideas)
       setChosenIdeaId(null)
+      setTitleSuggestions([])
       next()
+    })
+
+  /** Moves on to naming, pre-loading three titles for the chosen story. */
+  const goToTitle = () =>
+    run(async () => {
+      if (!orderId || !chosenIdeaId) throw new Error(dict.common.error)
+      next()
+
+      const chosen = ideas.find((i) => i.id === chosenIdeaId)
+      if (chosen && !title.trim()) setTitle(chosen.title)
+
+      const result = await call<{ titles: string[] }>(
+        `/api/orders/${orderId}/titles`,
+        { method: 'POST', json: { ideaId: chosenIdeaId } },
+      )
+      setTitleSuggestions(result.titles)
     })
 
   const generateBook = () =>
@@ -374,7 +394,7 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
         <StepShell
           title={dict.wizard.interview.title}
           subtitle={dict.wizard.interview.subtitle}
-          footer={footer(next)}
+          footer={footer(loadIdeas)}
         >
           <InterviewStep
             dict={dict}
@@ -391,7 +411,20 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
         <StepShell
           title={dict.wizard.title.title}
           subtitle={dict.wizard.title.subtitle}
-          footer={footer(loadIdeas)}
+          footer={
+            <>
+              <Button variant="quiet" onClick={back} disabled={busy}>
+                {dict.common.back}
+              </Button>
+              <Button
+                onClick={generateBook}
+                disabled={busy || !title.trim()}
+                className="ml-auto"
+              >
+                {busy ? dict.common.generating : dict.wizard.review.generate}
+              </Button>
+            </>
+          }
         >
           <div className="space-y-5">
             <Field label={dict.wizard.title.title}>
@@ -402,6 +435,38 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
                 onChange={setTitle}
               />
             </Field>
+
+            <div>
+              <p className="mb-2 text-xs text-ink-soft">
+                {dict.wizard.title.suggest}
+              </p>
+              {titleSuggestions.length === 0 ? (
+                // Only while the call is in flight — if it failed, the error
+                // is already shown above and naming still works by hand.
+                busy && <p className="text-sm text-ink-soft">{dict.common.loading}</p>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {titleSuggestions.map((suggestion) => {
+                    const chosen = title.trim() === suggestion
+                    return (
+                      <button
+                        key={suggestion}
+                        type="button"
+                        onClick={() => setTitle(suggestion)}
+                        aria-pressed={chosen}
+                        className={`rounded-full border px-4 py-2 font-serif text-sm transition ${
+                          chosen
+                            ? 'border-accent bg-accent-soft text-accent'
+                            : 'border-line bg-paper text-ink hover:border-accent hover:text-accent'
+                        }`}
+                      >
+                        {suggestion}
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
             <Field
               label={dict.wizard.dedication.title}
               hint={dict.wizard.dedication.subtitle}
@@ -428,11 +493,11 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
                 {dict.wizard.ideas.regenerate}
               </Button>
               <Button
-                onClick={generateBook}
+                onClick={goToTitle}
                 disabled={busy || !chosenIdeaId}
                 className="ml-auto"
               >
-                {busy ? dict.common.generating : dict.wizard.review.generate}
+                {busy ? dict.common.generating : dict.common.next}
               </Button>
             </>
           }

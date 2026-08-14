@@ -12,9 +12,11 @@ import {
   IDEAS_SYSTEM,
   INTERVIEW_SYSTEM,
   STORYBOARD_SYSTEM,
+  TITLES_SYSTEM,
   ideasUser,
   interviewUser,
   storyboardUser,
+  titlesUser,
 } from './prompts'
 
 const MODEL = 'claude-opus-5'
@@ -147,6 +149,29 @@ export async function generateIdeas(brief: BookBrief): Promise<StoryIdea[]> {
     summary: idea.summary,
     highlights: idea.highlights,
   }))
+}
+
+const TitlesSchema = z.object({
+  titles: z
+    .array(z.string())
+    .describe('Three short, distinct titles for the chosen story.'),
+})
+
+export async function generateTitleSuggestions(
+  brief: BookBrief,
+  idea: StoryIdea,
+): Promise<string[]> {
+  const response = await getClient().messages.parse({
+    model: MODEL,
+    max_tokens: 4000,
+    thinking: { type: 'adaptive' },
+    system: TITLES_SYSTEM,
+    messages: [{ role: 'user', content: titlesUser(brief, idea) }],
+    output_config: { format: zodOutputFormat(TitlesSchema) },
+  })
+
+  const parsed = expectParsed(response.parsed_output, 'title suggestions')
+  return parsed.titles.map((t) => t.trim()).filter(Boolean).slice(0, 3)
 }
 
 export async function generateStoryboard(

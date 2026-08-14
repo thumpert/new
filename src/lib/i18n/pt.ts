@@ -111,7 +111,7 @@ export const pt = {
       title: 'Qual o título do livro?',
       subtitle: 'Pode mudar depois, quando você escolher a história.',
       placeholder: 'Ex.: As Grandes Aventuras da Lila',
-      suggest: 'Sugerir títulos',
+      suggest: 'Sugestões para esta história — clique para escolher',
     },
     dedication: {
       title: 'Quer escrever uma dedicatória?',

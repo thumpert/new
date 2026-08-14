@@ -129,6 +129,32 @@ export function ideasUser(brief: BookBrief): string {
   ].join('\n')
 }
 
+export const TITLES_SYSTEM = `You name children's books.
+
+You will be given the story the customer chose and everything they told us about the people in it. Propose three titles.
+
+Rules:
+- Each title must sound like a real children's book someone would pull off a shelf — not a description of the plot, not a summary.
+- Use the characters' real names where it helps. A name in the title is half the reason this book is a gift.
+- Make the three genuinely different in approach: one plain and warm, one playful, one with a bit of wonder. Three variations of the same title is a wasted choice.
+- Keep them short. Six words is already long.
+- No subtitles, no colons, no quotation marks.
+- Write them in the book's language.`
+
+export function titlesUser(brief: BookBrief, idea: StoryIdea): string {
+  const language = getBookLanguage(brief.bookLanguage)
+  return [
+    `Propose three titles in ${language.primary}.`,
+    '',
+    'THE CHOSEN STORY:',
+    `Working title: ${idea.title}`,
+    `Logline: ${idea.logline}`,
+    `Summary: ${idea.summary}`,
+    '',
+    briefContext(brief),
+  ].join('\n')
+}
+
 export const STORYBOARD_SYSTEM = `You turn a chosen story idea into a page-by-page coloring book.
 
 Each page is one full-page illustration with one or two sentences of narration printed underneath.
