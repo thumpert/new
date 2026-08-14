@@ -6,6 +6,7 @@ import {
   ART_STYLES,
   BOOK_LANGUAGES,
   BOOK_SIZES,
+  IMAGE_MODELS,
   OCCASIONS,
   STORY_TYPES,
   TONES,
@@ -17,6 +18,7 @@ import type {
   BookBrief,
   BookLanguageId,
   BookSizeId,
+  ImageModelId,
   Character,
   InterviewQuestion,
   Locale,
@@ -40,6 +42,7 @@ import {
 
 const STEPS = [
   'bookLanguage',
+  'imageModel',
   'occasion',
   'storyType',
   'tone',
@@ -65,6 +68,7 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
 
   const [orderId, setOrderId] = useState<string | null>(null)
   const [bookLanguage, setBookLanguage] = useState<BookLanguageId>(locale)
+  const [imageModelId, setImageModelId] = useState<ImageModelId>('nano-banana')
   const [occasionId, setOccasionId] = useState<OccasionId>('child')
   const [storyTypeId, setStoryTypeId] = useState<StoryTypeId>('adventure')
   const [toneId, setToneId] = useState<ToneId>('warm')
@@ -97,6 +101,7 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
   const brief = (): BookBrief => ({
     locale,
     bookLanguage,
+    imageModelId,
     occasionId,
     storyTypeId,
     toneId,
@@ -253,6 +258,27 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
                 description={dict.bookLanguages[b.id].description}
                 selected={bookLanguage === b.id}
                 onSelect={() => setBookLanguage(b.id)}
+              />
+            ))}
+          </div>
+        </StepShell>
+      )}
+
+      {current === 'imageModel' && (
+        <StepShell
+          title={dict.wizard.imageModel.title}
+          subtitle={dict.wizard.imageModel.subtitle}
+          footer={footer(next)}
+        >
+          <div className="grid gap-3">
+            {IMAGE_MODELS.map((m) => (
+              <OptionCard
+                key={m.id}
+                label={dict.imageModels[m.id].label}
+                description={dict.imageModels[m.id].description}
+                meta={dict.imageModels[m.id].meta}
+                selected={imageModelId === m.id}
+                onSelect={() => setImageModelId(m.id)}
               />
             ))}
           </div>

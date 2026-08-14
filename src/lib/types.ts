@@ -44,6 +44,13 @@ export type CharacterKind = 'person' | 'pet'
  */
 export type BookLanguageId = 'pt' | 'en' | 'en-pt'
 
+/**
+ * Which image model draws the pages. Exposed while we are still comparing
+ * them — the two differ in speed by roughly 3x, which a customer waiting on
+ * a 32-page book does feel.
+ */
+export type ImageModelId = 'nano-banana' | 'gpt-image'
+
 export interface Character {
   id: string
   name: string
@@ -95,6 +102,8 @@ export interface BookBrief {
   locale: Locale
   /** Language the book itself is written in. Chosen explicitly. */
   bookLanguage: BookLanguageId
+  /** Image model used to draw every page. */
+  imageModelId: ImageModelId
   occasionId: OccasionId
   storyTypeId: StoryTypeId
   toneId: ToneId

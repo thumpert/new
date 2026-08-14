@@ -2,6 +2,7 @@ import type {
   ArtStyleId,
   BookLanguageId,
   BookSizeId,
+  ImageModelId,
   OccasionId,
   StoryTypeId,
   ToneId,
@@ -173,6 +174,37 @@ export const ART_STYLES: ArtStyleDef[] = [
   },
 ]
 
+export interface ImageModelDef {
+  id: ImageModelId
+  /** Provider's own model id, for logs and for the endpoint env var name. */
+  providerModel: string
+  /** Env var holding this model's REST endpoint. */
+  endpointEnv: string
+  /** Extra input fields this model needs beyond prompt and aspect ratio. */
+  extraInput: Record<string, string>
+  /** Measured seconds per page, from a same-scene comparison. */
+  secondsPerPage: number
+}
+
+export const IMAGE_MODELS: ImageModelDef[] = [
+  {
+    id: 'nano-banana',
+    providerModel: 'nano_banana_2',
+    endpointEnv: 'HIGGSFIELD_ENDPOINT_NANO_BANANA',
+    extraInput: { resolution: '2k' },
+    secondsPerPage: 40,
+  },
+  {
+    id: 'gpt-image',
+    providerModel: 'gpt_image_2',
+    endpointEnv: 'HIGGSFIELD_ENDPOINT_GPT_IMAGE',
+    // Its quality defaults to "low", which is not comparable to the other
+    // model at 2k — always ask for high.
+    extraInput: { resolution: '2k', quality: 'high' },
+    secondsPerPage: 100,
+  },
+]
+
 export interface BookLanguageDef {
   id: BookLanguageId
   /** Language the narration is written in. */
@@ -220,6 +252,12 @@ export function getTone(id: ToneId): ToneDef {
 export function getArtStyle(id: ArtStyleId): ArtStyleDef {
   const found = ART_STYLES.find((a) => a.id === id)
   if (!found) throw new Error(`Unknown art style: ${id}`)
+  return found
+}
+
+export function getImageModel(id: ImageModelId): ImageModelDef {
+  const found = IMAGE_MODELS.find((m) => m.id === id)
+  if (!found) throw new Error(`Unknown image model: ${id}`)
   return found
 }
 

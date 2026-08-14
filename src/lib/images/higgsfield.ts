@@ -1,5 +1,7 @@
 import { createHiggsfieldClient } from '@higgsfield/client/v2'
+import { getImageModel } from '../catalog'
 import { absoluteUrl } from '../storage'
+import type { ImageModelId } from '../types'
 import { characterSheetPrompt, pagePrompt } from './prompt'
 import type {
   CharacterSheetRequest,
@@ -15,12 +17,15 @@ import type {
  * API, and the exact endpoint string and reference-image field differ per
  * model. Rather than hard-code a guess, both are configuration:
  *
- *   HIGGSFIELD_CREDENTIALS      "KEY_ID:KEY_SECRET"
- *   HIGGSFIELD_IMAGE_ENDPOINT   e.g. "flux-pro/kontext/max/text-to-image"
- *   HIGGSFIELD_ASPECT_RATIO     defaults to 3:4 (fits A4 with margins)
- *   HIGGSFIELD_REFERENCE_FIELD  defaults to input_images
+ *   HIGGSFIELD_CREDENTIALS           "KEY_ID:KEY_SECRET"
+ *   HIGGSFIELD_ENDPOINT_NANO_BANANA  endpoint for nano_banana_2
+ *   HIGGSFIELD_ENDPOINT_GPT_IMAGE    endpoint for gpt_image_2
+ *   HIGGSFIELD_IMAGE_ENDPOINT        fallback used when the per-model one is unset
+ *   HIGGSFIELD_ASPECT_RATIO          defaults to 3:4 (fits A4 with margins)
+ *   HIGGSFIELD_REFERENCE_FIELD       defaults to input_images
  *
  * See docs.higgsfield.ai for the endpoint that matches the model you want.
+ * Only the model the customer actually picks needs its endpoint set.
  */
 
 const DEFAULT_ASPECT_RATIO = '3:4'
@@ -30,7 +35,19 @@ const DEFAULT_REFERENCE_FIELD = 'input_images'
 const MAX_POLL_MS = 5 * 60 * 1000
 
 export function higgsfieldConfigured(): boolean {
-  return Boolean(credentials() && process.env.HIGGSFIELD_IMAGE_ENDPOINT)
+  if (!credentials()) return false
+  // Configured if any model has an endpoint — the customer picks which.
+  return IMAGE_MODEL_IDS.some((id) => endpointFor(id) !== undefined)
+}
+
+const IMAGE_MODEL_IDS: ImageModelId[] = ['nano-banana', 'gpt-image']
+
+/** Per-model endpoint, falling back to the single shared one. */
+function endpointFor(id: ImageModelId): string | undefined {
+  return (
+    process.env[getImageModel(id).endpointEnv] ??
+    process.env.HIGGSFIELD_IMAGE_ENDPOINT
+  )
 }
 
 function credentials(): string | undefined {
@@ -41,14 +58,15 @@ function credentials(): string | undefined {
   return id && secret ? `${id}:${secret}` : undefined
 }
 
-function requireEnv(name: string): string {
-  const value = process.env[name]
-  if (!value) {
+function requireEndpoint(id: ImageModelId): string {
+  const endpoint = endpointFor(id)
+  if (!endpoint) {
+    const { endpointEnv, providerModel } = getImageModel(id)
     throw new Error(
-      `${name} is not set. The Higgsfield provider needs HIGGSFIELD_CREDENTIALS and HIGGSFIELD_IMAGE_ENDPOINT — see .env.example.`,
+      `${endpointEnv} is not set, so ${providerModel} cannot be used. Set it (or HIGGSFIELD_IMAGE_ENDPOINT) — see .env.example.`,
     )
   }
-  return value
+  return endpoint
 }
 
 export class HiggsfieldProvider implements ImageProvider {
@@ -67,7 +85,7 @@ export class HiggsfieldProvider implements ImageProvider {
       req.artStyleId,
       req.photoUrls.length,
     )
-    return this.generate(prompt, req.photoUrls)
+    return this.generate(prompt, req.photoUrls, req.imageModelId)
   }
 
   async generatePage(req: PageRequest): Promise<GeneratedImage> {
@@ -77,20 +95,23 @@ export class HiggsfieldProvider implements ImageProvider {
       req.characterNames,
       req.referenceUrls.length > 0,
     )
-    return this.generate(prompt, req.referenceUrls)
+    return this.generate(prompt, req.referenceUrls, req.imageModelId)
   }
 
   private async generate(
     prompt: string,
     referenceUrls: string[],
+    imageModelId: ImageModelId,
   ): Promise<GeneratedImage> {
-    const endpoint = requireEnv('HIGGSFIELD_IMAGE_ENDPOINT')
+    const endpoint = requireEndpoint(imageModelId)
+    const model = getImageModel(imageModelId)
     const referenceField =
       process.env.HIGGSFIELD_REFERENCE_FIELD ?? DEFAULT_REFERENCE_FIELD
 
     const input: Record<string, unknown> = {
       prompt,
       aspect_ratio: process.env.HIGGSFIELD_ASPECT_RATIO ?? DEFAULT_ASPECT_RATIO,
+      ...model.extraInput,
     }
 
     if (referenceUrls.length > 0) {

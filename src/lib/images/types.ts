@@ -1,8 +1,9 @@
-import type { ArtStyleId, Character } from '../types'
+import type { ArtStyleId, Character, ImageModelId } from '../types'
 
 export interface CharacterSheetRequest {
   character: Character
   artStyleId: ArtStyleId
+  imageModelId: ImageModelId
   /** Reference photos the customer uploaded, if any. */
   photoUrls: string[]
 }
@@ -12,6 +13,7 @@ export interface PageRequest {
   /** English visual description of the scene. */
   sceneDescription: string
   artStyleId: ArtStyleId
+  imageModelId: ImageModelId
   /**
    * Absolute URLs of the line-art model sheets for the characters on this
    * page, in the same order as `characterNames`.

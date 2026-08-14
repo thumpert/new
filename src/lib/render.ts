@@ -4,6 +4,7 @@ import { getOrder, saveOrder, updateOrder } from './store'
 import type {
   ArtStyleId,
   Character,
+  ImageModelId,
   Order,
   PageRender,
   StoryPage,
@@ -80,6 +81,7 @@ async function renderCharacterSheets(
     const image = await provider.generateCharacterSheet({
       character,
       artStyleId: order.brief.artStyleId,
+      imageModelId: order.brief.imageModelId,
       photoUrls: character.photoUrls ?? [],
     })
     sheets.push({
@@ -106,7 +108,7 @@ async function renderPages(
 
   const byId = new Map(characters.map((c) => [c.id, c]))
   const pages = order.storyboard.pages
-  const artStyleId = order.brief.artStyleId
+  const { artStyleId, imageModelId } = order.brief
 
   // A simple worker pool: each worker pulls the next index off a shared cursor.
   let cursor = 0
@@ -116,7 +118,14 @@ async function renderPages(
       while (true) {
         const i = cursor++
         if (i >= pages.length) return
-        await renderOnePage(orderId, pages[i], byId, provider, artStyleId)
+        await renderOnePage(
+          orderId,
+          pages[i],
+          byId,
+          provider,
+          artStyleId,
+          imageModelId,
+        )
       }
     },
   )
@@ -137,6 +146,7 @@ async function renderOnePage(
   byId: Map<string, Character>,
   provider: ImageProvider,
   artStyleId: ArtStyleId,
+  imageModelId: ImageModelId,
 ): Promise<void> {
   await patchRender(orderId, page.index, {
     status: 'generating',
@@ -152,6 +162,7 @@ async function renderOnePage(
       index: page.index,
       sceneDescription: page.sceneDescription,
       artStyleId,
+      imageModelId,
       characterNames: onPage.map((c) => c.name),
       referenceUrls: onPage
         .map((c) => c.referenceSheetUrl)
@@ -190,7 +201,14 @@ export async function regeneratePage(
   const byId = new Map(order.brief.characters.map((c) => [c.id, c]))
 
   await updateOrder(orderId, (current) => ({ ...current, status: 'rendering' }))
-  await renderOnePage(orderId, page, byId, getImageProvider(), order.brief.artStyleId)
+  await renderOnePage(
+    orderId,
+    page,
+    byId,
+    getImageProvider(),
+    order.brief.artStyleId,
+    order.brief.imageModelId,
+  )
   await settleStatus(orderId)
 }
 

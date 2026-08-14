@@ -44,6 +44,11 @@ export const en: Dictionary = {
       title: 'What language should the book be in?',
       subtitle: 'The site stays as it is — this is only about the printed book.',
     },
+    imageModel: {
+      title: 'Which model should draw?',
+      subtitle:
+        'Under test: both draw the same book, at very different speeds.',
+    },
     occasion: {
       title: 'What is the occasion?',
       subtitle: 'This sets the tone and the heart of the story.',
@@ -147,6 +152,20 @@ export const en: Dictionary = {
     regenerating: 'Redrawing…',
     regenerateHint:
       'The characters stay the same — only this scene is drawn again.',
+  },
+  imageModels: {
+    'nano-banana': {
+      label: 'Nano Banana',
+      description:
+        'About 40s per page. This is the one we validated character consistency with.',
+      meta: '~4 min / 12 pages',
+    },
+    'gpt-image': {
+      label: 'GPT Image',
+      description:
+        'About 100s per page. Slower, and consistency across pages is still untested.',
+      meta: '~10 min / 12 pages',
+    },
   },
   bookLanguages: {
     pt: {

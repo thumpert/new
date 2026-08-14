@@ -3,6 +3,7 @@ import {
   ART_STYLES,
   BOOK_LANGUAGES,
   BOOK_SIZES,
+  IMAGE_MODELS,
   OCCASIONS,
   STORY_TYPES,
   TONES,
@@ -34,6 +35,7 @@ export const interviewAnswerSchema = z.object({
 export const briefSchema = z.object({
   locale: z.enum(LOCALES as [string, ...string[]]),
   bookLanguage: z.enum(ids(BOOK_LANGUAGES)),
+  imageModelId: z.enum(ids(IMAGE_MODELS)),
   occasionId: z.enum(ids(OCCASIONS)),
   storyTypeId: z.enum(ids(STORY_TYPES)),
   toneId: z.enum(ids(TONES)),

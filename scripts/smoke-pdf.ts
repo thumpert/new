@@ -26,6 +26,7 @@ const order: Order = {
     // The bilingual book is the layout most likely to break: it is the only
     // one printing two text blocks under the drawing.
     bookLanguage: 'en-pt',
+    imageModelId: 'nano-banana',
     occasionId: 'birthday',
     storyTypeId: 'adventure',
     toneId: 'warm',

@@ -43,6 +43,11 @@ export const pt = {
       subtitle:
         'O site continua em português — isso vale só para o livro impresso.',
     },
+    imageModel: {
+      title: 'Qual modelo vai desenhar?',
+      subtitle:
+        'Em teste: os dois desenham o mesmo livro, com velocidades bem diferentes.',
+    },
     occasion: {
       title: 'Qual é a ocasião?',
       subtitle: 'Isso define o tom e o coração da história.',
@@ -146,6 +151,20 @@ export const pt = {
     regenerating: 'Refazendo…',
     regenerateHint:
       'Os personagens continuam iguais — só esta cena é desenhada de novo.',
+  },
+  imageModels: {
+    'nano-banana': {
+      label: 'Nano Banana',
+      description:
+        'Cerca de 40s por página. Foi com ele que validamos a consistência dos personagens.',
+      meta: '~4 min / 12 páginas',
+    },
+    'gpt-image': {
+      label: 'GPT Image',
+      description:
+        'Cerca de 100s por página. Mais lento; a consistência entre páginas ainda não foi testada.',
+      meta: '~10 min / 12 páginas',
+    },
   },
   bookLanguages: {
     pt: {
