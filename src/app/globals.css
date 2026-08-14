@@ -1,0 +1,57 @@
+@import 'tailwindcss';
+
+/*
+ * Warm paper palette — the product is a printed book, and the site should
+ * feel like the paper it ends up on rather than a SaaS dashboard.
+ */
+:root {
+  --paper: #faf7f2;
+  --paper-raised: #ffffff;
+  --ink: #1f1b16;
+  --ink-soft: #6b6259;
+  --line: #e6ded2;
+  --accent: #b4532a;
+  --accent-soft: #f4e6de;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-paper-raised: var(--paper-raised);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-serif: ui-serif, Georgia, 'Times New Roman', serif;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* The wizard is long; keep step transitions from feeling jumpy. */
+@media (prefers-reduced-motion: no-preference) {
+  .step-enter {
+    animation: step-in 220ms ease-out;
+  }
+}
+
+@keyframes step-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
