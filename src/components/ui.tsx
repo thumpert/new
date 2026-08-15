@@ -47,6 +47,7 @@ export function OptionCard({
   onSelect,
   meta,
   sample,
+  example,
 }: {
   label: string
   description?: string
@@ -55,6 +56,12 @@ export function OptionCard({
   meta?: string
   /** Example drawing, shown above the label. Used by the art style picker. */
   sample?: string
+  /**
+   * A few lines written in this option's own voice, shown under the
+   * description. Used by the narrator picker, where an adjective like
+   * "playful" says far less than two lines of the thing itself.
+   */
+  example?: string
 }) {
   return (
     <button
@@ -94,6 +101,14 @@ export function OptionCard({
         {description && (
           <span className="text-sm leading-snug text-ink-soft">
             {description}
+          </span>
+        )}
+        {example && (
+          // Set apart with a rule and italics so it reads as a specimen of the
+          // voice rather than as more instructions about it. Line breaks in the
+          // string are meaningful here — these are lines, not a paragraph.
+          <span className="mt-2 block border-l-2 border-line pl-3 font-serif text-sm italic leading-relaxed whitespace-pre-line text-ink/75">
+            {example}
           </span>
         )}
       </span>

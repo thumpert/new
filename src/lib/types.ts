@@ -24,7 +24,7 @@ export type StoryTypeId =
   | 'superhero'
   | 'funny'
 
-export type ToneId = 'warm' | 'playful' | 'poetic' | 'epic'
+export type ToneId = 'warm' | 'playful' | 'poetic' | 'epic' | 'serene'
 
 export type ArtStyleId =
   | 'chibi'

@@ -246,10 +246,41 @@ export const en: Dictionary = {
     funny: { label: 'Comedy', description: 'Everything goes wrong in the funniest way.' },
   },
   tones: {
-    warm: { label: 'Warm', description: 'Like a bedtime story.' },
-    playful: { label: 'Playful', description: 'Full of energy, sounds and jokes.' },
-    poetic: { label: 'Poetic', description: 'Gentle rhythm and beautiful imagery.' },
-    epic: { label: 'Epic', description: 'A grand narrator for domestic deeds.' },
+    warm: {
+      label: 'Warm',
+      description:
+        'Love is not stated, it is measured: arms thrown open, a jump, a hug that will not fit.',
+      example:
+        '“Zeca, do you know how much I love it here?”\nZeca did not know.\nLila opened her arms until her shoulders ached.\n“This much. And there is still some left over.”',
+    },
+    playful: {
+      label: 'Playful',
+      description:
+        'Short sentences, stacked up, and the joke is who someone is — not what happens.',
+      example:
+        'Lila is like this: she arrives, she shoves the gate, and the whole garden knows about it.\nZeca is even more like that.\nZeca gets there first.',
+    },
+    poetic: {
+      label: 'Poetic',
+      description:
+        'Short lines, one image a page. It rhymes only when the rhyme turns up on its own.',
+      example:
+        'The gate swung open, unhurried.\nThe afternoon came in, and stayed.\nZeca ran on ahead\nlike someone who already knew.',
+    },
+    epic: {
+      label: 'Epic',
+      description:
+        'Live commentary, from a narrator losing all composure over almost nothing.',
+      example:
+        'She approaches the gate… she pushes… IT IS OPEN!\nThe garden is open, ladies and gentlemen!\nAnd look at Zeca! Zeca is already through!',
+    },
+    serene: {
+      label: 'Serene',
+      description:
+        'Every gesture carries the times it happened before. The feeling sits under the sentence.',
+      example:
+        'The gate kept the creak of every afternoon that came before it.\nLila went in, and with her went all the other times she had gone in.\nZeca walked ahead, like someone who knows the way by heart.',
+    },
   },
   artStyles: {
     chibi: {

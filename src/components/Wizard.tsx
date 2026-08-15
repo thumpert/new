@@ -343,6 +343,7 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
                 key={t.id}
                 label={dict.tones[t.id].label}
                 description={dict.tones[t.id].description}
+                example={dict.tones[t.id].example}
                 selected={toneId === t.id}
                 onSelect={() => setToneId(t.id)}
               />

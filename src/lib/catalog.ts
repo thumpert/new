@@ -112,23 +112,67 @@ export interface ToneDef {
 export const TONES: ToneDef[] = [
   {
     id: 'warm',
-    prompt:
-      'Warm and affectionate, like a parent reading at bedtime. Simple sentences, a lot of heart, never saccharine.',
+    // Affection measured out loud rather than declared.
+    prompt: [
+      'Affectionate, in the voice of two who love each other measuring it out loud.',
+      'MECHANISM: affection is never named in the abstract. It always becomes a quantity or a gesture — how wide the arms open, how high the jump, how far one would run. If a line could be replaced by "they loved each other very much", it is written wrong.',
+      'EXCHANGE: the page is built as a small back-and-forth. One asks or claims, the other answers or tries to outdo it. A page may carry only one half of the exchange, with the next page answering.',
+      'UNITS: the measures are childlike and physical — arms, jumps, distances, how long a breath lasts. Never abstract units, never numbers.',
+      'HUMOUR: comes from the mismatch of scales, when the small one tries to out-measure the big one, or accidentally wins.',
+      'CLOSING: whoever is older or bigger has the last word, and it is quieter than the one before, not louder.',
+      'AVOID: abstract feeling words, adult vocabulary for emotion, sentimentality with no gesture underneath.',
+      'WHEN THERE IS ONLY ONE CHARACTER: the measuring runs against the world instead — the size of the garden, the length of the afternoon, how much of the day is left. The form needs two sides, so the world becomes the second one.',
+    ].join(' '),
   },
   {
     id: 'playful',
-    prompt:
-      'Playful and energetic, with sound words, exclamations and a wink to the reader.',
+    // Brazilian, colloquial, cumulative; the joke is who someone is.
+    prompt: [
+      'Playful and colloquial, in the voice of a Brazilian narrator who knows this person well and is amused by them.',
+      'SENTENCES: short and declarative, stacked one after another. The rhythm comes from accumulation, and the last sentence of a page is shorter than the ones before it, landing like a punchline.',
+      'SUBJECT OF THE JOKE: who the character is, never what merely happens. The humour is affectionate exaggeration of a real habit — the way they always run ahead, the thing they always say.',
+      'CONSTRUCTION: reach for the shape "X is like this: ..." — defining a person by one habit, then topping it with a second character who is even more like that.',
+      'VOCABULARY: everyday and unpretentious, the way people actually speak. No invented words, no rhyme, no sound effects.',
+      'AVOID: slapstick for its own sake, jokes only an adult would get, and any humour at the character’s expense — the reader must feel the narrator likes them.',
+    ].join(' '),
   },
   {
     id: 'poetic',
-    prompt:
-      'Poetic and lyrical, with gentle rhythm and imagery. May rhyme lightly, but never at the cost of meaning.',
+    // Short lines, gentle cadence, one image a page.
+    prompt: [
+      'Poetic, in the voice of short lines and a gentle regular cadence.',
+      'IMAGE: one clear image per page, drawn from the concrete world of this story — the light, the garden, the animal, the object in someone’s hand. Never abstract beauty, never a feeling floating free of a thing.',
+      'RHYME: allowed but never pursued. If a rhyme arrives on its own and costs nothing, keep it. The moment it would force an odd word, an inverted sentence or a weaker meaning, drop it and let the line be unrhymed. An unrhymed line that reads naturally is always better than a rhymed one that does not.',
+      'SOUND: softness comes from the vowels and the pauses rather than from ornament. Keep the lines short enough to breathe between them.',
+      'AVOID: archaic word order, inversions written to land a rhyme, and grand abstractions.',
+      'BILINGUAL BOOKS: the support line stays an honest, natural translation. It must never be bent to rhyme — its job is to let a learner check themselves.',
+    ].join(' '),
   },
   {
     id: 'epic',
-    prompt:
-      'Grand and cinematic, in the voice of a narrator announcing legendary deeds — played slightly for laughs given the domestic subject.',
+    // Live commentary over a domestic non-event.
+    prompt: [
+      'Epic in the voice of a live sports commentator, calling something far too small for the intensity being brought to it.',
+      'TENSE: present, always. It is happening now, in front of the microphone.',
+      'RHYTHM: short bursts and sentence fragments. A build-up, then a break. The page has quiet before it has a shout, or the shout means nothing.',
+      'THE JOKE: the mismatch between the delivery and the event. A dog reaching the gate first is called like a decisive goal, and the narrator never once acknowledges that it is a small thing.',
+      'NAMING: say the characters’ names constantly, the way commentators do.',
+      'INTENSITY: at most one shouted, capitalised moment per page, and not on every page.',
+      'AVOID: real sporting jargon a child would not know, mockery of the characters, and shouting all the way through with no quiet to set it off.',
+    ].join(' '),
+  },
+  {
+    id: 'serene',
+    // The one voice that does not perform. Every gesture carries the earlier
+    // times it happened, which is what a keepsake book actually is.
+    prompt: [
+      'Quiet and unhurried, in the voice of someone remembering rather than announcing.',
+      'MECHANISM: every ordinary thing carries the times it happened before. A gate holds the creak of all the afternoons that came before it; a path is known by heart because it was walked so often. This is what separates this voice from simply being calm.',
+      'RESTRAINT: the feeling is never stated. Put down one exact detail and stop. If a sentence explains why a moment matters, delete the explanation and keep the moment.',
+      'SENTENCES: plain and unhurried, with no ornament and few adjectives. Their weight comes from what they leave out.',
+      'DETAIL: concrete and sensory — what the hand touched, what the air smelled of, what was heard from the next room. Small things, given their due.',
+      'AVOID: nostalgia laid on thick, sadness, anything wistful about time passing. This voice is warm and present, not mournful. Also avoid grand words: the register breaks the moment it reaches for beauty.',
+    ].join(' '),
   },
 ]
 
