@@ -66,11 +66,6 @@ export const en: Dictionary = {
       subtitleColoured:
         'Each style brings its own palette — the comic one is vivid, the kawaii one is pastel.',
     },
-    size: {
-      title: 'How long should the book be?',
-      subtitle: 'Every page is one A4 illustration.',
-      pages: 'pages',
-    },
     characters: {
       title: 'Who are the characters?',
       subtitle:
@@ -313,10 +308,5 @@ export const en: Dictionary = {
       descriptionColoured:
         'A 90s animated show, in flat colour with scenery staged in layers.',
     },
-  },
-  bookSizes: {
-    short: { label: 'Short', description: 'A quick story, straight to the point.' },
-    medium: { label: 'Medium', description: 'The most popular size.' },
-    long: { label: 'Long', description: 'Room for a full story.' },
   },
 }

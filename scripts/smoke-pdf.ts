@@ -39,7 +39,6 @@ const order: Order = {
     storyTypeId: 'adventure',
     toneId: 'warm',
     artStyleId: 'cartoon',
-    sizeId: 'short',
     title: 'As Grandes Aventuras da Lila',
     place: 'a casa da vovó em Petrópolis, com o quintal cheio de mangueiras',
     dedication: 'Para a Lila, que transforma qualquer quintal em floresta.',

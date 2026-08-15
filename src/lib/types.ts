@@ -33,7 +33,6 @@ export type ArtStyleId =
   | 'fine-line'
   | 'cartoon'
 
-export type BookSizeId = 'short' | 'medium' | 'long'
 
 export type CharacterKind = 'person' | 'pet'
 
@@ -137,7 +136,6 @@ export interface BookBrief {
   artStyleId: ArtStyleId
   /** Title chosen by the customer. May be empty until the review step. */
   title: string
-  sizeId: BookSizeId
   /** Where the story happens: "a fazenda da vovó em Minas". */
   place: string
   characters: Character[]

@@ -2,7 +2,6 @@ import * as z from 'zod'
 import {
   ART_STYLES,
   BOOK_LANGUAGES,
-  BOOK_SIZES,
   OCCASIONS,
   STORY_TYPES,
   TONES,
@@ -45,7 +44,6 @@ export const briefSchema = z.object({
   storyTypeId: z.enum(ids(STORY_TYPES)),
   toneId: z.enum(ids(TONES)),
   artStyleId: z.enum(ids(ART_STYLES)),
-  sizeId: z.enum(ids(BOOK_SIZES)),
   title: z.string().max(120).default(''),
   place: z.string().max(600).default(''),
   dedication: z.string().max(600).optional(),

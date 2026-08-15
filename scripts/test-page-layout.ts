@@ -68,7 +68,6 @@ async function main() {
       storyTypeId: 'adventure',
       toneId: 'serene',
       artStyleId: 'cartoon',
-      sizeId: 'short',
       title: 'A Tarde do Sapo',
       place: 'o quintal da avó',
       characters: [],

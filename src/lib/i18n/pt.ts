@@ -65,11 +65,6 @@ export const pt = {
       subtitleColoured:
         'Cada estilo tem sua própria paleta — o de quadrinhos sai vibrante, o kawaii sai em pastel.',
     },
-    size: {
-      title: 'Qual o tamanho do livro?',
-      subtitle: 'Cada página é uma ilustração em A4.',
-      pages: 'páginas',
-    },
     characters: {
       title: 'Quem são os personagens?',
       subtitle:
@@ -315,11 +310,6 @@ export const pt = {
       descriptionColoured:
         'Desenho animado dos anos 90, com cor chapada e cenário em camadas.',
     },
-  },
-  bookSizes: {
-    short: { label: 'Curto', description: 'Uma história rápida, direto ao ponto.' },
-    medium: { label: 'Médio', description: 'O tamanho mais escolhido.' },
-    long: { label: 'Longo', description: 'Espaço para uma história completa.' },
   },
 }
 

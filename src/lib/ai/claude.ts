@@ -1,7 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod'
 import * as z from 'zod'
-import { getBookSize } from '../catalog'
+import { BOOK_PAGES } from '../catalog'
 import type {
   BookBrief,
   InterviewQuestion,
@@ -183,7 +183,7 @@ export async function generateStoryboard(
   brief: BookBrief,
   idea: StoryIdea,
 ): Promise<Storyboard> {
-  const pageCount = getBookSize(brief.sizeId).pages
+  const pageCount = BOOK_PAGES
 
   const response = await getClient().messages.parse({
     model: MODEL,

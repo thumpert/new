@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import {
   ART_STYLES,
   BOOK_LANGUAGES,
-  BOOK_SIZES,
   OCCASIONS,
   STORY_TYPES,
   TONES,
@@ -18,7 +17,6 @@ import type {
   BookBrief,
   BookFinish,
   BookLanguageId,
-  BookSizeId,
   Character,
   InterviewQuestion,
   MemoryPhoto,
@@ -50,7 +48,6 @@ const STEPS = [
   'storyType',
   'tone',
   'artStyle',
-  'size',
   'characters',
   'place',
   'interview',
@@ -76,7 +73,6 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
   const [storyTypeId, setStoryTypeId] = useState<StoryTypeId>('adventure')
   const [toneId, setToneId] = useState<ToneId>('warm')
   const [artStyleId, setArtStyleId] = useState<ArtStyleId>('chibi')
-  const [sizeId, setSizeId] = useState<BookSizeId>('medium')
   const [place, setPlace] = useState('')
   const [title, setTitle] = useState('')
   const [dedication, setDedication] = useState('')
@@ -110,7 +106,6 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
     storyTypeId,
     toneId,
     artStyleId,
-    sizeId,
     title,
     place,
     dedication: dedication.trim() || undefined,
@@ -383,26 +378,6 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
         </StepShell>
       )}
 
-      {current === 'size' && (
-        <StepShell
-          title={dict.wizard.size.title}
-          subtitle={dict.wizard.size.subtitle}
-          footer={footer(next)}
-        >
-          <div className="grid gap-3 sm:grid-cols-3">
-            {BOOK_SIZES.map((b) => (
-              <OptionCard
-                key={b.id}
-                label={dict.bookSizes[b.id].label}
-                description={dict.bookSizes[b.id].description}
-                meta={`${b.pages} ${dict.wizard.size.pages}`}
-                selected={sizeId === b.id}
-                onSelect={() => setSizeId(b.id)}
-              />
-            ))}
-          </div>
-        </StepShell>
-      )}
 
       {current === 'characters' && (
         <StepShell

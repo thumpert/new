@@ -1,7 +1,6 @@
 import type {
   ArtStyleId,
   BookLanguageId,
-  BookSizeId,
   OccasionId,
   StoryTypeId,
   ToneId,
@@ -395,17 +394,19 @@ export const BOOK_LANGUAGES: BookLanguageDef[] = [
   { id: 'en-pt', primary: 'English', secondary: 'Brazilian Portuguese' },
 ]
 
-export interface BookSizeDef {
-  id: BookSizeId
-  /** Number of illustrated pages. Multiples of 4 keep the printer happy. */
-  pages: number
-}
-
-export const BOOK_SIZES: BookSizeDef[] = [
-  { id: 'short', pages: 12 },
-  { id: 'medium', pages: 20 },
-  { id: 'long', pages: 32 },
-]
+/**
+ * Every book is twelve illustrated pages.
+ *
+ * It used to be a choice of 12, 20 or 32, and the choice cost more than it
+ * gave. Length is the multiplier on everything that can go wrong: a story
+ * written in one pass holds together over twelve pages and drifts over
+ * thirty-two, and a book that drifts is only discovered after it has been
+ * paid for. Twelve also keeps a book near US$0.70 of images, which is what
+ * makes it cheap to throw one away and start again.
+ *
+ * A multiple of four, which is what a printer wants for a folded signature.
+ */
+export const BOOK_PAGES = 12
 
 export function getOccasion(id: OccasionId): OccasionDef {
   const found = OCCASIONS.find((o) => o.id === id)
@@ -437,8 +438,3 @@ export function getBookLanguage(id: BookLanguageId): BookLanguageDef {
   return found
 }
 
-export function getBookSize(id: BookSizeId): BookSizeDef {
-  const found = BOOK_SIZES.find((b) => b.id === id)
-  if (!found) throw new Error(`Unknown book size: ${id}`)
-  return found
-}

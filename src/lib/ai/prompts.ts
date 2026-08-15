@@ -1,7 +1,7 @@
 import {
   getArtStyle,
   getBookLanguage,
-  getBookSize,
+  BOOK_PAGES,
   getOccasion,
   getStoryType,
   getTone,
@@ -45,14 +45,13 @@ export function briefContext(brief: BookBrief): string {
   const occasion = getOccasion(brief.occasionId)
   const storyType = getStoryType(brief.storyTypeId)
   const tone = getTone(brief.toneId)
-  const size = getBookSize(brief.sizeId)
 
   const lines = [
     `OCCASION: ${occasion.storyAngle}`,
     `STORY SHAPE: ${storyType.prompt}`,
     `NARRATOR TONE: ${tone.prompt}`,
     `SETTING: ${brief.place || 'not specified — invent something that fits the characters'}`,
-    `BOOK LENGTH: ${size.pages} illustrated pages`,
+    `BOOK LENGTH: ${BOOK_PAGES} illustrated pages`,
     '',
     'CHARACTERS:',
     ...brief.characters.map((c) => `- ${describeCharacter(c)}`),
