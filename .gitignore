@@ -43,3 +43,9 @@ next-env.d.ts
 
 # Local data (orders, uploads, generated pages, PDFs)
 .data/
+
+# Agent skills: the lock file is committed, the downloaded content is not —
+# same split as package-lock.json / node_modules. Restore with
+# `npx skills experimental_install`, or re-add the source repo.
+/.agents/
+/.claude/skills/
