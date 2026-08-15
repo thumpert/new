@@ -135,7 +135,11 @@ export const TONES: ToneDef[] = [
 
 export interface ArtStyleDef {
   id: ArtStyleId
-  /** Appended to every page prompt to lock the drawing style. */
+  /**
+   * Appended to every page prompt to lock the drawing style. Each style states
+   * its own line weight — the shared rules deliberately leave that open.
+   * Written as a self-contained sentence, ending in its own punctuation.
+   */
   prompt: string
   /** Rough guide for how much detail the scene description should carry. */
   complexity: 'low' | 'medium' | 'high'
@@ -145,31 +149,43 @@ export const ART_STYLES: ArtStyleDef[] = [
   {
     id: 'classic-cartoon',
     prompt:
-      'classic children’s cartoon style, friendly rounded characters with expressive faces, medium-weight even outlines',
+      'classic children’s cartoon style, with friendly rounded characters, expressive faces and medium-weight even outlines.',
     complexity: 'medium',
   },
   {
     id: 'kawaii',
-    prompt:
-      'cute kawaii chibi style, oversized heads and big sparkling eyes, soft rounded shapes, simple thick outlines',
+    // A full spec rather than a one-liner: this style has a precise shape
+    // language, and naming each part is what stops the model drifting back
+    // to generic "cute cartoon".
+    prompt: [
+      'kawaii chibi super-deformed vector illustration.',
+      'SHAPES: rounded and spherical throughout; the silhouette has no sharp corners, hard edges or right angles.',
+      'PROPORTIONS: super-deformed chibi build. The head is large and spherical and takes up 50-70% of the character’s total height. The body is tiny and minimal beside it, roughly 1:1.5 to 1:2 head-to-body, tapering like a cone or a pear so the figure sits stably.',
+      'HEAD: a perfect circle or a soft wide ellipse. Full round cheeks carry the outline. There is no chin at all — the base of the head is one continuous soft curve.',
+      'FACE: eyes, nose and mouth sit low on the face, leaving a large spherical forehead, for an infant-like look. Eyes are big and exaggerated, oval or round, filling much of the head; their interiors are simplified into basic geometry — large circles for pupils, small dots for highlights — drawn as outlines only and never filled in solid. Upper lashes are thick. The nose is one small round dot, or left out entirely. The mouth is small and simple, a single short curve just under the nose.',
+      'BODY: a short minimal torso joins the spherical head straight to the limbs, with no visible neck. Shoulders are narrow and rounded. Limbs are short simplified stubs; hands are mitten shapes and feet are rounded clubs, with fingers suggested by a curve or two rather than drawn joint by joint.',
+      'HAIR: large spherical volumetric clumps. Individual strands simplify into rounded leaf or pebble shapes. Highlights are flat, simple geometric shapes.',
+      'CLOTHING: fabric folds are minimal, a few simple curved lines. Hoods, bags and garments read as rounded volumes.',
+      'LINES: clean, smooth, consistent vector line art. Thick black outlines on the character’s silhouette and on the main objects, sticker-like. Interior detail lines — inside hair, clothing and eyes — slightly thinner, still clean and smooth. No brush texture, no noise, and every outline fully closed.',
+    ].join(' '),
     complexity: 'low',
   },
   {
     id: 'storybook',
     prompt:
-      'classic picture-book illustration style, slightly hand-drawn ink line quality, rich but uncluttered backgrounds',
+      'classic picture-book illustration style, with a slightly hand-drawn ink line quality and rich but uncluttered backgrounds.',
     complexity: 'high',
   },
   {
     id: 'bold-simple',
     prompt:
-      'very bold thick uniform outlines, large simple shapes, minimal background detail, designed for small children and thick crayons',
+      'very bold thick uniform outlines, large simple shapes and minimal background detail, designed for small children and thick crayons.',
     complexity: 'low',
   },
   {
     id: 'detailed-doodle',
     prompt:
-      'intricate doodle style with decorative patterns and small repeated motifs filling the background, fine even line weight',
+      'intricate doodle style, with decorative patterns and small repeated motifs filling the background, drawn at a fine even line weight.',
     complexity: 'high',
   },
 ]

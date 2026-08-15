@@ -11,7 +11,9 @@ const LINE_ART_RULES = [
   'no shading, no grey tones, no gradients, no hatching, no stippling, no filled black areas',
   'no colour of any kind',
   'no text, no letters, no numbers, no signatures, no borders or frames',
-  'clean closed shapes with even line weight, drawn to be coloured in with crayons',
+  // Line weight is deliberately not fixed here: each style specifies its own,
+  // and some want a thick silhouette against thinner interior detail.
+  'clean closed shapes, drawn to be coloured in with crayons',
 ] as const
 
 const PAGE_FRAMING =
@@ -35,8 +37,8 @@ export function characterSheetPrompt(
   return [
     `Character model sheet for a children’s coloring book: three views of the same ${subject} side by side on one white sheet — full body facing forward, full body from the side, and a head-and-shoulders close-up.`,
     source,
-    `The character is ${character.name}${character.age ? `, ${character.age}` : ''}. ${character.traits}`,
-    `Drawing style: ${style.prompt}.`,
+    `The character is ${character.name}${character.age ? `, ${character.age}` : ''}. ${terminated(character.traits)}`,
+    `Drawing style: ${style.prompt}`,
     'All three views must be unmistakably the same character, with identical clothing and proportions.',
     LINE_ART_RULES.join(', ') + '.',
   ].join(' ')
@@ -57,13 +59,24 @@ export function pagePrompt(
 
   return [
     PAGE_FRAMING,
-    `Scene: ${sceneDescription}`,
+    `Scene: ${terminated(sceneDescription)}`,
     consistency,
-    `Drawing style: ${style.prompt}.`,
+    `Drawing style: ${style.prompt}`,
     LINE_ART_RULES.join(', ') + '.',
   ]
     .filter(Boolean)
     .join(' ')
+}
+
+/**
+ * The traits and the scene description are typed by a person (or written by the
+ * writing model), so they may or may not end in a full stop. Every other piece
+ * of a prompt is a whole sentence; without this, the next instruction runs on
+ * from the last word of free text.
+ */
+function terminated(text: string): string {
+  const trimmed = text.trim()
+  return /[.!?…]$/.test(trimmed) ? trimmed : `${trimmed}.`
 }
 
 function formatList(names: string[]): string {

@@ -84,9 +84,26 @@ areas`) estão funcionando.
 **Livro-amostra pronto** (12 páginas, bilíngue EN/PT, personagens Thomas e Zeca):
 `https://d2ol7oe51mr4n9.cloudfront.net/user_3GNFAU3bl7JWf8AKSp5WZTLExyW/4240c017-9b91-4d84-bca7-8d9a246ad676.pdf`
 
+**Estilo `kawaii` — validado.** O prompt dele não é uma frase, é uma
+especificação inteira (formas, proporções, cabeça, rosto, corpo, cabelo, roupa,
+linhas). Testado numa geração real: cabeça esférica sem queixo, rosto baixo,
+pupilas em contorno e não preenchidas, mãos de luva. Métricas da página:
+
+| Métrica | Resultado |
+|---|---|
+| Cor | 0,000% |
+| Cinza sólido | 0,000% |
+| Preto preenchido | 0,006% (ruído) |
+
+Vale a pena guardar por quê: sem a especificação o modelo volta para "cartoon
+fofo genérico", e as pupilas saem preenchidas de preto — que é o defeito que
+estraga uma página de colorir. Na ficha de personagem, onde o rosto é grande, o
+preenchimento ainda aparece (0,13%), mas a ficha nunca é impressa: ela só serve
+de referência, e a página sai limpa.
+
 **Ainda não julgado por humano:** se os personagens *parecem* os mesmos ao longo
-das 12 páginas, e se os 5 estilos de desenho do catálogo funcionam (só o
-`classic-cartoon` foi testado a fundo).
+das 12 páginas, e os outros três estilos (`storybook`, `bold-simple`,
+`detailed-doodle`) — só `classic-cartoon` e `kawaii` foram testados a fundo.
 
 ---
 
