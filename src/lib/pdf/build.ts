@@ -17,6 +17,13 @@ import type { Locale, Order, StoryPage } from '../types'
  * printer can trim or bind without eating the artwork.
  */
 
+interface Rect {
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
 const A4 = { width: 595.28, height: 841.89 }
 
 /** 12.7mm — comfortably clear of a perfect-bound gutter. */
@@ -91,52 +98,48 @@ export async function buildBookPdf(order: Order): Promise<Uint8Array> {
     ? NARRATION_BLOCK_BILINGUAL
     : NARRATION_BLOCK
 
-  // The two books are laid out differently on purpose. A coloring page is a
-  // working surface: it wants white margins to rest the hand on and a clear
-  // band for the narration. A colour page is a finished picture: it bleeds to
-  // the edge, and the narration sits on a soft plate over the art.
+  // The narration is printed onto the picture, not under it. The illustration
+  // is drawn to leave its bottom fifth open — white paper in a coloring book,
+  // pale scenery in a colour one — and the words go straight into that space
+  // with nothing between. No plate, no panel: a box under the art reads as a
+  // caption bolted on, and the page stops looking like a book.
+  //
+  // The two still differ in how far the art reaches. A colour page bleeds to
+  // the edge. A coloring page stays inside the margin, which costs nothing
+  // visually — its background is the same white as the paper — and leaves the
+  // printer somewhere to trim and bind.
   const bleed = order.brief.finish === 'coloured'
 
   for (const page of order.storyboard.pages) {
     const render = rendersByIndex.get(page.index)
     const sheet = pdf.addPage([A4.width, A4.height])
 
-    const imageBottom = bleed ? 0 : MARGIN + narrationBlock
     const box = bleed
       ? { x: 0, y: 0, width: A4.width, height: A4.height }
       : {
           x: MARGIN,
-          y: imageBottom,
+          y: MARGIN,
           width: A4.width - MARGIN * 2,
-          height: A4.height - MARGIN - imageBottom,
+          height: A4.height - MARGIN * 2,
         }
 
+    let art = box
     if (render?.imageUrl) {
-      if (bleed) {
-        await drawImageCover(pdf, sheet, render.imageUrl, box)
-        sheet.drawRectangle({
-          x: 0,
-          y: 0,
-          width: A4.width,
-          height: narrationBlock,
-          color: rgb(1, 1, 1),
-          opacity: 0.78,
-        })
-      } else {
-        await drawImage(pdf, sheet, render.imageUrl, box)
-      }
+      art = bleed
+        ? await drawImageCover(pdf, sheet, render.imageUrl, box)
+        : await drawImage(pdf, sheet, render.imageUrl, box)
     } else {
+      // The placeholder frame stops above the band, so a preview PDF shows the
+      // words in the same place a real illustration would leave them.
       drawPlaceholder(
         sheet,
         fonts,
-        bleed
-          ? {
-              x: MARGIN,
-              y: MARGIN + narrationBlock,
-              width: A4.width - MARGIN * 2,
-              height: A4.height - MARGIN * 2 - narrationBlock,
-            }
-          : box,
+        {
+          x: box.x + (bleed ? MARGIN : 0),
+          y: box.y + narrationBlock,
+          width: box.width - (bleed ? MARGIN * 2 : 0),
+          height: box.height - narrationBlock - (bleed ? MARGIN : 0),
+        },
         {
           label: render?.status === 'failed' ? t.failed : t.placeholder,
           detail: render?.error ?? render?.promptPreview ?? page.sceneDescription,
@@ -144,7 +147,10 @@ export async function buildBookPdf(order: Order): Promise<Uint8Array> {
       )
     }
 
-    drawNarration(sheet, fonts, page, page.index, narrationBlock)
+    // The words go inside the picture's own reserved bottom fifth, so they are
+    // measured from where the art actually ends rather than from the page edge.
+    // Those two only coincide when the aspect ratio happens to fill the sheet.
+    drawNarration(sheet, fonts, page, page.index, narrationBlock, art)
   }
 
   await drawClosing(pdf, fonts, order, t)
@@ -334,8 +340,8 @@ async function drawImageCover(
   pdf: PDFDocument,
   page: PDFPage,
   imageUrl: string,
-  box: { x: number; y: number; width: number; height: number },
-) {
+  box: Rect,
+): Promise<Rect> {
   const bytes = await fetchBinary(imageUrl)
   const image = isPng(bytes)
     ? await pdf.embedPng(bytes)
@@ -351,30 +357,43 @@ async function drawImageCover(
     width,
     height,
   })
+  // It fills the box by definition, so the box is the visible rectangle.
+  return box
 }
 
+/**
+ * Fits the image inside the box without cropping, anchored to the top.
+ *
+ * Top-anchored rather than centred because the narration is placed relative to
+ * where the picture actually ends: the illustration reserves its own bottom
+ * fifth for the words, and centring would float that reserved band away from
+ * the text by whatever slack the aspect ratio left over.
+ *
+ * Returns the rectangle it drew into, so the caller can find that band.
+ */
 async function drawImage(
   pdf: PDFDocument,
   page: PDFPage,
   imageUrl: string,
   box: { x: number; y: number; width: number; height: number },
-) {
+): Promise<Rect> {
   const bytes = await fetchBinary(imageUrl)
   const image = isPng(bytes)
     ? await pdf.embedPng(bytes)
     : await pdf.embedJpg(bytes)
 
-  // Fit inside the box without cropping, then centre what is left over.
   const scale = Math.min(box.width / image.width, box.height / image.height)
   const width = image.width * scale
   const height = image.height * scale
 
-  page.drawImage(image, {
+  const rect = {
     x: box.x + (box.width - width) / 2,
-    y: box.y + (box.height - height) / 2,
+    y: box.y + box.height - height,
     width,
     height,
-  })
+  }
+  page.drawImage(image, rect)
+  return rect
 }
 
 function drawPlaceholder(
@@ -407,9 +426,20 @@ function drawNarration(
   story: StoryPage,
   pageNumber: number,
   block: number,
+  art: Rect,
 ) {
-  const lines = wrap(story.narration, fonts.bodyItalic, 13, A4.width - MARGIN * 3)
-  let y = MARGIN + block - 30
+  // A narrow column, centred. The illustration leaves its bottom fifth calm,
+  // but reliably only through the middle — scenery creeps back in at the left
+  // and right edges, and a line running the full width ends up crossing it.
+  // Wrapping to two short lines in the centre is what keeps the words on the
+  // clear part of the picture. Measured on a real page: full width put the
+  // last three words into a clump of reeds.
+  const measure = A4.width * 0.54
+  const lines = wrap(story.narration, fonts.bodyItalic, 13, measure)
+  // Sit inside the art's reserved band, which starts at its bottom edge. Never
+  // below the page margin, so a picture that ends low cannot push the words
+  // off the sheet.
+  let y = Math.max(art.y, MARGIN) + block - 30
 
   for (const line of lines.slice(0, 4)) {
     drawCentered(page, line, fonts.bodyItalic, 13, y, INK)
@@ -421,7 +451,7 @@ function drawNarration(
   const secondary = story.narrationSecondary?.trim()
   if (secondary) {
     y -= 8
-    const support = wrap(secondary, fonts.body, 10, A4.width - MARGIN * 3)
+    const support = wrap(secondary, fonts.body, 10, measure)
     for (const line of support.slice(0, 3)) {
       drawCentered(page, line, fonts.body, 10, y, MUTED)
       y -= 14

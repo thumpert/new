@@ -43,16 +43,24 @@ function finishRules(finish: BookFinish, artStyleId: ArtStyleId): string {
   return `Colour: ${style.palette} ${COLOURED_RULES.join(', ')}.`
 }
 
+/**
+ * The narration is printed straight onto the picture, with nothing between it
+ * and the art — no panel, no plate. So the room it needs has to be part of the
+ * composition rather than something the page tacks on underneath.
+ *
+ * Describing that room is delicate in both directions. Say "leave space for
+ * text" and the model draws somewhere to put text: a caption box, a banner, a
+ * blank strip. Say nothing and it fills the foot of the page with detail the
+ * words then land on top of. So the band is always described as scenery that
+ * happens to be empty, and never as a place for words.
+ */
 function pageFraming(finish: BookFinish): string {
   return finish === 'coloring'
-    ? 'Single full-page children’s coloring book illustration, vertical portrait orientation, the whole scene comfortably inside the frame with clear white space at the edges.'
+    ? 'Single full-page children’s coloring book illustration, vertical portrait orientation, the whole scene comfortably inside the frame with clear white space at the edges. Compose so the bottom fifth of the page stays open white background, with no linework and no detail crossing into it — let the scene rest above it, as though the ground simply ran out. Do not draw a box, a frame, a banner or a rule to mark that area off: it is plain untouched paper, continuous with the white the rest of the drawing sits on.'
     : // Full bleed: the PDF prints these edge to edge, so anything that matters
-      // has to sit inside the middle, and the bottom carries the narration band.
-      // "Leave the lower fifth calm" gets read as an instruction to draw
-      // somewhere to put the words, and a comic-book style will happily oblige
-      // with an empty caption box. The area has to be described as emptier
-      // scenery, never as a place for text.
-      'Single full-page children’s picture-book illustration, vertical portrait orientation, composed to fill the frame edge to edge with no border and no white margin. Keep the subject well inside the middle of the frame. Let the lower fifth fall quiet — plain ground, water or foliage carrying no important detail — while still being part of the painted scene: draw no caption box, no banner, no panel, no empty rectangle and no blank strip anywhere.'
+      // has to sit inside the middle. The band has the extra requirement of
+      // being pale, because dark type goes on it with nothing underneath.
+      'Single full-page children’s picture-book illustration, vertical portrait orientation, composed to fill the frame edge to edge with no border and no white margin. Keep the subject well inside the middle of the frame. The bottom fifth must be a calm, PALE stretch of the scene itself — open sky, still water, pale sand, sunlit grass, a plain light wall — high in value, soft in contrast, free of detail and free of any dark mass, because dark words are printed directly onto it. It must still read as painted scenery continuous with the picture above: draw no caption box, no banner, no panel, no empty rectangle and no blank strip anywhere.'
 }
 
 /**
