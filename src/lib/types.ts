@@ -49,7 +49,7 @@ export type BookLanguageId = 'pt' | 'en' | 'en-pt'
  * them — the two differ in speed by roughly 3x, which a customer waiting on
  * a 32-page book does feel.
  */
-export type ImageModelId = 'nano-banana' | 'gpt-image'
+export type ImageModelId = 'nano-banana' | 'soul'
 
 export interface Character {
   id: string

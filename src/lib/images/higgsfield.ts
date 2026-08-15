@@ -17,37 +17,30 @@ import type {
  * API, and the exact endpoint string and reference-image field differ per
  * model. Rather than hard-code a guess, both are configuration:
  *
- *   HIGGSFIELD_CREDENTIALS           "KEY_ID:KEY_SECRET"
- *   HIGGSFIELD_ENDPOINT_NANO_BANANA  endpoint for nano_banana_2
- *   HIGGSFIELD_ENDPOINT_GPT_IMAGE    endpoint for gpt_image_2
- *   HIGGSFIELD_IMAGE_ENDPOINT        fallback used when the per-model one is unset
- *   HIGGSFIELD_ASPECT_RATIO          defaults to 3:4 (fits A4 with margins)
- *   HIGGSFIELD_REFERENCE_FIELD       defaults to input_images
+ * Endpoints and body shapes come from the published OpenAPI spec
+ * (docs.higgsfield.ai/docs/openapi.json) and live in the model catalog, so
+ * credentials are the only thing that has to be configured:
  *
- * See docs.higgsfield.ai for the endpoint that matches the model you want.
- * Only the model the customer actually picks needs its endpoint set.
+ *   HIGGSFIELD_CREDENTIALS           "KEY_ID:KEY_SECRET"  (required)
+ *   HIGGSFIELD_ENDPOINT_NANO_BANANA  override, if the API ever moves
+ *   HIGGSFIELD_ENDPOINT_SOUL         override, same
+ *   HIGGSFIELD_ASPECT_RATIO          defaults to 3:4 (fits A4 with margins)
  */
 
 const DEFAULT_ASPECT_RATIO = '3:4'
-const DEFAULT_REFERENCE_FIELD = 'input_images'
 
 /** How long we let a single image take before giving up on it. */
 const MAX_POLL_MS = 5 * 60 * 1000
 
+/** Credentials are the only thing that has to be configured. */
 export function higgsfieldConfigured(): boolean {
-  if (!credentials()) return false
-  // Configured if any model has an endpoint — the customer picks which.
-  return IMAGE_MODEL_IDS.some((id) => endpointFor(id) !== undefined)
+  return Boolean(credentials())
 }
 
-const IMAGE_MODEL_IDS: ImageModelId[] = ['nano-banana', 'gpt-image']
-
-/** Per-model endpoint, falling back to the single shared one. */
-function endpointFor(id: ImageModelId): string | undefined {
-  return (
-    process.env[getImageModel(id).endpointEnv] ??
-    process.env.HIGGSFIELD_IMAGE_ENDPOINT
-  )
+/** The catalog endpoint, unless an env var overrides it. */
+function endpointFor(id: ImageModelId): string {
+  const model = getImageModel(id)
+  return process.env[model.endpointEnv] ?? model.endpoint
 }
 
 function credentials(): string | undefined {
@@ -58,15 +51,21 @@ function credentials(): string | undefined {
   return id && secret ? `${id}:${secret}` : undefined
 }
 
-function requireEndpoint(id: ImageModelId): string {
-  const endpoint = endpointFor(id)
-  if (!endpoint) {
-    const { endpointEnv, providerModel } = getImageModel(id)
-    throw new Error(
-      `${endpointEnv} is not set, so ${providerModel} cannot be used. Set it (or HIGGSFIELD_IMAGE_ENDPOINT) — see .env.example.`,
-    )
-  }
-  return endpoint
+/**
+ * Builds the reference-image field for this endpoint. The two published
+ * shapes are not interchangeable, and sending the wrong one is a 422.
+ */
+function referenceInput(
+  id: ImageModelId,
+  urls: string[],
+): Record<string, unknown> {
+  const model = getImageModel(id)
+  const reachable = urls.slice(0, model.maxReferences).map(absoluteUrl)
+  if (reachable.length === 0) return {}
+
+  return model.referenceMode === 'array'
+    ? { input_images: reachable.map((url) => ({ type: 'image_url', image_url: url })) }
+    : { image_reference_url: reachable[0] }
 }
 
 export class HiggsfieldProvider implements ImageProvider {
@@ -103,27 +102,18 @@ export class HiggsfieldProvider implements ImageProvider {
     referenceUrls: string[],
     imageModelId: ImageModelId,
   ): Promise<GeneratedImage> {
-    const endpoint = requireEndpoint(imageModelId)
     const model = getImageModel(imageModelId)
-    const referenceField =
-      process.env.HIGGSFIELD_REFERENCE_FIELD ?? DEFAULT_REFERENCE_FIELD
 
     const input: Record<string, unknown> = {
       prompt,
       aspect_ratio: process.env.HIGGSFIELD_ASPECT_RATIO ?? DEFAULT_ASPECT_RATIO,
       ...model.extraInput,
+      // Higgsfield fetches references over the network, so they have to be
+      // URLs it can actually reach — hence absoluteUrl.
+      ...referenceInput(imageModelId, referenceUrls),
     }
 
-    if (referenceUrls.length > 0) {
-      // Higgsfield fetches reference images over the network, so they have to
-      // be absolute URLs it can actually reach.
-      input[referenceField] = referenceUrls.map((url) => ({
-        type: 'image_url',
-        image_url: absoluteUrl(url),
-      }))
-    }
-
-    const response = await this.client.subscribe(endpoint, {
+    const response = await this.client.subscribe(endpointFor(imageModelId), {
       input,
       withPolling: true,
     })

@@ -1,19 +1,21 @@
 /**
  * Fires one real image generation at Higgsfield and reports what came back.
  *
- * Higgsfield puts every image model behind one generic "endpoint + input"
- * API, so the endpoint string depends on which model you picked. This script
- * exists to make that a 30-second check instead of a full pass through the
- * wizard:
+ * Checks credentials and the wiring in ~40s, instead of a full pass through
+ * the wizard:
  *
- *   npx tsx scripts/test-higgsfield.ts <endpoint>
+ *   npx tsx scripts/test-higgsfield.ts             # nano-banana, the default
+ *   npx tsx scripts/test-higgsfield.ts soul        # the other catalog model
+ *   npx tsx scripts/test-higgsfield.ts /some/path  # a raw endpoint
  *
- * It reads HIGGSFIELD_CREDENTIALS from .env.local, sends one coloring-page
- * prompt, and prints either the image URL or the exact error.
+ * Reads HIGGSFIELD_CREDENTIALS from .env.local and prints either the image
+ * URL or the exact error.
  */
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
 import { createHiggsfieldClient } from '@higgsfield/client/v2'
+import { IMAGE_MODELS, getImageModel } from '../src/lib/catalog'
+import type { ImageModelId } from '../src/lib/types'
 
 async function loadEnvLocal() {
   try {
@@ -39,20 +41,20 @@ const PROMPT = [
 async function main() {
   await loadEnvLocal()
 
-  const endpoint = process.argv[2] ?? process.env.HIGGSFIELD_IMAGE_ENDPOINT
   const credentials =
     process.env.HIGGSFIELD_CREDENTIALS ?? process.env.HF_CREDENTIALS
-
   if (!credentials) {
     console.error('Falta HIGGSFIELD_CREDENTIALS no .env.local (KEY_ID:KEY_SECRET).')
     process.exit(1)
   }
-  if (!endpoint) {
-    console.error(
-      'Informe o endpoint: npx tsx scripts/test-higgsfield.ts <endpoint>',
-    )
-    process.exit(1)
-  }
+
+  // A catalog model id, a raw path, or nothing (the default model).
+  const arg = process.argv[2]
+  const known = IMAGE_MODELS.find((m) => m.id === arg)
+  const endpoint = arg?.startsWith('/')
+    ? arg
+    : (known ?? getImageModel('nano-banana' as ImageModelId)).endpoint
+  const extraInput = arg?.startsWith('/') ? {} : (known ?? getImageModel('nano-banana' as ImageModelId)).extraInput
 
   console.log(`endpoint: ${endpoint}`)
   console.log('gerando… (costuma levar ~40s)\n')
@@ -64,6 +66,7 @@ async function main() {
     input: {
       prompt: PROMPT,
       aspect_ratio: process.env.HIGGSFIELD_ASPECT_RATIO ?? '3:4',
+      ...extraInput,
     },
     withPolling: true,
   })
@@ -75,7 +78,7 @@ async function main() {
   const url = response.images?.[0]?.url
   if (url) {
     console.log(`\n✅ deu certo. Imagem:\n${url}`)
-    console.log(`\nColoque no .env.local:\nHIGGSFIELD_IMAGE_ENDPOINT=${endpoint}`)
+    console.log('\nA integração está de pé — nada a configurar além das credenciais.')
   } else {
     console.log('\n⚠️  terminou sem devolver imagem. Resposta completa:')
     console.log(JSON.stringify(response, null, 2))
@@ -86,8 +89,9 @@ main().catch((err) => {
   console.error('\n❌ falhou:')
   console.error(err?.response?.data ?? err?.message ?? err)
   console.error(
-    '\nSe for 404, o endpoint está errado — confira na doc do modelo.' +
-      '\nSe for 401/403, são as credenciais.',
+    '\n401/403 = credenciais. 404 = a API mudou de caminho (veja' +
+      '\ndocs.higgsfield.ai/docs/openapi.json e ajuste src/lib/catalog.ts).' +
+      '\n422 = o corpo não bate com o schema do endpoint.',
   )
   process.exit(1)
 })

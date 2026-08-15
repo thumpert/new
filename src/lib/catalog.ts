@@ -176,32 +176,50 @@ export const ART_STYLES: ArtStyleDef[] = [
 
 export interface ImageModelDef {
   id: ImageModelId
-  /** Provider's own model id, for logs and for the endpoint env var name. */
-  providerModel: string
-  /** Env var holding this model's REST endpoint. */
+  /**
+   * Path on platform.higgsfield.ai. Taken from the published OpenAPI spec
+   * (docs.higgsfield.ai/docs/openapi.json), not guessed.
+   */
+  endpoint: string
+  /** Env var that overrides the endpoint, for when the API moves. */
   endpointEnv: string
-  /** Extra input fields this model needs beyond prompt and aspect ratio. */
-  extraInput: Record<string, string>
-  /** Measured seconds per page, from a same-scene comparison. */
+  /**
+   * How this endpoint takes reference images:
+   *   array  — input_images: [{type: "image_url", image_url}], up to maxReferences
+   *   single — image_reference_url: "<url>", one only
+   */
+  referenceMode: 'array' | 'single'
+  maxReferences: number
+  /** Extra body fields, straight from the endpoint's schema. */
+  extraInput: Record<string, string | number | boolean>
+  /** Rough seconds per page, measured on the same scene. */
   secondsPerPage: number
 }
 
 export const IMAGE_MODELS: ImageModelDef[] = [
   {
     id: 'nano-banana',
-    providerModel: 'nano_banana_2',
+    endpoint: '/nano-banana',
     endpointEnv: 'HIGGSFIELD_ENDPOINT_NANO_BANANA',
-    extraInput: { resolution: '2k' },
+    // The only published image endpoint that takes several reference images,
+    // which is what a page with more than one character needs.
+    referenceMode: 'array',
+    maxReferences: 8,
+    // The endpoint defaults to jpeg; line art wants png, since JPEG ringing
+    // shows up as grey fringes exactly where the black outlines are.
+    extraInput: { output_format: 'png' },
     secondsPerPage: 40,
   },
   {
-    id: 'gpt-image',
-    providerModel: 'gpt_image_2',
-    endpointEnv: 'HIGGSFIELD_ENDPOINT_GPT_IMAGE',
-    // Its quality defaults to "low", which is not comparable to the other
-    // model at 2k — always ask for high.
-    extraInput: { resolution: '2k', quality: 'high' },
-    secondsPerPage: 100,
+    id: 'soul',
+    endpoint: '/higgsfield-ai/soul/reference',
+    endpointEnv: 'HIGGSFIELD_ENDPOINT_SOUL',
+    referenceMode: 'single',
+    maxReferences: 1,
+    // enhance_prompt defaults to true and rewrites the prompt server-side,
+    // which can quietly undo the "no shading, no grey" constraints.
+    extraInput: { resolution: '1080p', enhance_prompt: false },
+    secondsPerPage: 45,
   },
 ]
 

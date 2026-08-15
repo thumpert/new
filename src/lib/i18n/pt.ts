@@ -156,14 +156,14 @@ export const pt = {
     'nano-banana': {
       label: 'Nano Banana',
       description:
-        'Cerca de 40s por página. Foi com ele que validamos a consistência dos personagens.',
-      meta: '~4 min / 12 páginas',
+        'Recomendado. Aceita até 8 fichas de personagem por página — é o que mantém todo mundo parecido consigo mesmo do começo ao fim.',
+      meta: 'vários personagens',
     },
-    'gpt-image': {
-      label: 'GPT Image',
+    soul: {
+      label: 'Soul',
       description:
-        'Cerca de 100s por página. Mais lento; a consistência entre páginas ainda não foi testada.',
-      meta: '~10 min / 12 páginas',
+        'O modelo da própria Higgsfield. Aceita só uma ficha de personagem, então cabe melhor em livros com um personagem principal.',
+      meta: '1 personagem',
     },
   },
   bookLanguages: {

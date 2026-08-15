@@ -157,14 +157,14 @@ export const en: Dictionary = {
     'nano-banana': {
       label: 'Nano Banana',
       description:
-        'About 40s per page. This is the one we validated character consistency with.',
-      meta: '~4 min / 12 pages',
+        'Recommended. Takes up to 8 character sheets per page — this is what keeps everyone looking like themselves from start to finish.',
+      meta: 'several characters',
     },
-    'gpt-image': {
-      label: 'GPT Image',
+    soul: {
+      label: 'Soul',
       description:
-        'About 100s per page. Slower, and consistency across pages is still untested.',
-      meta: '~10 min / 12 pages',
+        'Higgsfield’s own model. Takes only one character sheet, so it suits books with a single main character.',
+      meta: '1 character',
     },
   },
   bookLanguages: {

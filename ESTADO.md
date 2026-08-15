@@ -4,7 +4,7 @@ Snapshot para retomar o trabalho numa sessão nova. Leia junto com o `README.md`
 que explica o produto e a arquitetura.
 
 **Branch:** `claude/personalized-coloring-book-generator-ufe6lv`
-**Último commit:** `a31347d`
+**Último commit:** veja `git log -1`
 
 ---
 
@@ -25,35 +25,41 @@ metade de baixo da pipeline sem gastar nada.
 
 ---
 
-## O único bloqueio
+## O que falta
 
-**O app não sabe qual URL chamar na API do Higgsfield.**
+**Só as credenciais do Higgsfield.** Os endpoints já estão no código.
 
-A Higgsfield expõe todos os modelos atrás de uma API genérica de *endpoint +
-input*: você monta a rota com o caminho do modelo. Não há endpoint fixo nem
-padrão adivinhável, e não existe API de descoberta (o SDK monta `/${endpoint}`
-livremente).
-
-Enquanto `HIGGSFIELD_ENDPOINT_NANO_BANANA` não estiver no `.env.local`, o app
-roda em **modo mock**: o fluxo inteiro funciona e o PDF é gerado, mas com
-molduras de prévia no lugar dos desenhos — cada uma mostrando o prompt que teria
-sido enviado.
-
-### Como resolver
-
-Abrir `docs.higgsfield.ai`, achar o modelo `nano_banana_2`, copiar o caminho do
-endpoint, e testar:
+Foram tirados do OpenAPI oficial (`docs.higgsfield.ai/docs/openapi.json`), não
+adivinhados, e vivem em `src/lib/catalog.ts`. Base: `https://platform.higgsfield.ai`.
 
 ```bash
-npx tsx scripts/test-higgsfield.ts <endpoint>
+echo 'HIGGSFIELD_CREDENTIALS=KEY_ID:KEY_SECRET' >> .env.local
+npx tsx scripts/test-higgsfield.ts
 ```
 
-O script manda uma geração e diz em ~40s se funcionou (404 = endpoint errado,
-401/403 = credencial). Quando acertar, ele imprime a linha pronta para o
-`.env.local`.
+Sem credencial o app roda em **modo mock**: o fluxo inteiro funciona e o PDF é
+gerado, mas com molduras de prévia no lugar dos desenhos — cada uma mostrando o
+prompt que teria sido enviado.
 
-Pista sobre o padrão: no SDK, o modelo `text2image_soul_v2` corresponde ao
-endpoint `/v1/text2image/soul`.
+### Os endpoints de imagem que existem de verdade
+
+| Endpoint | Referências | Serve? |
+|---|---|---|
+| `/nano-banana` | `input_images[]`, até 8 | **Sim** — o único que aceita várias fichas |
+| `/higgsfield-ai/soul/reference` | `image_reference_url`, 1 | Só para livro de um personagem |
+| `/reve/remix` | `image_urls[]`, **mín. 2** | Não — o mínimo de 2 quebra o caso de 1 personagem |
+| `/reve/edit`, `/higgsfield-ai/soul/character` | 1 | Igual ao soul |
+| `/flux-pro/kontext/max/text-to-image`, `/reve/text-to-image` | nenhuma | Não — sem referência não há consistência |
+
+**Não existe endpoint de GPT/OpenAI na API pública.** O `gpt_image_2` que aparece
+no MCP não é exposto via REST — uma opção de modelo baseada nele daria 404.
+
+Detalhes do schema que importam e não são óbvios:
+- `/nano-banana` devolve **jpeg por padrão**; pedimos `output_format: png`, porque
+  o ringing do JPEG vira franja cinza exatamente em cima do contorno preto.
+- `soul/reference` tem `enhance_prompt: true` por padrão, que reescreve o prompt
+  no servidor e pode desfazer as restrições de "sem sombra, sem cinza". Mandamos
+  `false`.
 
 ---
 
@@ -90,6 +96,9 @@ das 12 páginas, e se os 5 estilos de desenho do catálogo funcionam (só o
 |---|---|---|
 | Tempo por página | ~40s | ~100s |
 | Resolução | 1792×2400 | 1744×2336 |
+
+(Medido via MCP. O `gpt_image_2` fica aqui só como registro — não dá para usá-lo
+no app, porque não tem endpoint REST.)
 
 O plano **starter da Higgsfield limita 4 jobs simultâneos**. A concorrência do
 app é 3 (`PAGE_CONCURRENCY` em `src/lib/render.ts`) — abaixo do teto. Se subir de
@@ -131,7 +140,7 @@ ponte da sessão de chat; o app precisa da API REST. São caminhos diferentes.
 
 ## Próximos passos, em ordem
 
-1. Descobrir o `HIGGSFIELD_ENDPOINT_NANO_BANANA` e gerar o primeiro livro real.
+1. Pôr `HIGGSFIELD_CREDENTIALS` no `.env.local` e gerar o primeiro livro real.
 2. Julgar a consistência dos personagens no PDF-amostra e nos estilos.
 3. Ajustar prompts conforme o que aparecer (`src/lib/ai/prompts.ts` para texto,
    `src/lib/images/prompt.ts` para desenho).
