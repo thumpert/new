@@ -25,12 +25,30 @@ metade de baixo da pipeline sem gastar nada.
 
 ---
 
-## O que falta
+## O que falta — comece por aqui
 
-**Só as credenciais do Higgsfield.** Os endpoints já estão no código.
+### 1. Baixar as imagens de exemplo dos estilos (30 segundos, no Mac)
 
-Foram tirados do OpenAPI oficial (`docs.higgsfield.ai/docs/openapi.json`), não
-adivinhados, e vivem em `src/lib/catalog.ts`. Base: `https://platform.higgsfield.ai`.
+```bash
+cd ~/new && git pull && ./scripts/fetch-style-samples.sh
+git add public/styles && git commit -m "Add the fixed art style samples" && git push
+```
+
+O wizard mostra um desenho de exemplo embaixo de cada estilo. As imagens já
+foram geradas — o script só baixa. **Sem isso os cards aparecem com o quadro
+branco vazio** (o layout não quebra, mas fica sem graça).
+
+Por que não estão no repositório ainda: a sessão do Claude que as gerou roda num
+container cujo proxy **bloqueia o CDN da Higgsfield** (`d8j0ntlcm91z4.cloudfront.net`,
+403 na política de rede do ambiente). O Mac não tem esse bloqueio. Dá para
+liberar em claude.ai/code → Settings → Environments → Network access, mas para
+cinco arquivos não compensa.
+
+### 2. Credenciais do Higgsfield
+
+Os endpoints já estão no código, tirados do OpenAPI oficial
+(`docs.higgsfield.ai/docs/openapi.json`), não adivinhados. Vivem em
+`src/lib/catalog.ts`. Base: `https://platform.higgsfield.ai`.
 
 ```bash
 echo 'HIGGSFIELD_CREDENTIALS=KEY_ID:KEY_SECRET' >> .env.local
@@ -63,47 +81,41 @@ Detalhes do schema que importam e não são óbvios:
 
 ---
 
-## O que foi validado de verdade
+## Os cinco estilos
 
-**Consistência de personagem — funciona.** A estratégia é gerar cada personagem
-**uma vez** como ficha de traço (3 vistas) e depois passar essa ficha como
-referência em toda página. Testado com um livro real de 12 páginas.
+`chibi`, `coloring-book`, `superhero-comic`, `fine-line` (Moderno Elegante) e
+`cartoon`. Cada um é uma **especificação inteira**, não uma frase — formas,
+proporções, rosto, corpo, linhas. Isso não é capricho: com uma frase só, o modelo
+volta para a ideia genérica dele de "fofo" ou "quadrinho". Medido no chibi, onde
+a frase curta desenhava **pupilas pretas chapadas** e a especificação não.
 
-**Traço limpo — medido, não achismo.** Analisei os 12 PNGs em resolução cheia:
+Todos os cinco foram gerados de verdade e medidos: **0,000% de cor e 0,000% de
+cinza nos cinco**; preto preenchido entre 0,000% e 0,088%.
 
-| Métrica | Resultado |
-|---|---|
-| Cor vazando | 0,00% nas 12 páginas |
-| Cinza sólido (sombreado) | 0,000% em 11 páginas, 0,005% em 1 |
+### Três especificações foram adaptadas de propósito
 
-O método: máscara dos pixels cinza, erodida em 5px. O que sobrevive é sombreado
-real; o que some era antialiasing de borda de linha. Sumiu tudo — ou seja, as
-restrições negativas do prompt (`no shading, no grey tones, no filled black
-areas`) estão funcionando.
+O cliente mandou as cinco especificações. Três pediam coisas que **arruínam uma
+página de colorir**, e foram adaptadas em vez de seguidas ao pé da letra. Está
+tudo comentado no `src/lib/catalog.ts`, mas o resumo:
 
-**Livro-amostra pronto** (12 páginas, bilíngue EN/PT, personagens Thomas e Zeca):
-`https://d2ol7oe51mr4n9.cloudfront.net/user_3GNFAU3bl7JWf8AKSp5WZTLExyW/4240c017-9b91-4d84-bca7-8d9a246ad676.pdf`
+| Estilo | O que pedia | Por que não dava |
+|---|---|---|
+| `superhero-comic` | blocos de preto puro, hachura cruzada, grade de vinhetas | preenchem o que a criança ia colorir; e a página é uma ilustração só |
+| `superhero-comic` | musculatura hiper-definida, maxilar angular | o livro é sobre uma criança real, uma avó, um cachorro — anatomia de fisiculturista desenha outra pessoa |
+| `fine-line` | volume por hachura paralela fina | hachura é sombra, e sombra é o trabalho de quem colore |
+| `cartoon` | cel-shading em blocos, sombras projetadas | mesmo motivo |
+| `cartoon` | uma cena específica (cachorro, trilha, montanhas angulares) | brigaria com a cena real de cada página; sobrou só a receita de profundidade em camadas |
+| `coloring-book` | mandala botânica | mandala não tem história dentro; o ornamento agora preenche **ao redor** dos personagens |
 
-**Estilo `kawaii` — validado.** O prompt dele não é uma frase, é uma
-especificação inteira (formas, proporções, cabeça, rosto, corpo, cabelo, roupa,
-linhas). Testado numa geração real: cabeça esférica sem queixo, rosto baixo,
-pupilas em contorno e não preenchidas, mãos de luva. Métricas da página:
+**Se alguém for "consertar" isso de volta, leia os comentários antes.** Cada
+adaptação existe por um motivo medido.
 
-| Métrica | Resultado |
-|---|---|
-| Cor | 0,000% |
-| Cinza sólido | 0,000% |
-| Preto preenchido | 0,006% (ruído) |
+### Uma decisão em aberto
 
-Vale a pena guardar por quê: sem a especificação o modelo volta para "cartoon
-fofo genérico", e as pupilas saem preenchidas de preto — que é o defeito que
-estraga uma página de colorir. Na ficha de personagem, onde o rosto é grande, o
-preenchimento ainda aparece (0,13%), mas a ficha nunca é impressa: ela só serve
-de referência, e a página sai limpa.
-
-**Ainda não julgado por humano:** se os personagens *parecem* os mesmos ao longo
-das 12 páginas, e os outros três estilos (`storybook`, `bold-simple`,
-`detailed-doodle`) — só `classic-cartoon` e `kawaii` foram testados a fundo.
+Os cinco exemplos usam **a mesma cena** (menina + cachorro + papagaio), o que é
+ótimo para comparar estilos lado a lado — mas deixa o `superhero-comic` sem
+graça, porque a cena é uma caminhada tranquila. A alternativa é gerar o exemplo
+do super-herói numa cena de ação e abrir mão da comparação direta. Não decidido.
 
 ---
 
@@ -157,11 +169,15 @@ ponte da sessão de chat; o app precisa da API REST. São caminhos diferentes.
 
 ## Próximos passos, em ordem
 
-1. Pôr `HIGGSFIELD_CREDENTIALS` no `.env.local` e gerar o primeiro livro real.
-2. Julgar a consistência dos personagens no PDF-amostra e nos estilos.
-3. Ajustar prompts conforme o que aparecer (`src/lib/ai/prompts.ts` para texto,
+1. **Rodar `./scripts/fetch-style-samples.sh`** e comitar `public/styles/` (ver o
+   topo deste documento).
+2. Pôr `HIGGSFIELD_CREDENTIALS` no `.env.local` e gerar o primeiro livro real.
+3. Julgar com olho humano: a consistência dos personagens no PDF-amostra, e se os
+   cinco estilos agradam. Só a métrica de traço limpo está validada — gosto, não.
+4. Decidir a cena de exemplo do `superhero-comic` (ver "Uma decisão em aberto").
+5. Ajustar prompts conforme o que aparecer (`src/lib/ai/prompts.ts` para texto,
    `src/lib/images/prompt.ts` para desenho).
-4. Fase 2: pagamento (Stripe) e envio para a gráfica.
-5. Antes de produção: trocar `lib/store.ts` e `lib/storage.ts` por Postgres e blob
+6. Fase 2: pagamento (Stripe) e envio para a gráfica.
+7. Antes de produção: trocar `lib/store.ts` e `lib/storage.ts` por Postgres e blob
    storage, e mover a renderização para uma fila (32 páginas estouram o timeout de
    função serverless).
