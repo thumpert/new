@@ -111,9 +111,13 @@ ela nesses termos.
 
 ## O que foi medido de verdade
 
-**Consistência de personagem — funciona.** Testado com livro real: gerar cada
-personagem uma vez como ficha e passar essa ficha como referência em toda página
-mantém a pessoa reconhecível.
+**Consistência de personagem — a estratégia funciona, mas atenção à procedência
+da prova.** Gerar cada personagem uma vez como ficha e usar essa ficha como
+referência em toda página mantém a pessoa reconhecível: validado num livro de 12
+páginas **na Higgsfield**, o provedor antigo. No Google só foi verificado o
+trecho ficha → capa, que saiu igual à ficha. **Um livro inteiro pelo Google
+ainda não foi julgado por ninguém** — a estratégia é a mesma e o modelo por baixo
+também, mas isso é dedução, não medição.
 
 **Traço limpo — medido.** Método: máscara de pixels cinza, erodida em 5px; o que
 sobrevive é sombreado real, o que some era antialiasing de borda.
@@ -122,7 +126,11 @@ sobrevive é sombreado real, o que some era antialiasing de borda.
 |---|---|
 | Cor vazando | 0,000% |
 | Cinza sólido | 0,000% |
-| Preto preenchido (contornos excluídos) | 0,000% a 0,026% |
+| Preto preenchido (contornos excluídos) | 0,000% a 0,044% |
+
+Medido nas cinco amostras em traço de `public/styles/` e num livro de teste, todos
+gerados pela Higgsfield. A única imagem do Google medida pelo mesmo método deu
+0,000% nas três colunas.
 
 **JPEG não estraga o traço.** O Gemini só devolve JPEG — a documentação diz que
 aceita `image/png`, mas a API responde 400 nos quatro modelos. Medi o estrago: a
@@ -140,10 +148,13 @@ personagens, que por isso vão no prompt junto com a ficha.
 
 - **A página vinda de foto.** O encanamento está testado (o smoke test tem uma
   memória e confere que o prompt certo foi usado), mas nenhuma foto real virou
-  página ainda. É o próximo teste, e custa centavos.
-- **A consistência dos personagens ao longo de um livro inteiro** no fluxo
-  colorido.
-- **Três dos cinco estilos** a fundo — só chibi e cartoon foram olhados de perto.
+  página ainda. É o único caminho do sistema que ninguém viu funcionando, e é
+  também o mais incerto: a foto e a ficha disputam, e a hierarquia entre elas só
+  existe no texto do prompt. Custa centavos testar.
+- **Um livro inteiro gerado pelo Google**, em qualquer um dos dois acabamentos.
+  Fichas, capas e páginas soltas já saíram; as 12 ou 32 páginas de uma vez, não.
+- **O estilo `coloring-book`** — é o único dos cinco cuja amostra ninguém
+  examinou de perto. Os outros quatro foram olhados nos dois acabamentos.
 
 ---
 
