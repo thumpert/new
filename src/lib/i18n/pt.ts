@@ -221,11 +221,26 @@ export const pt = {
     epic: { label: 'Épico', description: 'Um narrador grandioso para feitos domésticos.' },
   },
   artStyles: {
-    'classic-cartoon': { label: 'Cartoon clássico', description: 'Personagens redondos e expressivos.' },
-    kawaii: { label: 'Kawaii', description: 'Fofo, cabeção e olhos grandes.' },
-    storybook: { label: 'Livro ilustrado', description: 'Traço de nanquim, cenários ricos.' },
-    'bold-simple': { label: 'Traço grosso', description: 'Formas simples, ideal para crianças pequenas.' },
-    'detailed-doodle': { label: 'Doodle detalhado', description: 'Padrões e detalhes para colorir com calma.' },
+    chibi: {
+      label: 'Chibi',
+      description: 'Cabeção redondo, olhos enormes, tudo fofo. O mais fácil de colorir.',
+    },
+    'coloring-book': {
+      label: 'Livro de colorir',
+      description: 'Traço fino e cheio de folhas, flores e bichinhos escondidos. Para colorir com calma.',
+    },
+    'superhero-comic': {
+      label: 'HQ super-heróis',
+      description: 'Poses de ação, ângulos dramáticos e anatomia heroica, como um quadrinho.',
+    },
+    'fine-line': {
+      label: 'Moderno elegante',
+      description: 'Traço finíssimo e delicado, com jeito de ilustração de revista.',
+    },
+    cartoon: {
+      label: 'Cartoon',
+      description: 'Desenho animado dos anos 90, com cenário em camadas.',
+    },
   },
   bookSizes: {
     short: { label: 'Curto', description: 'Uma história rápida, direto ao ponto.' },

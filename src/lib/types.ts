@@ -27,11 +27,11 @@ export type StoryTypeId =
 export type ToneId = 'warm' | 'playful' | 'poetic' | 'epic'
 
 export type ArtStyleId =
-  | 'classic-cartoon'
-  | 'kawaii'
-  | 'storybook'
-  | 'bold-simple'
-  | 'detailed-doodle'
+  | 'chibi'
+  | 'coloring-book'
+  | 'superhero-comic'
+  | 'fine-line'
+  | 'cartoon'
 
 export type BookSizeId = 'short' | 'medium' | 'long'
 

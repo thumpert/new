@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import type { ReactNode } from 'react'
 
 /** Shared visual primitives for the wizard. */
@@ -45,31 +46,57 @@ export function OptionCard({
   selected,
   onSelect,
   meta,
+  sample,
 }: {
   label: string
   description?: string
   selected: boolean
   onSelect: () => void
   meta?: string
+  /** Example drawing, shown above the label. Used by the art style picker. */
+  sample?: string
 }) {
   return (
     <button
       type="button"
       onClick={onSelect}
       aria-pressed={selected}
-      className={`flex w-full flex-col gap-1 rounded-2xl border px-5 py-4 text-left transition ${
+      className={`flex w-full flex-col gap-1 rounded-2xl border text-left transition ${
+        sample ? 'overflow-hidden p-0' : 'px-5 py-4'
+      } ${
         selected
           ? 'border-accent bg-accent-soft'
           : 'border-line bg-paper-raised hover:border-accent/50'
       }`}
     >
-      <span className="flex items-baseline justify-between gap-3">
-        <span className="font-serif text-lg text-ink">{label}</span>
-        {meta && <span className="text-xs text-ink-soft">{meta}</span>}
-      </span>
-      {description && (
-        <span className="text-sm leading-snug text-ink-soft">{description}</span>
+      {sample && (
+        // The samples are line art on white, so they need a white plate of
+        // their own — on the cream page background they would look grubby.
+        // The plate keeps its height if the file is missing, so a card without
+        // its sample yet is a blank frame rather than a collapsed layout.
+        <span className="flex h-44 items-center justify-center border-b border-line bg-white">
+          <Image
+            src={sample}
+            alt=""
+            // Intrinsic size of the checked-in samples; the card scales them
+            // down by height, so this only fixes the aspect ratio.
+            width={720}
+            height={960}
+            className="block h-full w-auto object-contain"
+          />
+        </span>
       )}
+      <span className={sample ? 'flex flex-col gap-1 px-5 py-4' : 'contents'}>
+        <span className="flex items-baseline justify-between gap-3">
+          <span className="font-serif text-lg text-ink">{label}</span>
+          {meta && <span className="text-xs text-ink-soft">{meta}</span>}
+        </span>
+        {description && (
+          <span className="text-sm leading-snug text-ink-soft">
+            {description}
+          </span>
+        )}
+      </span>
     </button>
   )
 }

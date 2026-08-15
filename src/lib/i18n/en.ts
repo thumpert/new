@@ -222,11 +222,26 @@ export const en: Dictionary = {
     epic: { label: 'Epic', description: 'A grand narrator for domestic deeds.' },
   },
   artStyles: {
-    'classic-cartoon': { label: 'Classic cartoon', description: 'Rounded, expressive characters.' },
-    kawaii: { label: 'Kawaii', description: 'Cute, big heads and big eyes.' },
-    storybook: { label: 'Picture book', description: 'Ink line work, rich scenery.' },
-    'bold-simple': { label: 'Bold and simple', description: 'Simple shapes, great for little kids.' },
-    'detailed-doodle': { label: 'Detailed doodle', description: 'Patterns and detail to colour slowly.' },
+    chibi: {
+      label: 'Chibi',
+      description: 'Big round heads, huge eyes, everything cute. The easiest to colour.',
+    },
+    'coloring-book': {
+      label: 'Coloring book',
+      description: 'Fine lines packed with leaves, flowers and hidden little animals. To colour slowly.',
+    },
+    'superhero-comic': {
+      label: 'Superhero comic',
+      description: 'Action poses, dramatic angles and heroic anatomy, like a comic book.',
+    },
+    'fine-line': {
+      label: 'Modern and elegant',
+      description: 'Very fine, delicate line work, like a magazine illustration.',
+    },
+    cartoon: {
+      label: 'Cartoon',
+      description: 'A 90s animated show, with scenery staged in layers.',
+    },
   },
   bookSizes: {
     short: { label: 'Short', description: 'A quick story, straight to the point.' },

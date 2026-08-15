@@ -72,7 +72,7 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
   const [occasionId, setOccasionId] = useState<OccasionId>('child')
   const [storyTypeId, setStoryTypeId] = useState<StoryTypeId>('adventure')
   const [toneId, setToneId] = useState<ToneId>('warm')
-  const [artStyleId, setArtStyleId] = useState<ArtStyleId>('classic-cartoon')
+  const [artStyleId, setArtStyleId] = useState<ArtStyleId>('chibi')
   const [sizeId, setSizeId] = useState<BookSizeId>('medium')
   const [place, setPlace] = useState('')
   const [title, setTitle] = useState('')
@@ -357,6 +357,7 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
                 key={a.id}
                 label={dict.artStyles[a.id].label}
                 description={dict.artStyles[a.id].description}
+                sample={a.sample}
                 selected={artStyleId === a.id}
                 onSelect={() => setArtStyleId(a.id)}
               />
