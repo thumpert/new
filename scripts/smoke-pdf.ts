@@ -8,11 +8,19 @@
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
 import { buildBookPdf } from '../src/lib/pdf/build'
-import { regeneratePage, renderOrder } from '../src/lib/render'
+import {
+  chooseCover,
+  regeneratePage,
+  renderCoverStage,
+  renderPageStage,
+} from '../src/lib/render'
 import { getOrder, newOrderId, saveOrder } from '../src/lib/store'
-import type { Order } from '../src/lib/types'
+import type { BookFinish, Order } from '../src/lib/types'
 
 process.env.IMAGE_PROVIDER ??= 'mock'
+
+/** npx tsx scripts/smoke-pdf.ts coloured — o padrao e o livro de colorir. */
+const FINISH: BookFinish = process.argv[2] === 'coloured' ? 'coloured' : 'coloring'
 
 const now = new Date().toISOString()
 
@@ -26,7 +34,7 @@ const order: Order = {
     // The bilingual book is the layout most likely to break: it is the only
     // one printing two text blocks under the drawing.
     bookLanguage: 'en-pt',
-    imageModelId: 'nano-banana',
+    finish: FINISH,
     occasionId: 'birthday',
     storyTypeId: 'adventure',
     toneId: 'warm',
@@ -54,6 +62,15 @@ const order: Order = {
       },
     ],
     interview: [],
+    // Exercises the memory path: page 4 is redrawn from a photograph rather
+    // than from an invented scene.
+    memories: [
+      {
+        id: 'm1',
+        url: '/api/files/nao-existe.jpg',
+        note: 'O dia em que o Biscoito chegou em casa e se escondeu embaixo do sofá a tarde toda.',
+      },
+    ],
   },
   storyboard: {
     title: 'As Grandes Aventuras da Lila',
@@ -64,16 +81,37 @@ const order: Order = {
       narrationSecondary: `Página ${i + 1}: a Lila e o Biscoito seguem a trilha entre as mangueiras, e o quintal fica cada vez maior.`,
       sceneDescription: `Wide shot of Lila and her dog Biscoito walking along a garden path between mango trees, page ${i + 1} of the journey.`,
       charactersOnPage: ['c1', 'c2'],
+      memoryId: i === 3 ? 'm1' : undefined,
     })),
   },
 }
 
 async function main() {
+  console.log(`acabamento: ${FINISH}`)
   await saveOrder(order)
-  await renderOrder(order.id)
+
+  // First half: model sheets, then both cover options. Stops there.
+  await renderCoverStage(order.id)
+  const atChoice = await getOrder(order.id)
+  const covers = atChoice?.covers ?? []
+  console.log(`status na escolha: ${atChoice?.status}`)
+  console.log(
+    `capas: ${covers.map((c) => `${c.kind}=${c.status}`).join(', ')}`,
+  )
+  if (atChoice?.status !== 'choosing-cover') {
+    throw new Error(`expected to be waiting on a cover, got ${atChoice?.status}`)
+  }
+
+  // Second half only starts once a cover is chosen.
+  await chooseCover(order.id, 'scene')
+  await renderPageStage(order.id)
 
   const rendered = await getOrder(order.id)
   if (!rendered) throw new Error('order vanished')
+  console.log(`capa escolhida: ${rendered.chosenCoverKind}`)
+  console.log(
+    `contracapa: ${rendered.covers?.find((c) => c.kind === 'back')?.status}`,
+  )
 
   const renders = rendered.renders ?? []
   const done = renders.filter((r) => r.status === 'done').length
@@ -94,6 +132,12 @@ async function main() {
   await fs.writeFile(out, bytes)
 
   console.log(`pdf: ${out} (${(bytes.length / 1024).toFixed(1)} KB)`)
+  // The memory page must have taken the other prompt path entirely.
+  const memoryPage = (afterRedraw ?? rendered).renders?.find((r) => r.index === 4)
+  const usedPhoto = memoryPage?.promptPreview?.includes('real photograph, redrawn')
+  console.log(`pagina de memoria (4) usou o prompt da foto: ${usedPhoto ? 'SIM' : 'NAO'}`)
+  if (!usedPhoto) throw new Error('a pagina de memoria nao usou memoryPagePrompt')
+
   console.log(`prompt sample:\n${renders[0]?.promptPreview ?? '(none)'}`)
 }
 

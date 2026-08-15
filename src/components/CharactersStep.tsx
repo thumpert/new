@@ -2,17 +2,22 @@
 
 import { useRef, useState } from 'react'
 import type { Dictionary } from '@/lib/i18n'
-import type { Character, CharacterKind } from '@/lib/types'
+import { MAX_MEMORIES } from '@/lib/types'
+import type { Character, CharacterKind, MemoryPhoto } from '@/lib/types'
 import { Button, Field, TextArea, TextInput } from './ui'
 
 export function CharactersStep({
   dict,
   characters,
   onChange,
+  memories,
+  onMemoriesChange,
 }: {
   dict: Dictionary
   characters: Character[]
   onChange: (characters: Character[]) => void
+  memories: MemoryPhoto[]
+  onMemoriesChange: (memories: MemoryPhoto[]) => void
 }) {
   const copy = dict.wizard.characters
 
@@ -136,7 +141,138 @@ export function CharactersStep({
           </Button>
         </div>
       )}
+
+      <MemoriesBlock
+        dict={dict}
+        memories={memories}
+        onChange={onMemoriesChange}
+      />
     </div>
+  )
+}
+
+/**
+ * Photographs that become pages.
+ *
+ * Deliberately set apart from the character cards above, because it is the
+ * opposite kind of upload and confusing the two would waste the customer's
+ * time: those photos teach the model a face and are never printed, while these
+ * are printed — the moment in them becomes a page of the story.
+ */
+function MemoriesBlock({
+  dict,
+  memories,
+  onChange,
+}: {
+  dict: Dictionary
+  memories: MemoryPhoto[]
+  onChange: (memories: MemoryPhoto[]) => void
+}) {
+  const copy = dict.wizard.memories
+  const inputRef = useRef<HTMLInputElement>(null)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  async function upload(files: File[]) {
+    setBusy(true)
+    setError(null)
+    try {
+      const room = MAX_MEMORIES - memories.length
+      const added: MemoryPhoto[] = []
+
+      for (const file of files.slice(0, room)) {
+        const body = new FormData()
+        body.append('file', file)
+        const res = await fetch('/api/uploads', { method: 'POST', body })
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.error ?? dict.common.error)
+        added.push({ id: `m${Date.now().toString(36)}${added.length}`, url: data.url, note: '' })
+      }
+
+      onChange([...memories, ...added])
+    } catch (err) {
+      setError(err instanceof Error ? err.message : dict.common.error)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <section className="rounded-2xl border border-dashed border-line bg-paper-raised/60 p-5">
+      <h2 className="font-serif text-lg text-ink">{copy.title}</h2>
+      <p className="mt-1 text-sm text-ink-soft">{copy.subtitle}</p>
+
+      {memories.length > 0 && (
+        <ul className="mt-4 space-y-4">
+          {memories.map((memory) => (
+            <li key={memory.id} className="flex gap-4">
+              {/* Plain <img>: a customer upload from our own API route. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={memory.url}
+                alt=""
+                className="size-24 shrink-0 rounded-xl border border-line object-cover"
+              />
+              <div className="min-w-0 flex-1">
+                <TextArea
+                  value={memory.note}
+                  rows={3}
+                  placeholder={copy.notePlaceholder}
+                  onChange={(note) =>
+                    onChange(
+                      memories.map((m) =>
+                        m.id === memory.id ? { ...m, note } : m,
+                      ),
+                    )
+                  }
+                />
+                <button
+                  type="button"
+                  onClick={() =>
+                    onChange(memories.filter((m) => m.id !== memory.id))
+                  }
+                  className="mt-1.5 text-xs text-ink-soft underline-offset-2 hover:text-accent hover:underline"
+                >
+                  {copy.remove}
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {memories.length < MAX_MEMORIES && (
+        <div className="mt-4">
+          <Button
+            variant="ghost"
+            disabled={busy}
+            onClick={() => inputRef.current?.click()}
+          >
+            {busy
+              ? dict.common.loading
+              : memories.length === 0
+                ? copy.add
+                : copy.addAnother}
+          </Button>
+        </div>
+      )}
+
+      <input
+        ref={inputRef}
+        type="file"
+        multiple
+        accept="image/jpeg,image/png,image/webp"
+        className="hidden"
+        onChange={(e) => {
+          const files = Array.from(e.target.files ?? [])
+          if (files.length) void upload(files)
+          e.target.value = ''
+        }}
+      />
+
+      <p className="mt-2 text-xs text-ink-soft">{copy.hint}</p>
+      {error && <p className="mt-1.5 text-xs text-accent">{error}</p>}
+    </section>
   )
 }
 

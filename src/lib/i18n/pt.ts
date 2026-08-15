@@ -38,15 +38,14 @@ export const pt = {
     ],
   },
   wizard: {
+    finish: {
+      title: 'Que tipo de livro você quer?',
+      subtitle: 'Esta escolha muda tudo o que vem depois — inclusive como as ilustrações são desenhadas.',
+    },
     bookLanguage: {
       title: 'Em que idioma será o livro?',
       subtitle:
         'O site continua em português — isso vale só para o livro impresso.',
-    },
-    imageModel: {
-      title: 'Qual modelo vai desenhar?',
-      subtitle:
-        'Em teste: os dois desenham o mesmo livro, com velocidades bem diferentes.',
     },
     occasion: {
       title: 'Qual é a ocasião?',
@@ -63,6 +62,8 @@ export const pt = {
     artStyle: {
       title: 'Qual estilo de desenho?',
       subtitle: 'Todos são em traço preto e branco, prontos para colorir.',
+      subtitleColoured:
+        'Cada estilo tem sua própria paleta — o de quadrinhos sai vibrante, o kawaii sai em pastel.',
     },
     size: {
       title: 'Qual o tamanho do livro?',
@@ -94,6 +95,17 @@ export const pt = {
       upload: 'Enviar foto',
       addPhoto: 'Mais uma foto',
       removePhoto: 'Remover foto',
+    },
+    memories: {
+      title: 'Fotos para entrar no livro',
+      subtitle:
+        'Diferente das fotos acima. Estas viram páginas: a foto é redesenhada no estilo que você escolheu, com o momento inteiro — quem está, fazendo o quê.',
+      notePlaceholder:
+        'O que é esse momento? Ex.: o dia em que o Zeca chegou em casa e se escondeu embaixo do sofá a tarde toda.',
+      add: 'Escolher uma foto',
+      addAnother: 'Mais uma foto',
+      remove: 'Remover esta foto',
+      hint: 'Até 3 fotos. Escreva o que aconteceu — é isso que faz a página virar parte da história em vez de um encarte.',
     },
     place: {
       title: 'Onde a história acontece?',
@@ -151,19 +163,37 @@ export const pt = {
     regenerating: 'Refazendo…',
     regenerateHint:
       'Os personagens continuam iguais — só esta cena é desenhada de novo.',
-  },
-  imageModels: {
-    'nano-banana': {
-      label: 'Nano Banana',
-      description:
-        'Recomendado. Aceita até 8 fichas de personagem por página — é o que mantém todo mundo parecido consigo mesmo do começo ao fim.',
-      meta: 'vários personagens',
+    covers: 'Desenhando as capas…',
+    coverReady: 'Escolha a capa para continuar',
+    chooseCoverTitle: 'Qual vai ser a capa?',
+    chooseCoverHint:
+      'As duas são coloridas, no estilo que você escolheu. O livro só começa a ser desenhado depois desta escolha.',
+    chooseThis: 'Escolher esta',
+    choosingCover: 'Escolhendo…',
+    coverFailed: 'Esta capa não pôde ser desenhada.',
+    coverKinds: {
+      portrait: {
+        label: 'Retrato',
+        description:
+          'Os personagens juntos, grandes, olhando para quem abre o presente.',
+      },
+      scene: {
+        label: 'Cena',
+        description:
+          'Um momento largo da história, com os personagens dentro do mundo deles.',
+      },
     },
-    soul: {
-      label: 'Soul',
+  },
+  finishes: {
+    coloring: {
+      label: 'Livro de colorir',
       description:
-        'O modelo da própria Higgsfield. Aceita só uma ficha de personagem, então cabe melhor em livros com um personagem principal.',
-      meta: '1 personagem',
+        'Desenhos em traço preto sobre branco, para colorir com lápis e giz. A capa vem colorida.',
+    },
+    coloured: {
+      label: 'Livro ilustrado colorido',
+      description:
+        'As páginas já vêm pintadas, prontas para ler. Cada estilo tem sua paleta — o de quadrinhos sai vibrante, o kawaii sai em pastel.',
     },
   },
   bookLanguages: {
@@ -224,22 +254,32 @@ export const pt = {
     chibi: {
       label: 'Chibi',
       description: 'Cabeção redondo, olhos enormes, tudo fofo. O mais fácil de colorir.',
+      descriptionColoured:
+        'Cabeção redondo, olhos enormes, tudo fofo. Pintado em pastel suave.',
     },
     'coloring-book': {
       label: 'Livro de colorir',
       description: 'Traço fino e cheio de folhas, flores e bichinhos escondidos. Para colorir com calma.',
+      descriptionColoured:
+        'Cheio de folhas, flores e bichinhos escondidos, pintado em tons joia.',
     },
     'superhero-comic': {
       label: 'HQ super-heróis',
       description: 'Poses de ação, ângulos dramáticos e anatomia heroica, como um quadrinho.',
+      descriptionColoured:
+        'Poses de ação e ângulos dramáticos, em cores fortes e vibrantes de quadrinho.',
     },
     'fine-line': {
       label: 'Moderno elegante',
       description: 'Traço finíssimo e delicado, com jeito de ilustração de revista.',
+      descriptionColoured:
+        'Traço finíssimo com aguadas suaves, do jeito de ilustração de revista.',
     },
     cartoon: {
       label: 'Cartoon',
       description: 'Desenho animado dos anos 90, com cenário em camadas.',
+      descriptionColoured:
+        'Desenho animado dos anos 90, com cor chapada e cenário em camadas.',
     },
   },
   bookSizes: {

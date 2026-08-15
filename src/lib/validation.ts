@@ -3,12 +3,11 @@ import {
   ART_STYLES,
   BOOK_LANGUAGES,
   BOOK_SIZES,
-  IMAGE_MODELS,
   OCCASIONS,
   STORY_TYPES,
   TONES,
 } from './catalog'
-import { LOCALES } from './types'
+import { BOOK_FINISHES, COVER_KINDS, LOCALES, MAX_MEMORIES } from './types'
 
 /** Runtime validation for everything that arrives from the browser. */
 
@@ -26,6 +25,12 @@ export const characterSchema = z.object({
   referenceSheetUrl: z.string().max(500).optional(),
 })
 
+export const memoryPhotoSchema = z.object({
+  id: z.string().min(1).max(64),
+  url: z.string().min(1).max(500),
+  note: z.string().max(600).default(''),
+})
+
 export const interviewAnswerSchema = z.object({
   questionId: z.string().max(64),
   question: z.string().max(500),
@@ -35,7 +40,7 @@ export const interviewAnswerSchema = z.object({
 export const briefSchema = z.object({
   locale: z.enum(LOCALES as [string, ...string[]]),
   bookLanguage: z.enum(ids(BOOK_LANGUAGES)),
-  imageModelId: z.enum(ids(IMAGE_MODELS)),
+  finish: z.enum(BOOK_FINISHES as [string, ...string[]]),
   occasionId: z.enum(ids(OCCASIONS)),
   storyTypeId: z.enum(ids(STORY_TYPES)),
   toneId: z.enum(ids(TONES)),
@@ -45,6 +50,7 @@ export const briefSchema = z.object({
   place: z.string().max(600).default(''),
   dedication: z.string().max(600).optional(),
   characters: z.array(characterSchema).min(1).max(6),
+  memories: z.array(memoryPhotoSchema).max(MAX_MEMORIES).optional(),
   interview: z.array(interviewAnswerSchema).max(20).default([]),
 })
 
@@ -54,6 +60,10 @@ export const briefPatchSchema = briefSchema.partial()
 export const chooseIdeaSchema = z.object({
   ideaId: z.string().min(1).max(64),
   title: z.string().max(120).optional(),
+})
+
+export const chooseCoverSchema = z.object({
+  kind: z.enum(COVER_KINDS as [string, ...string[]]),
 })
 
 export type BriefInput = z.infer<typeof briefSchema>

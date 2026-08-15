@@ -72,7 +72,7 @@ export async function buildBookPdf(order: Order): Promise<Uint8Array> {
     bodyItalic: await pdf.embedFont(StandardFonts.TimesRomanItalic),
   }
 
-  drawCover(pdf, fonts, order, t)
+  await drawCover(pdf, fonts, order, t)
 
   if (order.storyboard.dedication?.trim()) {
     drawDedication(pdf, fonts, order.storyboard.dedication)
@@ -91,31 +91,63 @@ export async function buildBookPdf(order: Order): Promise<Uint8Array> {
     ? NARRATION_BLOCK_BILINGUAL
     : NARRATION_BLOCK
 
+  // The two books are laid out differently on purpose. A coloring page is a
+  // working surface: it wants white margins to rest the hand on and a clear
+  // band for the narration. A colour page is a finished picture: it bleeds to
+  // the edge, and the narration sits on a soft plate over the art.
+  const bleed = order.brief.finish === 'coloured'
+
   for (const page of order.storyboard.pages) {
     const render = rendersByIndex.get(page.index)
     const sheet = pdf.addPage([A4.width, A4.height])
 
-    const imageBottom = MARGIN + narrationBlock
-    const box = {
-      x: MARGIN,
-      y: imageBottom,
-      width: A4.width - MARGIN * 2,
-      height: A4.height - MARGIN - imageBottom,
-    }
+    const imageBottom = bleed ? 0 : MARGIN + narrationBlock
+    const box = bleed
+      ? { x: 0, y: 0, width: A4.width, height: A4.height }
+      : {
+          x: MARGIN,
+          y: imageBottom,
+          width: A4.width - MARGIN * 2,
+          height: A4.height - MARGIN - imageBottom,
+        }
 
     if (render?.imageUrl) {
-      await drawImage(pdf, sheet, render.imageUrl, box)
+      if (bleed) {
+        await drawImageCover(pdf, sheet, render.imageUrl, box)
+        sheet.drawRectangle({
+          x: 0,
+          y: 0,
+          width: A4.width,
+          height: narrationBlock,
+          color: rgb(1, 1, 1),
+          opacity: 0.78,
+        })
+      } else {
+        await drawImage(pdf, sheet, render.imageUrl, box)
+      }
     } else {
-      drawPlaceholder(sheet, fonts, box, {
-        label: render?.status === 'failed' ? t.failed : t.placeholder,
-        detail: render?.error ?? render?.promptPreview ?? page.sceneDescription,
-      })
+      drawPlaceholder(
+        sheet,
+        fonts,
+        bleed
+          ? {
+              x: MARGIN,
+              y: MARGIN + narrationBlock,
+              width: A4.width - MARGIN * 2,
+              height: A4.height - MARGIN * 2 - narrationBlock,
+            }
+          : box,
+        {
+          label: render?.status === 'failed' ? t.failed : t.placeholder,
+          detail: render?.error ?? render?.promptPreview ?? page.sceneDescription,
+        },
+      )
     }
 
     drawNarration(sheet, fonts, page, page.index, narrationBlock)
   }
 
-  drawClosing(pdf, fonts, t)
+  await drawClosing(pdf, fonts, order, t)
 
   return pdf.save()
 }
@@ -129,7 +161,15 @@ export async function buildAndStorePdf(order: Order): Promise<string> {
 
 /* ------------------------------------------------------------------ */
 
-function drawCover(
+/**
+ * The front cover: the chosen illustration bled to the edges, with the title
+ * typeset across the top.
+ *
+ * The art is drawn to leave the upper third calm precisely so this text can
+ * sit there. When no cover was chosen or drawn, it falls back to the original
+ * typographic cover rather than shipping a blank page.
+ */
+async function drawCover(
   pdf: PDFDocument,
   fonts: Fonts,
   order: Order,
@@ -137,6 +177,49 @@ function drawCover(
 ) {
   const page = pdf.addPage([A4.width, A4.height])
   const title = order.storyboard!.title
+  const names = order.brief.characters.map((c) => c.name).filter(Boolean)
+
+  const chosen = (order.covers ?? []).find(
+    (c) => c.kind === order.chosenCoverKind && c.imageUrl,
+  )
+
+  if (chosen?.imageUrl) {
+    // Full bleed: a cover with a white border reads as a printout, not a book.
+    await drawImageCover(pdf, page, chosen.imageUrl, {
+      x: 0,
+      y: 0,
+      width: A4.width,
+      height: A4.height,
+    })
+
+    // A soft plate behind the title so it stays legible over whatever the
+    // model painted up there.
+    page.drawRectangle({
+      x: 0,
+      y: A4.height - 210,
+      width: A4.width,
+      height: 210,
+      color: rgb(1, 1, 1),
+      opacity: 0.72,
+    })
+
+    let y = A4.height - 96
+    for (const line of wrap(title, fonts.display, 32, A4.width - MARGIN * 3)) {
+      drawCentered(page, line, fonts.display, 32, y, INK)
+      y -= 38
+    }
+    if (names.length > 0) {
+      drawCentered(
+        page,
+        formatNames(names, order.brief.locale),
+        fonts.bodyItalic,
+        14,
+        y - 6,
+        MUTED,
+      )
+    }
+    return
+  }
 
   const titleLines = wrap(title, fonts.display, 34, A4.width - MARGIN * 4)
   let y = A4.height * 0.62
@@ -158,7 +241,6 @@ function drawCover(
     color: HAIRLINE,
   })
 
-  const names = order.brief.characters.map((c) => c.name).filter(Boolean)
   if (names.length > 0) {
     y -= 34
     drawCentered(page, t.starring.toUpperCase(), fonts.body, 9, y, MUTED)
@@ -186,10 +268,89 @@ function drawDedication(pdf: PDFDocument, fonts: Fonts, dedication: string) {
   }
 }
 
-function drawClosing(pdf: PDFDocument, fonts: Fonts, t: Record<string, string>) {
+/**
+ * The back cover: the closing illustration, with "The End" and the cast set
+ * across the bottom — the mirror of the front, where the type sits on top.
+ *
+ * A back cover that failed to draw is not worth failing the book over, so this
+ * quietly falls back to the plain closing page.
+ */
+async function drawClosing(
+  pdf: PDFDocument,
+  fonts: Fonts,
+  order: Order,
+  t: Record<string, string>,
+) {
   const page = pdf.addPage([A4.width, A4.height])
-  drawCentered(page, t.theEnd, fonts.display, 28, A4.height / 2, INK)
-  drawCentered(page, t.madeWith, fonts.bodyItalic, 12, A4.height / 2 - 40, MUTED)
+  const back = (order.covers ?? []).find((c) => c.kind === 'back' && c.imageUrl)
+
+  if (!back?.imageUrl) {
+    drawCentered(page, t.theEnd, fonts.display, 28, A4.height / 2, INK)
+    drawCentered(page, t.madeWith, fonts.bodyItalic, 12, A4.height / 2 - 40, MUTED)
+    return
+  }
+
+  await drawImageCover(pdf, page, back.imageUrl, {
+    x: 0,
+    y: 0,
+    width: A4.width,
+    height: A4.height,
+  })
+
+  page.drawRectangle({
+    x: 0,
+    y: 0,
+    width: A4.width,
+    height: 168,
+    color: rgb(1, 1, 1),
+    opacity: 0.72,
+  })
+
+  drawCentered(page, t.theEnd, fonts.display, 26, 104, INK)
+
+  const names = order.brief.characters.map((c) => c.name).filter(Boolean)
+  if (names.length > 0) {
+    drawCentered(
+      page,
+      formatNames(names, order.brief.locale),
+      fonts.bodyItalic,
+      13,
+      74,
+      MUTED,
+    )
+  }
+  drawCentered(page, t.madeWith, fonts.body, 9, 46, MUTED)
+}
+
+/**
+ * Fills the box completely, cropping the overflow — the opposite of drawImage,
+ * which fits inside and leaves white.
+ *
+ * Covers want this: a full bleed with a little of the art lost off the edge
+ * looks like a book, while a cover letterboxed inside white margins looks like
+ * something that came out of a home printer.
+ */
+async function drawImageCover(
+  pdf: PDFDocument,
+  page: PDFPage,
+  imageUrl: string,
+  box: { x: number; y: number; width: number; height: number },
+) {
+  const bytes = await fetchBinary(imageUrl)
+  const image = isPng(bytes)
+    ? await pdf.embedPng(bytes)
+    : await pdf.embedJpg(bytes)
+
+  const scale = Math.max(box.width / image.width, box.height / image.height)
+  const width = image.width * scale
+  const height = image.height * scale
+
+  page.drawImage(image, {
+    x: box.x + (box.width - width) / 2,
+    y: box.y + (box.height - height) / 2,
+    width,
+    height,
+  })
 }
 
 async function drawImage(

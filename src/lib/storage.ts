@@ -54,9 +54,12 @@ export async function readFile(name: string): Promise<Buffer | null> {
 }
 
 /**
- * Absolute URL for a stored file. Image providers fetch reference images over
- * the network, so they need a URL they can actually reach — set APP_URL (or
- * rely on Vercel's VERCEL_URL) when running against a real provider.
+ * Absolute URL for a stored file.
+ *
+ * Only the app itself reads these — it fetches its own stored reference sheets
+ * to send them as bytes, and pulls page images back to build the PDF. Nothing
+ * outside needs to reach them, so this can stay private; set APP_URL (or rely
+ * on Vercel's VERCEL_URL) so the server resolves its own origin correctly.
  */
 export function absoluteUrl(pathname: string): string {
   const base =

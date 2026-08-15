@@ -2,7 +2,6 @@ import type {
   ArtStyleId,
   BookLanguageId,
   BookSizeId,
-  ImageModelId,
   OccasionId,
   StoryTypeId,
   ToneId,
@@ -146,6 +145,28 @@ export interface ArtStyleDef {
    * where the one-liner drew solid black pupils and the spec did not.
    */
   prompt: string
+  /**
+   * How this style is coloured. Used by every cover, and by every page when
+   * the book is a colour book rather than a coloring book.
+   *
+   * A full specification for the same reason `prompt` is one: "colour it in"
+   * lands on the same generic mid-saturation cartoon palette every time, and
+   * the palette is most of what separates a comic from something kawaii. The
+   * style owns its colour — the customer never picks a palette separately,
+   * so the two can never fight each other.
+   */
+  palette: string
+  /**
+   * Appended only when the book is a coloring book.
+   *
+   * Several of these styles are shaded in their natural form — cel blocks,
+   * cross-hatching, ink shadow — and a coloring page cannot carry any of it,
+   * because shading fills the very areas the child is meant to fill. So each
+   * style states its own retraction here rather than in `prompt`: kept in the
+   * main spec it would contradict that style's own palette, and the colour
+   * book would come out flat and unshaded.
+   */
+  coloringCaveat?: string
   /** Rough guide for how much detail the scene description should carry. */
   complexity: 'low' | 'medium' | 'high'
   /**
@@ -155,6 +176,13 @@ export interface ArtStyleDef {
    * stops being a promise about what they will get.
    */
   sample: string
+  /**
+   * The same scene again, in this style's own palette, shown when the customer
+   * is making a colour book. Without it the colour flow would advertise itself
+   * with a black-and-white picture, which is the one thing the palettes exist
+   * to contradict.
+   */
+  sampleColoured: string
 }
 
 export const ART_STYLES: ArtStyleDef[] = [
@@ -171,8 +199,17 @@ export const ART_STYLES: ArtStyleDef[] = [
       'CLOTHING: fabric folds are minimal, a few simple curved lines. Hoods, bags and garments read as rounded volumes.',
       'LINES: clean, smooth, consistent vector line art. Thick black outlines on the character\u2019s silhouette and on the main objects, sticker-like. Interior detail lines \u2014 inside hair, clothing and eyes \u2014 slightly thinner, still clean and smooth. No brush texture, no noise, and every outline fully closed.',
     ].join(' '),
+    palette: [
+      'Soft kawaii pastel palette.',
+      'HUES: powder pinks, mints, butter yellows, sky blues, lilac and cream — every hue a shade lighter and milkier than it would be in life.',
+      'SATURATION: low throughout. Nothing shouts; the loudest colour on the page is still gentle.',
+      'CONTRAST: deliberately narrow. The darkest value in the picture is a soft grey-lilac, never black and never a true shadow.',
+      'FILLS: flat and even, with at most one slightly deeper tone of the same hue to round a shape.',
+      'The black outline stays as drawn — the colour sits inside it without darkening it.',
+    ].join(' '),
     complexity: 'low',
     sample: '/styles/chibi.png',
+    sampleColoured: '/styles/chibi-colour.png',
   },
   {
     id: 'coloring-book',
@@ -188,8 +225,17 @@ export const ART_STYLES: ArtStyleDef[] = [
       'CONTRAST: strong contrast between clean pure-white negative space and the richly tangled decorated areas, so the page never becomes uniformly busy.',
       'LINES: fine, precise, sharp black ink outlines at a near-uniform weight, with only very subtle variation to show which leaf or petal overlaps which. Every single shape is strictly closed so each individual space can be coloured.',
     ].join(' '),
+    palette: [
+      'Rich decorative jewel tones, in the manner of a finished art-therapy page.',
+      'HUES: deep emerald and moss, plum, indigo, amber, coral and old gold.',
+      'SATURATION: high but never neon — colours read as dyed or enamelled rather than lit.',
+      'APPLICATION: the ornament is filled band by band so neighbouring shapes differ in hue, which is what makes the interlacing legible.',
+      'RESTRAINT: the very finest micro-detail — leaf veins, carved dots, the smallest inner shapes — is left unfilled, so the linework still carries the drawing instead of drowning in colour.',
+      'Decorative rather than naturalistic: a leaf may be plum if the pattern wants plum.',
+    ].join(' '),
     complexity: 'high',
     sample: '/styles/coloring-book.png',
+    sampleColoured: '/styles/coloring-book-colour.png',
   },
   {
     id: 'superhero-comic',
@@ -211,10 +257,22 @@ export const ART_STYLES: ArtStyleDef[] = [
       'CAMERA: dramatic low angles that make the characters tower over the viewer, or steep high angles for action beats.',
       'ENERGY: converging speed lines, impact bursts and energy blasts drawn as bold clean outlines only.',
       'LINES: bold ink outlines with strongly varied weight \u2014 heavy on the silhouette and on whatever is nearest the camera, lighter on interior detail \u2014 so weight, volume and depth are carried entirely by the line itself.',
-      'IMPORTANT: despite the comic-book idiom, use no solid black shadow areas, no hatching and no cross-hatching, and draw one single full-page illustration rather than a grid of panels.',
+      'IMPORTANT: draw one single full-page illustration rather than a grid of panels.',
+    ].join(' '),
+    coloringCaveat:
+      'Despite the comic-book idiom, use no solid black shadow areas, no hatching and no cross-hatching \u2014 the drama has to come from the anatomy, the poses and the camera instead.',
+    palette: [
+      'Bold saturated comic-book colour.',
+      'HUES: strong primaries at full strength — fire-engine red, cobalt and royal blue, chrome yellow — supported by deep teal and violet in the shadowsides.',
+      'SATURATION: high and unapologetic. This is the loudest palette in the catalogue and it should look it.',
+      'CONTRAST: hard and deliberate. Adjacent areas jump in both hue and value, so a figure reads instantly against whatever is behind it.',
+      'FILLS: flat colour with a single hard-edged lighter shape for a highlight and a single deeper shape for the turn — cut cleanly, never airbrushed.',
+      'SKIN: warm and simplified, one tone plus one highlight.',
+      'No muddy mixes, no dusty neutrals, no washed-out pastels anywhere.',
     ].join(' '),
     complexity: 'high',
     sample: '/styles/superhero-comic.png',
+    sampleColoured: '/styles/superhero-comic-colour.png',
   },
   {
     id: 'fine-line',
@@ -230,10 +288,20 @@ export const ART_STYLES: ArtStyleDef[] = [
       'POSES: dynamic yet relaxed and fluid, built around expressive gestures and natural interaction between the characters.',
       'BACKGROUND: rich and detailed \u2014 foliage, water, rock \u2014 but drawn in lighter, thinner contours than the foreground so the characters stay the focus.',
       'BALANCE: an elegant balance between clean open areas and regions of dense fine detail.',
-      'IMPORTANT: build volume from the contour lines alone \u2014 no hatching, no parallel line-shading, no shadow tone of any kind.',
+    ].join(' '),
+    coloringCaveat:
+      'Build volume from the contour lines alone \u2014 no hatching, no parallel line-shading, no shadow tone of any kind.',
+    palette: [
+      'Restrained watercolour washes laid over the fine line.',
+      'HUES: muted and slightly greyed — sage, dusty rose, ochre, faded indigo, warm stone.',
+      'SATURATION: low. The colour tints the drawing rather than filling it.',
+      'APPLICATION: thin transparent washes that pool a little darker where they meet an outline and fade toward the middle of a shape. Edges may stay soft and slightly irregular, as real washes do.',
+      'NEGATIVE SPACE: generous areas of untouched paper are part of the design — do not colour everything.',
+      'The fine line remains the drawing; the colour never thickens or obscures it.',
     ].join(' '),
     complexity: 'high',
     sample: '/styles/fine-line.png',
+    sampleColoured: '/styles/fine-line-colour.png',
   },
   {
     id: 'cartoon',
@@ -247,59 +315,19 @@ export const ART_STYLES: ArtStyleDef[] = [
       'ANIMALS: drawn with almost human expressiveness in the face \u2014 almond eyes with expressive brows, a pronounced muzzle \u2014 while keeping true four-legged anatomy.',
       'CLOTHING: broad, clean, well-structured fabric folds.',
       'COMPOSITION: staged in clear layers of depth \u2014 foliage or trunks framing the near edges, the characters full-body in the middle ground, and simplified rounded masses of trees, hills or buildings behind.',
-      'IMPORTANT: this style is normally cel-shaded; here leave every shape open and unshaded \u2014 no blocks of flat shadow, no cast shadows on the ground.',
+    ].join(' '),
+    coloringCaveat:
+      'This style is normally cel-shaded; here leave every shape open and unshaded \u2014 no blocks of flat shadow, no cast shadows on the ground.',
+    palette: [
+      'Flat cel-animation colour, in the register of 90s adventure animation.',
+      'HUES: warm and natural — sunlit greens, earth browns, clear sky blues — with each character given one or two signature colours that stay theirs for the whole book.',
+      'SATURATION: confident mid-range. Fuller than pastel, well short of comic-book primaries.',
+      'FILLS: flat areas of colour with one darker tone of the same hue for the shadow side, cut as a clean shape the way cels were painted.',
+      'DEPTH: the layered staging is carried by colour — backgrounds sit lighter, cooler and less saturated than the foreground, so the characters come forward without a heavier outline.',
     ].join(' '),
     complexity: 'medium',
     sample: '/styles/cartoon.png',
-  },
-]
-
-export interface ImageModelDef {
-  id: ImageModelId
-  /**
-   * Path on platform.higgsfield.ai. Taken from the published OpenAPI spec
-   * (docs.higgsfield.ai/docs/openapi.json), not guessed.
-   */
-  endpoint: string
-  /** Env var that overrides the endpoint, for when the API moves. */
-  endpointEnv: string
-  /**
-   * How this endpoint takes reference images:
-   *   array  — input_images: [{type: "image_url", image_url}], up to maxReferences
-   *   single — image_reference_url: "<url>", one only
-   */
-  referenceMode: 'array' | 'single'
-  maxReferences: number
-  /** Extra body fields, straight from the endpoint's schema. */
-  extraInput: Record<string, string | number | boolean>
-  /** Rough seconds per page, measured on the same scene. */
-  secondsPerPage: number
-}
-
-export const IMAGE_MODELS: ImageModelDef[] = [
-  {
-    id: 'nano-banana',
-    endpoint: '/nano-banana',
-    endpointEnv: 'HIGGSFIELD_ENDPOINT_NANO_BANANA',
-    // The only published image endpoint that takes several reference images,
-    // which is what a page with more than one character needs.
-    referenceMode: 'array',
-    maxReferences: 8,
-    // The endpoint defaults to jpeg; line art wants png, since JPEG ringing
-    // shows up as grey fringes exactly where the black outlines are.
-    extraInput: { output_format: 'png' },
-    secondsPerPage: 40,
-  },
-  {
-    id: 'soul',
-    endpoint: '/higgsfield-ai/soul/reference',
-    endpointEnv: 'HIGGSFIELD_ENDPOINT_SOUL',
-    referenceMode: 'single',
-    maxReferences: 1,
-    // enhance_prompt defaults to true and rewrites the prompt server-side,
-    // which can quietly undo the "no shading, no grey" constraints.
-    extraInput: { resolution: '1080p', enhance_prompt: false },
-    secondsPerPage: 45,
+    sampleColoured: '/styles/cartoon-colour.png',
   },
 ]
 
@@ -350,12 +378,6 @@ export function getTone(id: ToneId): ToneDef {
 export function getArtStyle(id: ArtStyleId): ArtStyleDef {
   const found = ART_STYLES.find((a) => a.id === id)
   if (!found) throw new Error(`Unknown art style: ${id}`)
-  return found
-}
-
-export function getImageModel(id: ImageModelId): ImageModelDef {
-  const found = IMAGE_MODELS.find((m) => m.id === id)
-  if (!found) throw new Error(`Unknown image model: ${id}`)
   return found
 }
 

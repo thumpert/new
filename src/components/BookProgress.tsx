@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import type { Dictionary } from '@/lib/i18n'
-import type { Order } from '@/lib/types'
+import type { CoverKind, Order } from '@/lib/types'
 import { Button, ErrorNote } from './ui'
 
 /** Polls while the pages are drawn, then offers the finished PDF. */
@@ -17,6 +17,7 @@ export function BookProgress({
   const [error, setError] = useState<string | null>(null)
   const [selected, setSelected] = useState<number | null>(null)
   const [regenerating, setRegenerating] = useState<number | null>(null)
+  const [choosingCover, setChoosingCover] = useState<CoverKind | null>(null)
   /** Bumped after a redraw so the poller restarts and picks the page up. */
   const [reloadKey, setReloadKey] = useState(0)
 
@@ -34,10 +35,13 @@ export function BookProgress({
         setOrder(data as Order)
         setError(null)
 
-        // Stop polling once the book has settled either way.
-        if (data.status !== 'ready' && data.status !== 'failed') {
-          timer = setTimeout(poll, 3000)
-        }
+        // Stop polling once the book has settled, or once it is waiting on the
+        // customer — nothing moves again until they pick a cover.
+        const settled =
+          data.status === 'ready' ||
+          data.status === 'failed' ||
+          data.status === 'choosing-cover'
+        if (!settled) timer = setTimeout(poll, 3000)
       } catch (err) {
         if (cancelled) return
         setError(err instanceof Error ? err.message : dict.common.error)
@@ -72,6 +76,27 @@ export function BookProgress({
     }
   }
 
+  /** Locks in a cover and lets the page render start. */
+  async function pickCover(kind: CoverKind) {
+    setChoosingCover(kind)
+    setError(null)
+    try {
+      const res = await fetch(`/api/orders/${orderId}/cover`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ kind }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? dict.common.error)
+      // The order has left 'choosing-cover', so polling can pick up again.
+      setReloadKey((k) => k + 1)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : dict.common.error)
+    } finally {
+      setChoosingCover(null)
+    }
+  }
+
   const renders = order?.renders ?? []
   const selectedRender = renders.find((r) => r.index === selected)
   const done = renders.filter((r) => r.status === 'done').length
@@ -79,11 +104,18 @@ export function BookProgress({
   const total = renders.length
   const ready = order?.status === 'ready'
 
+  const pickingCover = order?.status === 'choosing-cover'
+  const frontCovers = (order?.covers ?? []).filter((c) => c.kind !== 'back')
+
   const stage = !order?.storyboard
     ? dict.progress.writing
-    : total === 0
-      ? dict.progress.characters
-      : dict.progress.pages
+    : order.status === 'covers'
+      ? dict.progress.covers
+      : pickingCover
+        ? dict.progress.coverReady
+        : total === 0
+          ? dict.progress.characters
+          : dict.progress.pages
 
   return (
     <div className="mx-auto w-full max-w-2xl px-5 py-16">
@@ -103,6 +135,65 @@ export function BookProgress({
         <div className="mt-6">
           <ErrorNote message={order.error} />
         </div>
+      )}
+
+      {pickingCover && (
+        <section className="mt-9">
+          <h2 className="font-serif text-xl text-ink">
+            {dict.progress.chooseCoverTitle}
+          </h2>
+          <p className="mt-1 text-sm text-ink-soft">
+            {dict.progress.chooseCoverHint}
+          </p>
+
+          <div className="mt-5 grid gap-4 sm:grid-cols-2">
+            {frontCovers.map((cover) => {
+              const kind = cover.kind as CoverKind
+              const usable = cover.status === 'done' && Boolean(cover.imageUrl)
+              return (
+                <div
+                  key={cover.kind}
+                  className="overflow-hidden rounded-2xl border border-line bg-paper-raised"
+                >
+                  <div className="flex aspect-[3/4] items-center justify-center bg-paper">
+                    {cover.imageUrl ? (
+                      // Not next/image: these live under /api/files and change
+                      // per order, so there is nothing to optimise ahead of time.
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={cover.imageUrl}
+                        alt={dict.progress.coverKinds[kind].label}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <p className="px-4 text-center text-xs text-ink-soft">
+                        {cover.error ?? dict.progress.coverFailed}
+                      </p>
+                    )}
+                  </div>
+                  <div className="p-4">
+                    <p className="font-serif text-lg text-ink">
+                      {dict.progress.coverKinds[kind].label}
+                    </p>
+                    <p className="mt-1 text-sm text-ink-soft">
+                      {dict.progress.coverKinds[kind].description}
+                    </p>
+                    <div className="mt-4">
+                      <Button
+                        disabled={!usable || choosingCover !== null}
+                        onClick={() => void pickCover(kind)}
+                      >
+                        {choosingCover === kind
+                          ? dict.progress.choosingCover
+                          : dict.progress.chooseThis}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </section>
       )}
 
       <div className="mt-9 rounded-2xl border border-line bg-paper-raised p-6">

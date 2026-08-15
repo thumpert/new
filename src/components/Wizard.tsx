@@ -6,21 +6,22 @@ import {
   ART_STYLES,
   BOOK_LANGUAGES,
   BOOK_SIZES,
-  IMAGE_MODELS,
   OCCASIONS,
   STORY_TYPES,
   TONES,
   getOccasion,
 } from '@/lib/catalog'
 import type { Dictionary } from '@/lib/i18n'
+import { BOOK_FINISHES } from '@/lib/types'
 import type {
   ArtStyleId,
   BookBrief,
+  BookFinish,
   BookLanguageId,
   BookSizeId,
-  ImageModelId,
   Character,
   InterviewQuestion,
+  MemoryPhoto,
   Locale,
   OccasionId,
   StoryIdea,
@@ -41,8 +42,10 @@ import {
 } from './ui'
 
 const STEPS = [
+  // The finish comes first: it is the biggest fork in the product, and every
+  // later screen reads differently once you know which book you are making.
+  'finish',
   'bookLanguage',
-  'imageModel',
   'occasion',
   'storyType',
   'tone',
@@ -67,8 +70,8 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
   const [error, setError] = useState<string | null>(null)
 
   const [orderId, setOrderId] = useState<string | null>(null)
+  const [finish, setFinish] = useState<BookFinish>('coloring')
   const [bookLanguage, setBookLanguage] = useState<BookLanguageId>(locale)
-  const [imageModelId, setImageModelId] = useState<ImageModelId>('nano-banana')
   const [occasionId, setOccasionId] = useState<OccasionId>('child')
   const [storyTypeId, setStoryTypeId] = useState<StoryTypeId>('adventure')
   const [toneId, setToneId] = useState<ToneId>('warm')
@@ -80,6 +83,7 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
   const [characters, setCharacters] = useState<Character[]>([
     { id: 'c1', name: '', kind: 'person', traits: '' },
   ])
+  const [memories, setMemories] = useState<MemoryPhoto[]>([])
 
   const [questions, setQuestions] = useState<InterviewQuestion[]>([])
   const [answers, setAnswers] = useState<Record<string, string>>({})
@@ -101,7 +105,7 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
   const brief = (): BookBrief => ({
     locale,
     bookLanguage,
-    imageModelId,
+    finish,
     occasionId,
     storyTypeId,
     toneId,
@@ -111,6 +115,9 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
     place,
     dedication: dedication.trim() || undefined,
     characters: characters.map((c) => ({ ...c, name: c.name.trim() })),
+    // Only photographs the customer actually described: without a note the
+    // writer has nothing to weave the page into the story with.
+    memories: memories.filter((m) => m.note.trim()),
     interview: questions
       .filter((q) => answers[q.id]?.trim())
       .map((q) => ({
@@ -244,6 +251,26 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
         </div>
       )}
 
+      {current === 'finish' && (
+        <StepShell
+          title={dict.wizard.finish.title}
+          subtitle={dict.wizard.finish.subtitle}
+          footer={footer(next)}
+        >
+          <div className="grid gap-3">
+            {BOOK_FINISHES.map((f) => (
+              <OptionCard
+                key={f}
+                label={dict.finishes[f].label}
+                description={dict.finishes[f].description}
+                selected={finish === f}
+                onSelect={() => setFinish(f)}
+              />
+            ))}
+          </div>
+        </StepShell>
+      )}
+
       {current === 'bookLanguage' && (
         <StepShell
           title={dict.wizard.bookLanguage.title}
@@ -258,27 +285,6 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
                 description={dict.bookLanguages[b.id].description}
                 selected={bookLanguage === b.id}
                 onSelect={() => setBookLanguage(b.id)}
-              />
-            ))}
-          </div>
-        </StepShell>
-      )}
-
-      {current === 'imageModel' && (
-        <StepShell
-          title={dict.wizard.imageModel.title}
-          subtitle={dict.wizard.imageModel.subtitle}
-          footer={footer(next)}
-        >
-          <div className="grid gap-3">
-            {IMAGE_MODELS.map((m) => (
-              <OptionCard
-                key={m.id}
-                label={dict.imageModels[m.id].label}
-                description={dict.imageModels[m.id].description}
-                meta={dict.imageModels[m.id].meta}
-                selected={imageModelId === m.id}
-                onSelect={() => setImageModelId(m.id)}
               />
             ))}
           </div>
@@ -348,7 +354,11 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
       {current === 'artStyle' && (
         <StepShell
           title={dict.wizard.artStyle.title}
-          subtitle={dict.wizard.artStyle.subtitle}
+          subtitle={
+            finish === 'coloured'
+              ? dict.wizard.artStyle.subtitleColoured
+              : dict.wizard.artStyle.subtitle
+          }
           footer={footer(next)}
         >
           <div className="grid gap-3 sm:grid-cols-2">
@@ -356,8 +366,14 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
               <OptionCard
                 key={a.id}
                 label={dict.artStyles[a.id].label}
-                description={dict.artStyles[a.id].description}
-                sample={a.sample}
+                // The sample and the wording both have to match the book being
+                // made, or the picker promises one thing and delivers another.
+                description={
+                  finish === 'coloured'
+                    ? dict.artStyles[a.id].descriptionColoured
+                    : dict.artStyles[a.id].description
+                }
+                sample={finish === 'coloured' ? a.sampleColoured : a.sample}
                 selected={artStyleId === a.id}
                 onSelect={() => setArtStyleId(a.id)}
               />
@@ -397,6 +413,8 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
             dict={dict}
             characters={characters}
             onChange={setCharacters}
+            memories={memories}
+            onMemoriesChange={setMemories}
           />
         </StepShell>
       )}

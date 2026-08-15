@@ -9,11 +9,15 @@
 # poderem ser comparadas lado a lado. Elas ficam versionadas no git — o site
 # nunca as gera em tempo de execução.
 #
-# (A sessão do Claude que gerou as imagens roda num container sem acesso ao CDN
-# da Higgsfield, por isso o download acontece aqui.)
-#
 # Quando um estilo mudar, gere a imagem de novo com a MESMA cena e troque só a
 # URL daquela linha — as cinco precisam continuar comparáveis entre si.
+#
+# PROVENIÊNCIA: as cinco em traço foram desenhadas pelo Nano Banana 2 via
+# Higgsfield, em 15/08/2026, antes de o app migrar para a API do Google. Este
+# script fica como registro de origem, mas os links do CDN expiram e a
+# Higgsfield saiu do projeto: refazer uma amostra hoje é gerar pelo provider do
+# Google. Para as coloridas existe `scripts/make-colour-samples.ts`, que passa
+# pelo prompt real do app; as em traço ainda não têm equivalente.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."

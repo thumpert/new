@@ -1,9 +1,15 @@
-import type { ArtStyleId, Character, ImageModelId } from '../types'
+import type {
+  ArtStyleId,
+  BookFinish,
+  Character,
+  CoverKind,
+} from '../types'
 
 export interface CharacterSheetRequest {
   character: Character
   artStyleId: ArtStyleId
-  imageModelId: ImageModelId
+  /** Line art or colour — the sheet is drawn the same way the pages will be. */
+  finish: BookFinish
   /** Reference photos the customer uploaded, if any. */
   photoUrls: string[]
 }
@@ -13,13 +19,21 @@ export interface PageRequest {
   /** English visual description of the scene. */
   sceneDescription: string
   artStyleId: ArtStyleId
-  imageModelId: ImageModelId
+  finish: BookFinish
   /**
-   * Absolute URLs of the line-art model sheets for the characters on this
-   * page, in the same order as `characterNames`.
+   * Absolute URLs of the model sheets for the characters on this page, in the
+   * same order as `characterNames`. Line art or coloured, matching `finish`.
    */
   referenceUrls: string[]
   characterNames: string[]
+  /**
+   * Set when this page redraws one of the customer's photographs. The photo is
+   * sent ahead of the model sheets, because the prompt refers to it as the
+   * first reference and order is the only thing that makes that unambiguous.
+   */
+  memoryPhotoUrl?: string
+  /** The customer's words about what the photograph is. */
+  memoryNote?: string
 }
 
 export interface GeneratedImage {
@@ -36,6 +50,29 @@ export interface GeneratedImage {
   promptPreview?: string
 }
 
+/**
+ * A cover — front or back. Always in colour, in both books.
+ *
+ * It carries the cast with their written traits because of the coloring book:
+ * there the model sheets are line art, so nothing else in the request says
+ * what colour anyone's hair or coat is. In a colour book the sheets already
+ * answer that and the traits are only a fallback.
+ */
+export interface CoverRequest {
+  /** 'back' is the closing image; the other two are the front-cover options. */
+  kind: CoverKind | 'back'
+  artStyleId: ArtStyleId
+  /** Covers are always coloured; this only decides how the sheets are read. */
+  finish: BookFinish
+  /** The full cast, with traits — the source of the palette. */
+  characters: Character[]
+  place: string
+  /** A representative beat from the storyboard. Unused by the back cover. */
+  moment: string
+  /** Absolute URLs of the model sheets. */
+  referenceUrls: string[]
+}
+
 export interface ImageProvider {
   readonly name: string
   /**
@@ -44,4 +81,5 @@ export interface ImageProvider {
    */
   generateCharacterSheet(req: CharacterSheetRequest): Promise<GeneratedImage>
   generatePage(req: PageRequest): Promise<GeneratedImage>
+  generateCover(req: CoverRequest): Promise<GeneratedImage>
 }

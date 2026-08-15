@@ -1,6 +1,13 @@
-import { characterSheetPrompt, pagePrompt } from './prompt'
+import {
+  backCoverPrompt,
+  characterSheetPrompt,
+  coverPrompt,
+  memoryPagePrompt,
+  pagePrompt,
+} from './prompt'
 import type {
   CharacterSheetRequest,
+  CoverRequest,
   GeneratedImage,
   ImageProvider,
   PageRequest,
@@ -28,6 +35,7 @@ export class MockProvider implements ImageProvider {
         req.character,
         req.artStyleId,
         req.photoUrls.length,
+        req.finish,
       ),
     }
   }
@@ -37,12 +45,44 @@ export class MockProvider implements ImageProvider {
     return {
       url: `mock:page/${req.index}`,
       placeholder: true,
-      promptPreview: pagePrompt(
-        req.sceneDescription,
-        req.artStyleId,
-        req.characterNames,
-        req.referenceUrls.length > 0,
-      ),
+      promptPreview: req.memoryPhotoUrl
+        ? memoryPagePrompt(
+            req.memoryNote ?? '',
+            req.sceneDescription,
+            req.artStyleId,
+            req.characterNames,
+            req.finish,
+          )
+        : pagePrompt(
+            req.sceneDescription,
+            req.artStyleId,
+            req.characterNames,
+            req.referenceUrls.length > 0,
+            req.finish,
+          ),
+    }
+  }
+
+  async generateCover(req: CoverRequest): Promise<GeneratedImage> {
+    await delay()
+    return {
+      url: `mock:cover/${req.kind}`,
+      placeholder: true,
+      promptPreview:
+        req.kind === 'back'
+          ? backCoverPrompt({
+              artStyleId: req.artStyleId,
+              characters: req.characters,
+              place: req.place,
+              finish: req.finish,
+            })
+          : coverPrompt(req.kind, {
+              artStyleId: req.artStyleId,
+              characters: req.characters,
+              place: req.place,
+              moment: req.moment,
+              finish: req.finish,
+            }),
     }
   }
 }

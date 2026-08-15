@@ -87,6 +87,11 @@ const StoryboardSchema = z.object({
         charactersOnPage: z
           .array(z.string())
           .describe('Character ids visible on this page.'),
+        memoryId: z
+          .string()
+          .describe(
+            'Id of the photograph this page recreates, or empty for an ordinary page.',
+          ),
       }),
     )
     .describe('One entry per illustrated page, in reading order.'),
@@ -191,6 +196,7 @@ export async function generateStoryboard(
 
   const parsed = expectParsed(response.parsed_output, 'storyboard')
   const knownIds = new Set(brief.characters.map((c) => c.id))
+  const knownMemoryIds = new Set((brief.memories ?? []).map((m) => m.id))
 
   return {
     title: brief.title.trim() || parsed.title,
@@ -203,6 +209,11 @@ export async function generateStoryboard(
       // The model occasionally answers with names instead of ids; drop
       // anything we cannot resolve rather than passing it downstream.
       charactersOnPage: page.charactersOnPage.filter((id) => knownIds.has(id)),
+      // Same guard: an unknown id would send the renderer looking for a photo
+      // that does not exist, so only ids we actually hold survive.
+      memoryId: knownMemoryIds.has(page.memoryId?.trim() ?? '')
+        ? page.memoryId.trim()
+        : undefined,
     })),
   }
 }

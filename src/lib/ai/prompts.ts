@@ -68,6 +68,16 @@ export function briefContext(brief: BookBrief): string {
     )
   }
 
+  const memories = (brief.memories ?? []).filter((m) => m.note.trim())
+  if (memories.length > 0) {
+    lines.push(
+      '',
+      'REAL PHOTOGRAPHS THE CUSTOMER WANTS IN THE BOOK:',
+      'Each of these is a real moment that already happened, and it will be redrawn as a page from the photograph itself. Treat them as fixed events the story has to pass through.',
+      ...memories.map((m) => `- [${m.id}] ${m.note.trim()}`),
+    )
+  }
+
   if (brief.title.trim()) {
     lines.push('', `WORKING TITLE: ${brief.title}`)
   }
@@ -167,11 +177,20 @@ For every page you produce two things:
 
 2. "sceneDescription" — a visual description IN ENGLISH, written for an image generator. Describe only what is visible: who is in frame, what they are doing, where they are, and the framing (wide shot, close-up). Name characters by the exact names given, so the illustrator knows which reference to use. Do NOT mention art style, line weight, black and white, or coloring pages — that is added separately. Do NOT describe emotions the drawing cannot show; show them through posture and expression instead.
 
+3. "memoryId" — normally empty. Set it only on the pages described below.
+
+When the brief lists REAL PHOTOGRAPHS, each one must become exactly one page of the story, and that page carries the photograph's id in "memoryId".
+
+These pages are not inserts. Place each one where the story genuinely arrives at that moment, give it narration in the same voice as every other page, and let the page after it react to what just happened. A reader who does not know which pages came from photographs should not be able to tell.
+
+Their "sceneDescription" works differently: the photograph itself decides the composition, so do not invent framing, poses or a setting for it. Write one plain sentence saying what the moment is and who is in it, and nothing more.
+
 Rules:
 - The story must have a real arc: a beginning that sets things up, a middle with a complication, and an ending that lands.
 - Vary the framing across pages. Do not open every page with a wide shot.
 - Keep two to four characters per page at most; crowds do not colour well.
 - Use the customer's real details throughout.
+- Every listed photograph gets exactly one page. Never two pages for the same photograph, and never a photograph left out.
 - The last page should feel like a gift — warm, and about the person receiving the book.`
 
 export function storyboardUser(
@@ -208,5 +227,13 @@ export function storyboardUser(
     `Character ids you must use in "charactersOnPage": ${brief.characters
       .map((c) => `${c.id} = ${c.name}`)
       .join(', ')}`,
+    ...((brief.memories ?? []).filter((m) => m.note.trim()).length > 0
+      ? [
+          `Photograph ids you must use in "memoryId", one page each: ${(brief.memories ?? [])
+            .filter((m) => m.note.trim())
+            .map((m) => m.id)
+            .join(', ')}`,
+        ]
+      : []),
   ].join('\n')
 }

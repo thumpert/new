@@ -45,11 +45,18 @@ export type CharacterKind = 'person' | 'pet'
 export type BookLanguageId = 'pt' | 'en' | 'en-pt'
 
 /**
- * Which image model draws the pages. Exposed while we are still comparing
- * them — the two differ in speed by roughly 3x, which a customer waiting on
- * a 32-page book does feel.
+ * What the customer actually receives, and the first thing they choose.
+ *
+ * 'coloring'  — black line art on white, for the child to fill in.
+ * 'coloured'  — a finished picture book, printed in colour.
+ *
+ * It reaches all the way down: it decides whether the model sheets and pages
+ * are drawn in line or in colour. The covers ignore it — they are always in
+ * colour, in both books.
  */
-export type ImageModelId = 'nano-banana' | 'soul'
+export type BookFinish = 'coloring' | 'coloured'
+
+export const BOOK_FINISHES: BookFinish[] = ['coloring', 'coloured']
 
 export interface Character {
   id: string
@@ -71,6 +78,26 @@ export interface Character {
    * every page so the character stays consistent across the whole book.
    */
   referenceSheetUrl?: string
+}
+
+/**
+ * A photograph the customer wants to appear *in* the book.
+ *
+ * Not to be confused with `Character.photoUrls`, which are reference shots:
+ * those teach the model a face, are used once to draw the model sheet, and
+ * never become a page. A memory is the opposite — the photograph itself is the
+ * page, redrawn in the chosen style with its moment and staging intact.
+ */
+export interface MemoryPhoto {
+  id: string
+  /** Stored URL of the uploaded photograph. */
+  url: string
+  /**
+   * How this moment fits the story, in the customer's own words. Goes to the
+   * writer, which is what lets the page be part of the plot rather than an
+   * insert: "this is the day we brought Zeca home, he hid under the sofa".
+   */
+  note: string
 }
 
 export interface InterviewQuestion {
@@ -102,8 +129,8 @@ export interface BookBrief {
   locale: Locale
   /** Language the book itself is written in. Chosen explicitly. */
   bookLanguage: BookLanguageId
-  /** Image model used to draw every page. */
-  imageModelId: ImageModelId
+  /** Line art to colour in, or a finished colour book. The first choice made. */
+  finish: BookFinish
   occasionId: OccasionId
   storyTypeId: StoryTypeId
   toneId: ToneId
@@ -115,9 +142,20 @@ export interface BookBrief {
   place: string
   characters: Character[]
   interview: InterviewAnswer[]
+  /**
+   * Real photographs to weave into the story, at most MAX_MEMORIES. Each one
+   * becomes a page whose composition comes from the photo itself.
+   */
+  memories?: MemoryPhoto[]
   /** Optional dedication printed on the first page. */
   dedication?: string
 }
+
+/**
+ * Three is enough to mark a beginning, a middle and an end. Past that a short
+ * book stops being a story with memories in it and becomes an album.
+ */
+export const MAX_MEMORIES = 3
 
 export interface StoryIdea {
   id: string
@@ -148,12 +186,37 @@ export interface StoryPage {
   sceneDescription: string
   /** Ids of the characters that appear on this page. */
   charactersOnPage: string[]
+  /**
+   * Set when this page recreates one of the customer's photographs. The photo
+   * then owns the composition and the scene description only says what the
+   * page is about.
+   */
+  memoryId?: string
 }
 
 export interface Storyboard {
   title: string
   dedication?: string
   pages: StoryPage[]
+}
+
+/**
+ * The two ideas of a front cover the customer picks between. They are
+ * different propositions, not two attempts at the same picture: a portrait
+ * says "this book is about these people", a scene says "this book is a story".
+ */
+export type CoverKind = 'portrait' | 'scene'
+
+export const COVER_KINDS: CoverKind[] = ['portrait', 'scene']
+
+export interface CoverRender {
+  /** 'back' is the closing image, drawn only after a front cover is chosen. */
+  kind: CoverKind | 'back'
+  status: RenderStatus
+  imageUrl?: string
+  error?: string
+  placeholder?: boolean
+  promptPreview?: string
 }
 
 export type RenderStatus = 'pending' | 'generating' | 'done' | 'failed'
@@ -175,6 +238,10 @@ export type OrderStatus =
   | 'draft'
   | 'ideas'
   | 'storyboard'
+  /** Model sheets and the two cover options are being drawn. */
+  | 'covers'
+  /** Both covers are up; nothing else is drawn until the customer picks one. */
+  | 'choosing-cover'
   | 'rendering'
   | 'ready'
   | 'failed'
@@ -190,6 +257,10 @@ export interface Order {
   chosenIdeaId?: string
   storyboard?: Storyboard
   renders?: PageRender[]
+  /** The two front-cover options, plus the back cover once it is drawn. */
+  covers?: CoverRender[]
+  /** Which front cover the customer picked. Nothing else renders until it is set. */
+  chosenCoverKind?: CoverKind
   /** Relative path of the generated PDF once the book is ready. */
   pdfPath?: string
   error?: string

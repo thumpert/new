@@ -40,14 +40,13 @@ export const en: Dictionary = {
     ],
   },
   wizard: {
+    finish: {
+      title: 'What kind of book is this?',
+      subtitle: 'This choice shapes everything after it — including how the pictures are drawn.',
+    },
     bookLanguage: {
       title: 'What language should the book be in?',
       subtitle: 'The site stays as it is — this is only about the printed book.',
-    },
-    imageModel: {
-      title: 'Which model should draw?',
-      subtitle:
-        'Under test: both draw the same book, at very different speeds.',
     },
     occasion: {
       title: 'What is the occasion?',
@@ -64,6 +63,8 @@ export const en: Dictionary = {
     artStyle: {
       title: 'Which drawing style?',
       subtitle: 'All of them are black and white line art, ready to colour.',
+      subtitleColoured:
+        'Each style brings its own palette — the comic one is vivid, the kawaii one is pastel.',
     },
     size: {
       title: 'How long should the book be?',
@@ -95,6 +96,17 @@ export const en: Dictionary = {
       upload: 'Upload photo',
       addPhoto: 'Add another photo',
       removePhoto: 'Remove photo',
+    },
+    memories: {
+      title: 'Photos to go in the book',
+      subtitle:
+        'Different from the photos above. These become pages: the photo is redrawn in the style you picked, keeping the whole moment — who is there, doing what.',
+      notePlaceholder:
+        'What is this moment? e.g. the day Zeca came home and hid under the sofa all afternoon.',
+      add: 'Choose a photo',
+      addAnother: 'Add another photo',
+      remove: 'Remove this photo',
+      hint: 'Up to 3 photos. Write what happened — that is what turns the page into part of the story rather than an insert.',
     },
     place: {
       title: 'Where does the story happen?',
@@ -152,19 +164,37 @@ export const en: Dictionary = {
     regenerating: 'Redrawing…',
     regenerateHint:
       'The characters stay the same — only this scene is drawn again.',
-  },
-  imageModels: {
-    'nano-banana': {
-      label: 'Nano Banana',
-      description:
-        'Recommended. Takes up to 8 character sheets per page — this is what keeps everyone looking like themselves from start to finish.',
-      meta: 'several characters',
+    covers: 'Drawing the covers…',
+    coverReady: 'Choose a cover to carry on',
+    chooseCoverTitle: 'Which one is the cover?',
+    chooseCoverHint:
+      'Both are in colour, in the style you picked. The book is only drawn once you have chosen.',
+    chooseThis: 'Choose this one',
+    choosingCover: 'Choosing…',
+    coverFailed: 'This cover could not be drawn.',
+    coverKinds: {
+      portrait: {
+        label: 'Portrait',
+        description:
+          'The characters together, large, looking straight at whoever opens the present.',
+      },
+      scene: {
+        label: 'Scene',
+        description:
+          'A wide moment from the story, with the characters inside their world.',
+      },
     },
-    soul: {
-      label: 'Soul',
+  },
+  finishes: {
+    coloring: {
+      label: 'Coloring book',
       description:
-        'Higgsfield’s own model. Takes only one character sheet, so it suits books with a single main character.',
-      meta: '1 character',
+        'Black line art on white, to fill in with pencils and crayons. The cover comes in colour.',
+    },
+    coloured: {
+      label: 'Illustrated colour book',
+      description:
+        'The pages arrive already painted, ready to read. Each style has its own palette — the comic one is vivid, the kawaii one is pastel.',
     },
   },
   bookLanguages: {
@@ -225,22 +255,32 @@ export const en: Dictionary = {
     chibi: {
       label: 'Chibi',
       description: 'Big round heads, huge eyes, everything cute. The easiest to colour.',
+      descriptionColoured:
+        'Big round heads, huge eyes, everything cute. Painted in soft pastels.',
     },
     'coloring-book': {
       label: 'Coloring book',
       description: 'Fine lines packed with leaves, flowers and hidden little animals. To colour slowly.',
+      descriptionColoured:
+        'Packed with leaves, flowers and hidden little animals, painted in jewel tones.',
     },
     'superhero-comic': {
       label: 'Superhero comic',
       description: 'Action poses, dramatic angles and heroic anatomy, like a comic book.',
+      descriptionColoured:
+        'Action poses and dramatic angles, in strong, vivid comic-book colour.',
     },
     'fine-line': {
       label: 'Modern and elegant',
       description: 'Very fine, delicate line work, like a magazine illustration.',
+      descriptionColoured:
+        'Very fine line work with soft washes, like a magazine illustration.',
     },
     cartoon: {
       label: 'Cartoon',
       description: 'A 90s animated show, with scenery staged in layers.',
+      descriptionColoured:
+        'A 90s animated show, in flat colour with scenery staged in layers.',
     },
   },
   bookSizes: {

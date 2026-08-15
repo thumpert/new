@@ -1,29 +1,40 @@
 import { getImageProvider, type ImageProvider } from './images'
 import { fetchBinary, putFile } from './storage'
 import { getOrder, saveOrder, updateOrder } from './store'
-import type {
-  ArtStyleId,
-  Character,
-  ImageModelId,
-  Order,
-  PageRender,
-  StoryPage,
+import {
+  COVER_KINDS,
+  type ArtStyleId,
+  type BookFinish,
+  type Character,
+  type CoverKind,
+  type CoverRender,
+  type MemoryPhoto,
+  type Order,
+  type PageRender,
+  type StoryPage,
 } from './types'
 
 /**
- * Turns a storyboard into rendered pages.
+ * Turns a storyboard into a rendered book, in two halves separated by a
+ * decision the customer makes.
  *
- * Two stages: draw each character once as a line-art model sheet, then draw
- * every page referencing those sheets. Doing it in that order is what keeps a
- * character recognisably themselves across thirty-two pages.
+ * First half: draw each character once as a model sheet — line art or in
+ * colour, matching the book — then draw both cover options against those
+ * sheets. Then stop: nothing else is worth drawing until someone has said
+ * which cover this book has.
+ *
+ * Second half: every page, plus the back cover.
+ *
+ * The model sheets come first in both halves for the same reason: they are
+ * what keeps a character recognisably themselves, on page 30 and on the cover.
  */
 
 /** Pages generated at once. Keeps us well inside provider rate limits. */
 const PAGE_CONCURRENCY = 3
 
-/** Renders in the background and keeps the stored order up to date. */
+/** Draws the sheets and both covers, then waits. */
 export function startRender(orderId: string): void {
-  void renderOrder(orderId).catch(async (err) => {
+  void renderCoverStage(orderId).catch(async (err) => {
     await updateOrder(orderId, (order) => ({
       ...order,
       status: 'failed',
@@ -32,7 +43,18 @@ export function startRender(orderId: string): void {
   })
 }
 
-export async function renderOrder(orderId: string): Promise<void> {
+/** Draws the book itself, once a cover has been chosen. */
+export function startPageRender(orderId: string): void {
+  void renderPageStage(orderId).catch(async (err) => {
+    await updateOrder(orderId, (order) => ({
+      ...order,
+      status: 'failed',
+      error: err instanceof Error ? err.message : String(err),
+    }))
+  })
+}
+
+export async function renderCoverStage(orderId: string): Promise<void> {
   const order = await getOrder(orderId)
   if (!order) throw new Error(`Order ${orderId} not found`)
   if (!order.storyboard) throw new Error(`Order ${orderId} has no storyboard`)
@@ -41,8 +63,12 @@ export async function renderOrder(orderId: string): Promise<void> {
 
   await saveOrder({
     ...order,
-    status: 'rendering',
+    status: 'covers',
     error: undefined,
+    chosenCoverKind: undefined,
+    covers: COVER_KINDS.map((kind) => ({ kind, status: 'pending' as const })),
+    // The page slots exist from the start so the progress screen can show the
+    // whole shape of the job, not just the part currently running.
     renders: order.storyboard.pages.map((page) => ({
       index: page.index,
       status: 'pending' as const,
@@ -50,8 +76,132 @@ export async function renderOrder(orderId: string): Promise<void> {
   })
 
   const characters = await renderCharacterSheets(orderId, provider)
-  await renderPages(orderId, provider, characters)
+  await Promise.all(
+    COVER_KINDS.map((kind) => renderCover(orderId, provider, characters, kind)),
+  )
+
+  await updateOrder(orderId, (current) => {
+    const usable = (current.covers ?? []).filter((c) => c.status === 'done')
+    return usable.length === 0
+      ? {
+          ...current,
+          status: 'failed',
+          error: 'Neither cover could be drawn.',
+        }
+      : { ...current, status: 'choosing-cover' }
+  })
+}
+
+export async function renderPageStage(orderId: string): Promise<void> {
+  const order = await getOrder(orderId)
+  if (!order) throw new Error(`Order ${orderId} not found`)
+  if (!order.storyboard) throw new Error(`Order ${orderId} has no storyboard`)
+  if (!order.chosenCoverKind) throw new Error('No cover has been chosen yet.')
+
+  const provider = getImageProvider()
+  await updateOrder(orderId, (current) => ({
+    ...current,
+    status: 'rendering',
+    error: undefined,
+  }))
+
+  const characters = order.brief.characters
+  // The back cover rides along with the pages: it needs the same sheets and
+  // nothing about it depends on how the pages turn out.
+  await Promise.all([
+    renderPages(orderId, provider, characters),
+    renderCover(orderId, provider, characters, 'back'),
+  ])
   await settleStatus(orderId)
+}
+
+/** Records the choice and starts the second half. */
+export async function chooseCover(
+  orderId: string,
+  kind: CoverKind,
+): Promise<void> {
+  const order = await getOrder(orderId)
+  if (!order) throw new Error(`Order ${orderId} not found`)
+
+  const cover = (order.covers ?? []).find((c) => c.kind === kind)
+  if (!cover) throw new Error(`This book has no ${kind} cover.`)
+  if (cover.status !== 'done') {
+    throw new Error(`The ${kind} cover was not drawn, so it cannot be chosen.`)
+  }
+
+  await updateOrder(orderId, (current) => ({
+    ...current,
+    chosenCoverKind: kind,
+    // A rebuild has to pick the new cover up.
+    pdfPath: undefined,
+  }))
+
+  startPageRender(orderId)
+}
+
+/**
+ * Draws one cover. The front covers run before any page exists; the back cover
+ * runs alongside them, so both read the cast from the brief rather than from
+ * anything the page loop produces.
+ */
+async function renderCover(
+  orderId: string,
+  provider: ImageProvider,
+  characters: Character[],
+  kind: CoverKind | 'back',
+): Promise<void> {
+  await patchCover(orderId, kind, { status: 'generating', error: undefined })
+
+  const order = await getOrder(orderId)
+  if (!order?.storyboard) throw new Error(`Order ${orderId} lost its storyboard`)
+
+  // A beat from the middle of the book: the opening page is usually setup and
+  // the last one gives the ending away.
+  const pages = order.storyboard.pages
+  const moment = pages[Math.floor(pages.length / 2)]?.sceneDescription ?? ''
+
+  try {
+    const image = await provider.generateCover({
+      kind,
+      artStyleId: order.brief.artStyleId,
+      finish: order.brief.finish,
+      characters,
+      place: order.brief.place,
+      moment,
+      referenceUrls: characters
+        .map((c) => c.referenceSheetUrl)
+        .filter((u): u is string => Boolean(u)),
+    })
+
+    await patchCover(orderId, kind, {
+      status: 'done',
+      imageUrl: image.placeholder ? undefined : await store(image.url),
+      placeholder: image.placeholder,
+      promptPreview: image.promptPreview,
+    })
+  } catch (err) {
+    await patchCover(orderId, kind, {
+      status: 'failed',
+      error: err instanceof Error ? err.message : String(err),
+    })
+  }
+}
+
+async function patchCover(
+  orderId: string,
+  kind: CoverKind | 'back',
+  patch: Partial<CoverRender>,
+): Promise<Order | null> {
+  return updateOrder(orderId, (current) => {
+    const covers = current.covers ?? []
+    const existing = covers.find((c) => c.kind === kind)
+    return {
+      ...current,
+      covers: existing
+        ? covers.map((c) => (c.kind === kind ? { ...c, ...patch } : c))
+        : [...covers, { kind, status: 'pending' as const, ...patch }],
+    }
+  })
 }
 
 /** Marks the book ready, or failed if any page did not come back. */
@@ -81,7 +231,7 @@ async function renderCharacterSheets(
     const image = await provider.generateCharacterSheet({
       character,
       artStyleId: order.brief.artStyleId,
-      imageModelId: order.brief.imageModelId,
+      finish: order.brief.finish,
       photoUrls: character.photoUrls ?? [],
     })
     sheets.push({
@@ -108,7 +258,7 @@ async function renderPages(
 
   const byId = new Map(characters.map((c) => [c.id, c]))
   const pages = order.storyboard.pages
-  const { artStyleId, imageModelId } = order.brief
+  const { artStyleId, finish, memories } = order.brief
 
   // A simple worker pool: each worker pulls the next index off a shared cursor.
   let cursor = 0
@@ -124,7 +274,8 @@ async function renderPages(
           byId,
           provider,
           artStyleId,
-          imageModelId,
+          finish,
+          memories,
         )
       }
     },
@@ -146,7 +297,8 @@ async function renderOnePage(
   byId: Map<string, Character>,
   provider: ImageProvider,
   artStyleId: ArtStyleId,
-  imageModelId: ImageModelId,
+  finish: BookFinish,
+  memories: MemoryPhoto[] | undefined,
 ): Promise<void> {
   await patchRender(orderId, page.index, {
     status: 'generating',
@@ -157,12 +309,20 @@ async function renderOnePage(
     .map((id) => byId.get(id))
     .filter((c): c is Character => Boolean(c))
 
+  // A page can name a photograph that has since been removed from the brief;
+  // it then falls back to an ordinary illustrated page rather than failing.
+  const memory = page.memoryId
+    ? (memories ?? []).find((m) => m.id === page.memoryId)
+    : undefined
+
   try {
     const image = await provider.generatePage({
       index: page.index,
       sceneDescription: page.sceneDescription,
       artStyleId,
-      imageModelId,
+      finish,
+      memoryPhotoUrl: memory?.url,
+      memoryNote: memory?.note,
       characterNames: onPage.map((c) => c.name),
       referenceUrls: onPage
         .map((c) => c.referenceSheetUrl)
@@ -207,7 +367,8 @@ export async function regeneratePage(
     byId,
     getImageProvider(),
     order.brief.artStyleId,
-    order.brief.imageModelId,
+    order.brief.finish,
+    order.brief.memories,
   )
   await settleStatus(orderId)
 }
