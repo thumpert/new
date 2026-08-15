@@ -12,172 +12,221 @@ que explica o produto e a arquitetura.
 
 O fluxo inteiro, do brief ao PDF:
 
-1. **Wizard** — idioma do livro → modelo de imagem → ocasião → tipo de história →
-   tom → estilo do desenho → tamanho → personagens (até 3 fotos cada) → lugar →
-   entrevista → escolha entre 4 histórias → título.
-2. **Claude API** escreve as perguntas da entrevista (em blocos temáticos, com 3
-   sugestões clicáveis cada), as 4 ideias, os 3 títulos e o roteiro página a página.
-3. **PDF A4** com capa, dedicatória, páginas ilustradas e contracapa.
-4. **Refazer página** isolada, reusando as fichas de personagem.
-
-Tudo verificado: TypeScript, lint e build limpos; `scripts/smoke-pdf.ts` roda a
-metade de baixo da pipeline sem gastar nada.
+1. **Assistente, 12 etapas** — tipo de livro → idioma do livro → ocasião → tipo
+   de história → tom → estilo do desenho → tamanho → personagens (até 3 fotos de
+   referência cada, mais as fotos que entram no livro) → lugar → entrevista →
+   escolha entre 4 histórias → título.
+2. **Claude API** escreve as perguntas da entrevista, as 4 ideias, os 3 títulos e
+   o roteiro página a página.
+3. **Google (Gemini)** desenha: fichas de personagem, as duas capas, as páginas e
+   a contracapa.
+4. **PDF A4** com capa ilustrada, dedicatória, páginas e contracapa ilustrada.
+5. **Refazer página** isolada, reusando as fichas de personagem.
 
 ---
 
-## O que falta — comece por aqui
+## As três decisões que moldam tudo
 
-### 1. Baixar as imagens de exemplo dos estilos (30 segundos, no Mac)
+### 1. Dois tipos de livro, escolhidos na primeira tela
 
-```bash
-cd ~/new && git pull && ./scripts/fetch-style-samples.sh
-git add public/styles && git commit -m "Add the fixed art style samples" && git push
-```
-
-O wizard mostra um desenho de exemplo embaixo de cada estilo. As imagens já
-foram geradas — o script só baixa. **Sem isso os cards aparecem com o quadro
-branco vazio** (o layout não quebra, mas fica sem graça).
-
-Por que não estão no repositório ainda: a sessão do Claude que as gerou roda num
-container cujo proxy **bloqueia o CDN da Higgsfield** (`d8j0ntlcm91z4.cloudfront.net`,
-403 na política de rede do ambiente). O Mac não tem esse bloqueio. Dá para
-liberar em claude.ai/code → Settings → Environments → Network access, mas para
-cinco arquivos não compensa.
-
-### 2. Credenciais do Higgsfield
-
-Os endpoints já estão no código, tirados do OpenAPI oficial
-(`docs.higgsfield.ai/docs/openapi.json`), não adivinhados. Vivem em
-`src/lib/catalog.ts`. Base: `https://platform.higgsfield.ai`.
-
-```bash
-echo 'HIGGSFIELD_CREDENTIALS=KEY_ID:KEY_SECRET' >> .env.local
-npx tsx scripts/test-higgsfield.ts
-```
-
-Sem credencial o app roda em **modo mock**: o fluxo inteiro funciona e o PDF é
-gerado, mas com molduras de prévia no lugar dos desenhos — cada uma mostrando o
-prompt que teria sido enviado.
-
-### Os endpoints de imagem que existem de verdade
-
-| Endpoint | Referências | Serve? |
+| | livro de colorir | livro colorido |
 |---|---|---|
-| `/nano-banana` | `input_images[]`, até 8 | **Sim** — o único que aceita várias fichas |
-| `/higgsfield-ai/soul/reference` | `image_reference_url`, 1 | Só para livro de um personagem |
-| `/reve/remix` | `image_urls[]`, **mín. 2** | Não — o mínimo de 2 quebra o caso de 1 personagem |
-| `/reve/edit`, `/higgsfield-ai/soul/character` | 1 | Igual ao soul |
-| `/flux-pro/kontext/max/text-to-image`, `/reve/text-to-image` | nenhuma | Não — sem referência não há consistência |
+| Ficha de personagem | traço preto | colorida — é ela que trava a paleta |
+| Páginas | traço preto sobre branco | pintadas |
+| Layout no PDF | margem branca, narração embaixo | sangria total, narração sobre a arte |
+| Capa e contracapa | **coloridas** | coloridas |
 
-**Não existe endpoint de GPT/OpenAI na API pública.** O `gpt_image_2` que aparece
-no MCP não é exposto via REST — uma opção de modelo baseada nele daria 404.
+A capa é colorida nos dois. É a única parte do livro de colorir que já vem
+pintada.
 
-Detalhes do schema que importam e não são óbvios:
-- `/nano-banana` devolve **jpeg por padrão**; pedimos `output_format: png`, porque
-  o ringing do JPEG vira franja cinza exatamente em cima do contorno preto.
-- `soul/reference` tem `enhance_prompt: true` por padrão, que reescreve o prompt
-  no servidor e pode desfazer as restrições de "sem sombra, sem cinza". Mandamos
-  `false`.
+### 2. Cada estilo carrega a própria paleta
 
----
+O cliente **nunca** escolhe cor separadamente. O estilo diz como ele é desenhado
+*e* como é colorido, no mesmo objeto (`ArtStyleDef` em `src/lib/catalog.ts`).
+Super-herói sai em primárias saturadas, chibi em pastel leitoso, fine-line em
+aguadas contidas. Se a cor fosse uma escolha à parte, ela poderia brigar com o
+traço; assim não pode.
 
-## Os cinco estilos
+Há um terceiro campo, `coloringCaveat`, que só entra no livro de colorir. Três
+estilos são sombreados na forma natural (cel, hachura, sombra de tinta) e uma
+página de colorir não pode ter nada disso — mas essas retratações **contradizem
+a paleta do próprio estilo**, então elas vivem separadas do `prompt` principal.
+Sem isso, o livro colorido sai chapado.
 
-`chibi`, `coloring-book`, `superhero-comic`, `fine-line` (Moderno Elegante) e
-`cartoon`. Cada um é uma **especificação inteira**, não uma frase — formas,
-proporções, rosto, corpo, linhas. Isso não é capricho: com uma frase só, o modelo
-volta para a ideia genérica dele de "fofo" ou "quadrinho". Medido no chibi, onde
-a frase curta desenhava **pupilas pretas chapadas** e a especificação não.
+### As especificações de estilo foram adaptadas de propósito
 
-Todos os cinco foram gerados de verdade e medidos: **0,000% de cor e 0,000% de
-cinza nos cinco**; preto preenchido entre 0,000% e 0,088%.
-
-### Três especificações foram adaptadas de propósito
-
-O cliente mandou as cinco especificações. Três pediam coisas que **arruínam uma
-página de colorir**, e foram adaptadas em vez de seguidas ao pé da letra. Está
-tudo comentado no `src/lib/catalog.ts`, mas o resumo:
+O cliente mandou cinco especificações. Várias pediam coisas que arruinariam o
+produto, e foram adaptadas em vez de seguidas ao pé da letra. Está tudo
+comentado no `src/lib/catalog.ts`; o resumo:
 
 | Estilo | O que pedia | Por que não dava |
 |---|---|---|
-| `superhero-comic` | blocos de preto puro, hachura cruzada, grade de vinhetas | preenchem o que a criança ia colorir; e a página é uma ilustração só |
-| `superhero-comic` | musculatura hiper-definida, maxilar angular | o livro é sobre uma criança real, uma avó, um cachorro — anatomia de fisiculturista desenha outra pessoa |
-| `fine-line` | volume por hachura paralela fina | hachura é sombra, e sombra é o trabalho de quem colore |
-| `cartoon` | cel-shading em blocos, sombras projetadas | mesmo motivo |
-| `cartoon` | uma cena específica (cachorro, trilha, montanhas angulares) | brigaria com a cena real de cada página; sobrou só a receita de profundidade em camadas |
-| `coloring-book` | mandala botânica | mandala não tem história dentro; o ornamento agora preenche **ao redor** dos personagens |
+| `superhero-comic` | musculatura hiper-definida, maxilar angular | **o livro é sobre uma criança real, uma avó, um cachorro — anatomia de fisiculturista desenha outra pessoa.** O heroísmo migrou para postura, encenação e câmera, que não custam nada à semelhança |
+| `superhero-comic` | blocos de preto, hachura cruzada | preenchem o que a criança ia colorir (hoje em `coloringCaveat`) |
+| `superhero-comic` | grade de vinhetas | a página é uma ilustração só |
+| `fine-line` | volume por hachura paralela | hachura é sombra, e sombra é o trabalho de quem colore (hoje em `coloringCaveat`) |
+| `cartoon` | cel-shading em blocos, sombras projetadas | mesmo motivo (hoje em `coloringCaveat`) |
+| `cartoon` | uma cena específica (cachorro, trilha, montanhas) | brigaria com a cena real de cada página; sobrou a receita de profundidade em camadas |
+| `coloring-book` | mandala botânica | mandala não tem história dentro; o ornamento preenche **ao redor** dos personagens |
 
-**Se alguém for "consertar" isso de volta, leia os comentários antes.** Cada
+A primeira linha é a mais importante e a mais fácil de desfazer sem querer.
+**Se alguém for "consertar" isso de volta, leia os comentários antes** — cada
 adaptação existe por um motivo medido.
 
-### Uma decisão em aberto
+### 3. A capa é escolhida no meio do caminho
 
-Os cinco exemplos usam **a mesma cena** (menina + cachorro + papagaio), o que é
-ótimo para comparar estilos lado a lado — mas deixa o `superhero-comic` sem
-graça, porque a cena é uma caminhada tranquila. A alternativa é gerar o exemplo
-do super-herói numa cena de ação e abrir mão da comparação direta. Não decidido.
+```
+assistente → [fichas + 2 capas] → VOCÊ ESCOLHE → [páginas + contracapa] → PDF
+```
+
+A ordem é forçada dos dois lados: capa antes das fichas não bate com o livro, e
+página antes da capa é trabalho que pode ser jogado fora. O custo é que o cliente
+espera **duas vezes** em vez de uma — foi uma escolha consciente.
+
+As duas opções são ideias diferentes de capa, não duas tentativas da mesma:
+**retrato** (personagens grandes, olhando pra quem abre) e **cena** (momento
+largo, personagens dentro do mundo).
 
 ---
 
-## Medições que valem guardar
+## Fotos que viram página
 
-| | nano_banana_2 | gpt_image_2 (high/2k) |
-|---|---|---|
-| Tempo por página | ~40s | ~100s |
-| Resolução | 1792×2400 | 1744×2336 |
+Até 3 (`MAX_MEMORIES`). Não confundir com as fotos de referência do personagem:
+aquelas ensinam um rosto, são usadas uma vez e nunca são impressas. Estas **são**
+a página.
 
-(Medido via MCP. O `gpt_image_2` fica aqui só como registro — não dá para usá-lo
-no app, porque não tem endpoint REST.)
+Duas coisas acontecem com a nota que o cliente escreve:
 
-O plano **starter da Higgsfield limita 4 jobs simultâneos**. A concorrência do
-app é 3 (`PAGE_CONCURRENCY` em `src/lib/render.ts`) — abaixo do teto. Se subir de
-plano, é o número a mexer.
+- vai para a **Claude**, que encaixa aquele momento onde a história chega nele —
+  a página ganha narração e a seguinte reage;
+- vai para o **modelo de imagem**, junto com a foto.
 
-Custo estimado da parte de texto: US$ 0,30 a 1,00 por livro (não medido em
-produção; estimativa pelo tamanho das 3 chamadas com Opus 5 e raciocínio
-adaptativo).
+O ponto delicado é que a foto e as fichas chegam juntas ao modelo e disputam. A
+hierarquia está declarada no prompt: **a foto manda na composição** (quem, pose,
+enquadramento, momento), **a ficha manda na aparência** (rosto, cabelo, roupa,
+proporção). A foto é enviada como primeira referência porque o prompt se refere a
+ela nesses termos.
+
+---
+
+## O que foi medido de verdade
+
+**Consistência de personagem — funciona.** Testado com livro real: gerar cada
+personagem uma vez como ficha e passar essa ficha como referência em toda página
+mantém a pessoa reconhecível.
+
+**Traço limpo — medido.** Método: máscara de pixels cinza, erodida em 5px; o que
+sobrevive é sombreado real, o que some era antialiasing de borda.
+
+| Métrica | Resultado |
+|---|---|
+| Cor vazando | 0,000% |
+| Cinza sólido | 0,000% |
+| Preto preenchido (contornos excluídos) | 0,000% a 0,026% |
+
+**JPEG não estraga o traço.** O Gemini só devolve JPEG — a documentação diz que
+aceita `image/png`, mas a API responde 400 nos quatro modelos. Medi o estrago: a
+faixa de 2 a 6px em volta de cada contorno dá **0,000% não-branco**. Não há
+ringing. É JPEG quase sem perda (~1,5 MB em 1792×2400). Se um dia o arquivo
+encolher muito, é sinal de que começaram a comprimir — aí vale remedir.
+
+**Capas coloridas a partir de ficha em preto e branco — funciona.** Era o risco
+da feature e não se confirmou. As cores vêm das descrições escritas dos
+personagens, que por isso vão no prompt junto com a ficha.
+
+---
+
+## O que ainda não foi visto por olho humano
+
+- **A página vinda de foto.** O encanamento está testado (o smoke test tem uma
+  memória e confere que o prompt certo foi usado), mas nenhuma foto real virou
+  página ainda. É o próximo teste, e custa centavos.
+- **A consistência dos personagens ao longo de um livro inteiro** no fluxo
+  colorido.
+- **Três dos cinco estilos** a fundo — só chibi e cartoon foram olhados de perto.
+
+---
+
+## Ambiente e custos
+
+**Provedor:** Google, direto. `GEMINI_API_KEY` no `.env.local` (chave criada em
+aistudio.google.com/apikey). Sem chave o app cai no **mock**: o fluxo inteiro
+funciona e o PDF sai com molduras de prévia mostrando o prompt — é como se ajusta
+história e layout sem gastar nada.
+
+| | |
+|---|---|
+| Modelo | `gemini-3.1-flash-image` |
+| Resolução | 2K, proporção 3:4 |
+| Referências por chamada | até 14 (usamos no máximo 4) |
+| Páginas em paralelo | 3 (`PAGE_CONCURRENCY`) |
+| Custo por imagem | ~US$ 0,04 |
+| Custo por livro de 12 páginas | ~US$ 0,55 de imagem + US$ 0,30 a 1,00 de texto |
+
+**A Higgsfield saiu do projeto.** O endpoint público `/nano-banana` parou de
+responder — está na especificação publicada deles, mas devolve o mesmo
+`model_not_found` que um caminho inventado, e a referência da API deles diz que
+os esquemas de modelo estão sendo redesenhados. O CLI ainda alcança o modelo
+porque fala com **outro host**, não documentado e autenticado como pessoa. Nada
+disso serve para um servidor.
+
+O Nano Banana é modelo do Google; a Higgsfield revendia. Ir na fonte também tirou
+duas amarras: as referências viajam como bytes dentro da requisição (nada que a
+gente guarda precisa ser alcançável da internet) e a geração é uma chamada só, sem
+job para consultar.
+
+Sobrou uma conta Higgsfield com **48,38 créditos** e o CLI instalado na máquina —
+úteis para experimentar no chat, inúteis para o app. São portas diferentes.
 
 ---
 
 ## Decisões que não devem ser desfeitas sem motivo
 
-- **Idioma do livro ≠ idioma do site.** São campos separados. Perguntas e resumos
-  saem no idioma do site (quem lê é o comprador); títulos e narração no idioma do
-  livro (vão impressos); descrições de cena **sempre em inglês**, porque quem lê é
-  o modelo de imagem.
-- **Ficha de personagem antes das páginas.** É o que sustenta a consistência e o
-  que torna barato refazer uma página só.
+- **Idioma do livro ≠ idioma do site.** Perguntas e resumos saem no idioma do
+  site (quem lê é o comprador); títulos e narração no idioma do livro (vão
+  impressos); descrições de cena **sempre em inglês**, porque quem lê é o modelo.
+- **Ficha de personagem antes de tudo.** Sustenta a consistência e torna barato
+  refazer uma página só.
 - **O título vem depois da escolha da história**, para as sugestões nascerem
   daquela história.
-- **O provider de imagem é plugável** (`higgsfield` | `mock`). O mock não é
-  enfeite: é como se ajusta história e layout sem gastar crédito.
+- **O provider é plugável** (`google` | `mock`). O mock não é enfeite.
+- **As amostras de estilo são fixas e versionadas.** Dez arquivos em
+  `public/styles/` — cinco em traço, cinco coloridas, todas na mesma cena. O site
+  nunca as gera em tempo de execução, senão a vitrine deixa de ser promessa. Para
+  refazer: `npx tsx scripts/make-colour-samples.ts [estilo]`.
 
 ---
 
-## Ambiente — duas armadilhas
+## Armadilhas
 
-**1. Sessão remota vs local.** Se a sessão rodar num container na nuvem, ela *não*
-enxerga o Mac do usuário: não lê o `.env.local`, não abre `docs.higgsfield.ai` e
-não baixa as imagens do CDN da Higgsfield (bloqueado pelo proxy). O fluxo vira
-`push` → o usuário faz `pull`. Uma sessão local no Mac não tem nenhuma dessas
-limitações. Cheque com `pwd`: `/Users/...` é local, `/home/user/...` é remoto.
+**Sessão remota vs local.** Se a sessão rodar num container na nuvem, ela não
+enxerga o Mac: não lê o `.env.local` e não alcança serviços locais. Cheque com
+`pwd` — `/Users/...` é local.
 
-**2. As imagens geradas via MCP não servem para o app.** O MCP do Higgsfield é uma
-ponte da sessão de chat; o app precisa da API REST. São caminhos diferentes.
+**Nunca cole credencial no chat.** Conversa fica gravada. A chave certa vai
+direto no `.env.local` pelo terminal.
+
+---
+
+## Scripts
+
+```bash
+npx tsx scripts/smoke-pdf.ts            # fluxo de colorir, do roteiro ao PDF, sem gastar
+npx tsx scripts/smoke-pdf.ts coloured   # o mesmo, no livro colorido
+npx tsx scripts/test-google.ts          # uma imagem real, confere a integração
+npx tsx scripts/test-covers.ts          # as 2 capas + contracapa, de verdade
+npx tsx scripts/make-colour-samples.ts  # regera as amostras coloridas do assistente
+```
 
 ---
 
 ## Próximos passos, em ordem
 
-1. **Rodar `./scripts/fetch-style-samples.sh`** e comitar `public/styles/` (ver o
-   topo deste documento).
-2. Pôr `HIGGSFIELD_CREDENTIALS` no `.env.local` e gerar o primeiro livro real.
-3. Julgar com olho humano: a consistência dos personagens no PDF-amostra, e se os
-   cinco estilos agradam. Só a métrica de traço limpo está validada — gosto, não.
-4. Decidir a cena de exemplo do `superhero-comic` (ver "Uma decisão em aberto").
-5. Ajustar prompts conforme o que aparecer (`src/lib/ai/prompts.ts` para texto,
+1. Gerar uma página a partir de uma foto real e olhar o resultado.
+2. Gerar um livro inteiro de verdade nos dois fluxos e julgar a consistência.
+3. Ajustar prompts conforme o que aparecer (`src/lib/ai/prompts.ts` para texto,
    `src/lib/images/prompt.ts` para desenho).
-6. Fase 2: pagamento (Stripe) e envio para a gráfica.
-7. Antes de produção: trocar `lib/store.ts` e `lib/storage.ts` por Postgres e blob
+4. Fase 2: pagamento (Stripe) e envio para a gráfica.
+5. Antes de produção: trocar `lib/store.ts` e `lib/storage.ts` por Postgres e blob
    storage, e mover a renderização para uma fila (32 páginas estouram o timeout de
    função serverless).
