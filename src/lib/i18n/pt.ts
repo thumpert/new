@@ -251,7 +251,7 @@ export const pt = {
     warm: {
       label: 'Afetuoso',
       description:
-        'O carinho não é dito, é medido: braços abertos, um pulo, um abraço que não cabe.',
+        'Uma conversa entre dois: um mede o carinho de braços abertos, o outro tenta superar.',
       example:
         '— Zeca, você sabe de quanto eu gosto daqui?\nO Zeca não sabia.\nA Lila abriu os braços até os ombros doerem.\n— Desse tanto. E ainda sobra um pedaço.',
     },
@@ -279,7 +279,7 @@ export const pt = {
     serene: {
       label: 'Sereno',
       description:
-        'Cada gesto carrega as vezes anteriores em que aconteceu. A emoção fica embaixo da frase.',
+        'Quase ninguém fala. O narrador repara numa coisa de cada vez, e cada gesto traz as tardes anteriores.',
       example:
         'O portão guardava o rangido de todas as tardes que vieram antes.\nA Lila entrou, e com ela entraram as outras vezes em que tinha entrado.\nO Zeca ia adiante, como quem sabe o caminho de cor.',
     },

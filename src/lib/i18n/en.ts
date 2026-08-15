@@ -249,7 +249,7 @@ export const en: Dictionary = {
     warm: {
       label: 'Warm',
       description:
-        'Love is not stated, it is measured: arms thrown open, a jump, a hug that will not fit.',
+        'A conversation between two: one measures love with open arms, the other tries to outdo it.',
       example:
         '“Zeca, do you know how much I love it here?”\nZeca did not know.\nLila opened her arms until her shoulders ached.\n“This much. And there is still some left over.”',
     },
@@ -277,7 +277,7 @@ export const en: Dictionary = {
     serene: {
       label: 'Serene',
       description:
-        'Every gesture carries the times it happened before. The feeling sits under the sentence.',
+        'Hardly anyone speaks. The narrator notices one thing at a time, and each gesture brings the earlier afternoons with it.',
       example:
         'The gate kept the creak of every afternoon that came before it.\nLila went in, and with her went all the other times she had gone in.\nZeca walked ahead, like someone who knows the way by heart.',
     },
