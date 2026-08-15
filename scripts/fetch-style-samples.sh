@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Baixa as cinco imagens de exemplo dos estilos para public/styles/.
+# Baixa as imagens de exemplo dos estilos para public/styles/.
 #
 #   ./scripts/fetch-style-samples.sh
 #
@@ -11,29 +11,32 @@
 #
 # (A sessão do Claude que gerou as imagens roda num container sem acesso ao CDN
 # da Higgsfield, por isso o download acontece aqui.)
+#
+# Quando um estilo mudar, gere a imagem de novo com a MESMA cena e troque só a
+# URL daquela linha — as cinco precisam continuar comparáveis entre si.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
 mkdir -p public/styles
 
-BASE="https://d8j0ntlcm91z4.cloudfront.net/user_3GNFAU3bl7JWf8AKSp5WZTLExyW/hf_20260815_140303_"
+CDN="https://d8j0ntlcm91z4.cloudfront.net/user_3GNFAU3bl7JWf8AKSp5WZTLExyW"
 
-# estilo:job_id — a ordem é a mesma do catálogo (src/lib/catalog.ts).
+# estilo:arquivo-no-cdn — a ordem é a mesma do catálogo (src/lib/catalog.ts).
 SAMPLES=(
-  "chibi:e59c3f1f-3ec9-4861-837b-8cc10db1871f"
-  "coloring-book:edfcb0b5-dd67-47ed-b148-a13fca32453a"
-  "superhero-comic:87a3d4e4-6a91-43d5-9c08-434a1e71551c"
-  "fine-line:ade84702-5fe5-48d5-ac0b-466d69258648"
-  "cartoon:2fac3bad-1700-4149-9ba8-5d5528b3b879"
+  "chibi:hf_20260815_140303_e59c3f1f-3ec9-4861-837b-8cc10db1871f.png"
+  "coloring-book:hf_20260815_140303_edfcb0b5-dd67-47ed-b148-a13fca32453a.png"
+  "superhero-comic:hf_20260815_143300_cb61786c-21cd-4a6c-9ddd-43ea98b885ab.png"
+  "fine-line:hf_20260815_140303_ade84702-5fe5-48d5-ac0b-466d69258648.png"
+  "cartoon:hf_20260815_140303_2fac3bad-1700-4149-9ba8-5d5528b3b879.png"
 )
 
 for entry in "${SAMPLES[@]}"; do
   name="${entry%%:*}"
-  job="${entry##*:}"
+  file="${entry##*:}"
   out="public/styles/$name.png"
 
   printf '%-18s ' "$name"
-  curl -fsS -o "$out" "$BASE$job.png"
+  curl -fsS -o "$out" "$CDN/$file"
 
   # As originais têm 896x1200. O card mostra ~176px de altura, então 720px de
   # largura já cobre telas retina com folga e corta o peso do arquivo.

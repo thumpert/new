@@ -193,15 +193,21 @@ export const ART_STYLES: ArtStyleDef[] = [
   },
   {
     id: 'superhero-comic',
-    // Heroic drama, minus the ink. The source spec asked for blackout shadow
-    // and cross-hatching, which are the two things a coloring page cannot have
-    // \u2014 they fill in the very areas the child is meant to colour. The
-    // drama survives in the anatomy, the poses and the camera instead.
+    // Heroic drama, minus two things the source spec asked for.
+    //
+    // The ink: blackout shadow and cross-hatching fill in the very areas the
+    // child is meant to colour, so the page would arrive already coloured.
+    //
+    // The muscles: the customer is buying a book about a real 6-year-old, a
+    // grandmother, a dachshund. Bodybuilder anatomy would draw somebody else.
+    // The heroism is moved into pose, camera and energy, which cost the
+    // likeness nothing.
     prompt: [
       'action comic-book superhero art, drawn as clean open line art.',
-      'ANATOMY: heroic exaggerated proportions, hyper-defined musculature, broad shoulders, idealised build and strong bone structure.',
-      'POSES: caught mid-movement, with twisting bodies, dramatic foreshortening and forced perspective that throws fists and limbs toward the viewer.',
-      'EXPRESSIONS: intense and emotive, with strong angular jaws, furrowed brows and a focused heroic stare.',
+      'ANATOMY: proportions stay true to who each character actually is \u2014 a child is drawn as a child, an adult as an adult, an animal as itself, with ordinary everyday builds. Nobody is given heroic musculature or an idealised physique.',
+      'HEROISM: the heroic register comes from posture and staging rather than from the body \u2014 a planted confident stance, a cape or scarf or coat streaming behind, a costume detail, a fist raised.',
+      'POSES: caught mid-movement, with twisting bodies, dramatic foreshortening and forced perspective that throws hands and limbs toward the viewer.',
+      'EXPRESSIONS: big and emotive, full of brave determination, delight and mischief. Warm and friendly rather than gritty \u2014 no furrowed scowls or hard angular jaws.',
       'CAMERA: dramatic low angles that make the characters tower over the viewer, or steep high angles for action beats.',
       'ENERGY: converging speed lines, impact bursts and energy blasts drawn as bold clean outlines only.',
       'LINES: bold ink outlines with strongly varied weight \u2014 heavy on the silhouette and on whatever is nearest the camera, lighter on interior detail \u2014 so weight, volume and depth are carried entirely by the line itself.',
