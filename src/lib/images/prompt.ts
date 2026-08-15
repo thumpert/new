@@ -9,12 +9,19 @@ import type { ArtStyleId, BookFinish, Character } from '../types'
 const LINE_ART_RULES = [
   'Pure black outlines on a solid pure white background',
   'no shading, no grey tones, no gradients, no hatching, no stippling, no filled black areas',
-  'no colour of any kind',
   'no text, no letters, no numbers, no signatures, no borders or frames',
   // Line weight is deliberately not fixed here: each style specifies its own,
   // and some want a thick silhouette against thinner interior detail.
   'clean closed shapes, drawn to be coloured in with crayons',
 ] as const
+
+/**
+ * Stated separately from the list above because it has two forms, and the two
+ * must never both be sent. An absolute "no colour of any kind" alongside an
+ * exception for one object is a contradiction, and a contradicted prompt is
+ * how a page ends up with something invented in it.
+ */
+const NO_COLOUR_AT_ALL = 'No colour of any kind anywhere on the page.'
 
 /**
  * The colour book's own hard constraints. Shorter than the line-art list
@@ -27,16 +34,44 @@ const COLOURED_RULES = [
 ] as const
 
 /**
- * The closing rules for a page or a model sheet, which is the single place the
- * two books diverge. Everything above this line — the style, the cast, the
- * scene — is written once and shared.
+ * The one exception to "no colour of any kind": the guide object.
+ *
+ * This started as the model disobeying. A book came back with the blue
+ * woollen thread that runs through its story drawn in actual blue, in a book
+ * whose rules said pure black and white — and it was better than the rule. It
+ * is the only thing on the page you can follow with a finger, the eye tracks
+ * it from page to page without being told to, and everything around it is
+ * still empty and waiting to be coloured.
+ *
+ * So it is deliberate now, and tightly bounded: exactly one object, one flat
+ * colour, no shading in it, nothing else on the page tinted at all. Loosening
+ * "no colour" any further than this is how colour bleeds back into the whole
+ * book.
  */
-function finishRules(finish: BookFinish, artStyleId: ArtStyleId): string {
+function spotColourRule(device: string): string {
+  return [
+    `SPOT COLOUR — one exception to the black and white, and only one: ${terminated(device)}`,
+    'That object, and only that object, is drawn in its own flat colour, filled in solid. It is the single coloured thing on the page and it is what the eye follows from page to page.',
+    'Everything else in the drawing — every character, every background, every other object — stays pure black line art on white, unfilled and waiting to be coloured in.',
+    'The coloured object carries no shading, no gradient and no second tone: one flat colour, inside a black outline like everything else.',
+  ].join(' ')
+}
+
+function finishRules(
+  finish: BookFinish,
+  artStyleId: ArtStyleId,
+  device?: string,
+): string {
   const style = getArtStyle(artStyleId)
   if (finish === 'coloring') {
     // The caveat retracts whatever shading this particular style normally
     // carries, and only a coloring page needs that retraction.
-    return [style.coloringCaveat, LINE_ART_RULES.join(', ') + '.']
+    // Either the absolute rule or the one-object exception — never both.
+    return [
+      style.coloringCaveat,
+      LINE_ART_RULES.join(', ') + '.',
+      device?.trim() ? spotColourRule(device) : NO_COLOUR_AT_ALL,
+    ]
       .filter(Boolean)
       .join(' ')
   }
@@ -225,6 +260,7 @@ export function pagePrompt(
   characters: Character[],
   hasReferences: boolean,
   finish: BookFinish,
+  device?: string,
 ): string {
   const style = getArtStyle(artStyleId)
   const names = characters.map((c) => c.name)
@@ -251,7 +287,7 @@ export function pagePrompt(
     consistency,
     `Drawing style: ${style.prompt}`,
     SANITY_RULES.join(' '),
-    finishRules(finish, artStyleId),
+    finishRules(finish, artStyleId, device),
   ]
     .filter(Boolean)
     .join(' ')

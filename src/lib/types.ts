@@ -196,6 +196,21 @@ export interface StoryIdea {
    * swapped places without anything breaking.
    */
   turn: string
+  /**
+   * The guide object: one thing that runs through every page and holds the
+   * book together, written as the object and its colour.
+   *
+   * Named here because it is the whole difference between the two books this
+   * product has made. One had streetlamps that lit up memories — a premise;
+   * every page reset and any two could trade places. The other had a blue
+   * woollen thread tied to both their wrists, which opened the door, ran down
+   * the stairs, turned corners, and on the last page pulled itself into a
+   * bow. The second is a mechanism, and it is what made the book a book.
+   *
+   * In a coloring book it is drawn as the only coloured thing on the page —
+   * see the spot-colour rule in images/prompt.ts.
+   */
+  device: string
 }
 
 export interface StoryPage {
@@ -226,6 +241,11 @@ export interface StoryPage {
 
 export interface Storyboard {
   title: string
+  /**
+   * The guide object, carried down from the chosen idea. The illustrator needs
+   * it on every page, and in a coloring book it is the one thing in colour.
+   */
+  device?: string
   dedication?: string
   pages: StoryPage[]
 }

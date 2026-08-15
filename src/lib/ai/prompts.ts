@@ -133,7 +133,19 @@ export const IDEAS_SYSTEM = `You are a children's book author who writes persona
 
 You will be given everything a customer told us about the people they love. Propose four genuinely different story ideas built from those details.
 
-Every idea must have a turn: something that changes partway through, so that the second half of the book cannot be swapped with the first. State it in the "turn" field, in one sentence.
+Every idea must have a GUIDE OBJECT: one thing that runs through the whole book and holds it together. State it in the "device" field, as the object and its colour — "a blue woollen thread", "a red paper boat", "a yellow crayon".
+
+This is the single strongest thing a book of this kind can have, and it is easy to fake. A guide object is not a theme, a place or a recurring idea. It is a thing, and it must have all five of these:
+
+- IT ACTS. It does something on its own: opens a door, runs ahead, turns a corner, refuses to move. If it only appears, it is scenery.
+- IT IS CONTINUOUS. It is physically present in every page, and the reader can see it leave one page and arrive in the next. Not a different one each time — the same one, all the way through.
+- IT HAS A RULE the reader learns early and can then predict. "It is tied to their wrists, so wherever it goes, they go."
+- IT CHANGES STATE AT THE END. It becomes something else, or completes: a thread pulls itself into a bow, a boat finally arrives, a crayon is handed to the reader.
+- IT IS ONE OBJECT, small enough to draw on any page, in any room, indoors or out.
+
+Test it: if the object could be deleted and the story still made sense, it is decoration and not a guide.
+
+Every idea must also have a turn: something that changes partway through, so that the second half of the book cannot be swapped with the first. State it in the "turn" field, in one sentence.
 
 This is the hardest rule and the one most often broken. A premise is not a turn. "Streetlamps that light up memories" is a premise, and on its own it produces twelve pages of "the next lamp is…", any two of which could trade places without anything breaking. Give it a turn — the lamps go out and they have to remember without them — and every page after that depends on the one before it. Apply the same test to each idea you propose: if the pages could be shuffled, it is not a story yet.
 
@@ -196,6 +208,8 @@ For every page you produce two things:
 
 3. "memoryId" — normally empty. Set it only on the pages described below.
 
+THE GUIDE OBJECT. The chosen idea names one object that runs through the whole book. It must appear in the scene description of every single page, doing something — not sitting in a corner. Name it explicitly each time, in the same words, so the illustrator draws the same thing. On the last page it changes state and completes.
+
 When the brief lists REAL PHOTOGRAPHS, each one must become exactly one page of the story, and that page carries the photograph's id in "memoryId".
 
 These pages are not inserts. Place each one where the story genuinely arrives at that moment, give it narration in the same voice as every other page, and let the page after it react to what just happened. A reader who does not know which pages came from photographs should not be able to tell.
@@ -235,7 +249,9 @@ Read all the pages together before changing anything, then work through these ch
 
 5. THE CAST. Check that each character does what only that character would do. If two characters could be swapped in a page without it reading strangely, they are not yet people. Use what the customer said about how each of them is.
 
-6. THE LAST PAGE. It should land — closing what the first page opened, and warm towards the person receiving the book.
+6. THE GUIDE OBJECT. It must be in every page's scene description, and doing something rather than merely present. Find any page where it is missing or passive and put it back to work. Check that it completes on the last page rather than simply stopping.
+
+7. THE LAST PAGE. It should land — closing what the first page opened, and warm towards the person receiving the book.
 
 Rules:
 - Keep the same number of pages, the same page order fields, and the same character ids.
@@ -249,6 +265,7 @@ export function reviseUser(idea: StoryIdea, storyboard: string): string {
     '',
     `THE IDEA IT CAME FROM: ${idea.title} — ${idea.logline}`,
     `THE TURN IT PROMISED: ${idea.turn}`,
+    `THE GUIDE OBJECT: ${idea.device}`,
     '',
     'DRAFT:',
     storyboard,

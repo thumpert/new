@@ -72,6 +72,11 @@ const IdeasSchema = z.object({
           .describe(
             'One sentence: what changes partway through, so the second half cannot be swapped with the first.',
           ),
+        device: z
+          .string()
+          .describe(
+            'The guide object and its colour, e.g. "a blue woollen thread". One thing, present and acting on every page.',
+          ),
       }),
     )
     .describe('Exactly four distinct story ideas.'),
@@ -161,6 +166,7 @@ export async function generateIdeas(brief: BookBrief): Promise<StoryIdea[]> {
     summary: idea.summary,
     highlights: idea.highlights,
     turn: idea.turn,
+    device: idea.device,
   }))
 }
 
@@ -232,6 +238,7 @@ export async function generateStoryboard(
 
   return {
     title: brief.title.trim() || parsed.title,
+    device: idea.device,
     dedication: brief.dedication,
     pages: parsed.pages.slice(0, pageCount).map((page, i) => ({
       index: i + 1,

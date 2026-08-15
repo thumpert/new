@@ -556,13 +556,25 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
                   {/* The turn is shown because it is what separates a story
                       from a list, and choosing without seeing it is how a
                       list gets picked. */}
-                  {idea.turn && (
-                    <p className="mt-4 border-t border-line pt-3 text-sm text-ink-soft">
-                      <span className="font-medium text-ink">
-                        {dict.wizard.ideas.turn}
-                      </span>{' '}
-                      {idea.turn}
-                    </p>
+                  {(idea.device || idea.turn) && (
+                    <div className="mt-4 space-y-1.5 border-t border-line pt-3 text-sm text-ink-soft">
+                      {idea.device && (
+                        <p>
+                          <span className="font-medium text-ink">
+                            {dict.wizard.ideas.device}
+                          </span>{' '}
+                          {idea.device}
+                        </p>
+                      )}
+                      {idea.turn && (
+                        <p>
+                          <span className="font-medium text-ink">
+                            {dict.wizard.ideas.turn}
+                          </span>{' '}
+                          {idea.turn}
+                        </p>
+                      )}
+                    </div>
                   )}
                 </button>
               )

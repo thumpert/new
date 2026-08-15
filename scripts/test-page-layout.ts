@@ -20,7 +20,10 @@ const FINISH: BookFinish =
   process.argv[2] === 'coloring' ? 'coloring' : 'coloured'
 
 const SCENE =
-  'Lila kneels at the edge of a garden pond to look at a frog on a lily pad, while her scruffy dog Zeca leans over her shoulder. Late afternoon, mango trees behind them.'
+  'A red woollen thread runs across the grass and loops once around the frog on its lily pad. Lila kneels at the edge of the garden pond following the thread with her eyes, while her scruffy dog Zeca leans over her shoulder. Late afternoon, mango trees behind them.'
+
+/** The guide object: in a coloring book, the only coloured thing on the page. */
+const DEVICE = 'a red woollen thread'
 
 async function loadEnvLocal() {
   const raw = await fs.readFile(path.join(process.cwd(), '.env.local'), 'utf8')
@@ -51,6 +54,7 @@ async function main() {
       finish: FINISH,
       characters: [],
       referenceUrls: [],
+      device: DEVICE,
     })
   console.log(`imagem: ${image.url}${reuse ? ' (reaproveitada)' : ''}`)
 
@@ -75,6 +79,7 @@ async function main() {
     },
     storyboard: {
       title: 'A Tarde do Sapo',
+      device: DEVICE,
       pages: [
         {
           index: 1,

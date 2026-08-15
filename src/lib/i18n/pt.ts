@@ -148,6 +148,7 @@ export const pt = {
       chosen: 'Escolhida',
       regenerate: 'Gerar outras ideias',
       highlights: 'O que acontece',
+      device: 'O fio da história:',
       turn: 'O que muda no meio:',
     },
     review: {

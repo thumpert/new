@@ -73,6 +73,8 @@ const order: Order = {
   },
   storyboard: {
     title: 'As Grandes Aventuras da Lila',
+    // Exercita a cor unica: no livro de colorir este objeto e a unica cor.
+    device: 'a red woollen thread',
     dedication: 'Para a Lila, que transforma qualquer quintal em floresta.',
     pages: Array.from({ length: 12 }, (_, i) => ({
       index: i + 1,

@@ -39,6 +39,11 @@ export interface PageRequest {
   memoryPhotoUrl?: string
   /** The customer's words about what the photograph is. */
   memoryNote?: string
+  /**
+   * The guide object that runs through this book. In a coloring book it is
+   * drawn as the only coloured thing on the page.
+   */
+  device?: string
 }
 
 export interface GeneratedImage {

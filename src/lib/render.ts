@@ -259,6 +259,7 @@ async function renderPages(
   const byId = new Map(characters.map((c) => [c.id, c]))
   const pages = order.storyboard.pages
   const { artStyleId, finish, memories } = order.brief
+  const device = order.storyboard.device
 
   // A simple worker pool: each worker pulls the next index off a shared cursor.
   let cursor = 0
@@ -276,6 +277,7 @@ async function renderPages(
           artStyleId,
           finish,
           memories,
+          device,
         )
       }
     },
@@ -299,6 +301,7 @@ async function renderOnePage(
   artStyleId: ArtStyleId,
   finish: BookFinish,
   memories: MemoryPhoto[] | undefined,
+  device: string | undefined,
 ): Promise<void> {
   await patchRender(orderId, page.index, {
     status: 'generating',
@@ -321,6 +324,10 @@ async function renderOnePage(
       sceneDescription: page.sceneDescription,
       artStyleId,
       finish,
+      // Not passed on a memory page: that page draws only what the photograph
+      // contains, and slipping the guide object into it would be exactly the
+      // invention the photo rules exist to stop.
+      device: memory ? undefined : device,
       memoryPhotoUrl: memory?.url,
       memoryNote: memory?.note,
       characters: onPage,
@@ -369,6 +376,7 @@ export async function regeneratePage(
     order.brief.artStyleId,
     order.brief.finish,
     order.brief.memories,
+    order.storyboard.device,
   )
   await settleStatus(orderId)
 }

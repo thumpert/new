@@ -59,6 +59,7 @@ export class MockProvider implements ImageProvider {
             req.characters,
             req.referenceUrls.length > 0,
             req.finish,
+            req.device,
           ),
     }
   }

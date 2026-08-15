@@ -109,6 +109,7 @@ export class GoogleProvider implements ImageProvider {
       req.characters,
       req.referenceUrls.length > 0,
       req.finish,
+      req.device,
     )
     return this.generate(prompt, req.referenceUrls)
   }
