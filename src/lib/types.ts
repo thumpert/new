@@ -65,8 +65,29 @@ export interface Character {
   role?: string
   /** Free text so "6 anos", "recém-nascido" and "3 (em anos de cachorro)" all work. */
   age?: string
-  /** Physical + personality traits written by the customer. */
-  traits: string
+  /**
+   * What the character looks like. Goes to the image model and to nothing
+   * else.
+   *
+   * Split from the rest because a single "what are they like" box sent
+   * everything to both models, and the illustrator cannot draw "laughs at
+   * everything" — it can only try. Trying is where invented objects come
+   * from: a page once arrived with a pair of trainers floating in mid-air
+   * because they had been mentioned in words rather than placed in a scene.
+   */
+  appearance: string
+  /**
+   * How they are — temperament, habits, what they love. Goes to the writer
+   * and to nothing else, because it is what makes a story about this person
+   * rather than about a body.
+   */
+  personality?: string
+  /**
+   * Specific things the customer wants to happen in the book: a real moment,
+   * a running joke, something they always say. Goes to the writer as material
+   * the story must find room for.
+   */
+  storyNotes?: string
   /**
    * Reference photos uploaded by the customer. More angles give the model a
    * better read on the face; they are used once, to draw the model sheet.
@@ -164,6 +185,17 @@ export interface StoryIdea {
   summary: string
   /** Three concrete beats/scenes the book would contain. */
   highlights: string[]
+  /**
+   * What changes partway through — the reason the second half of the book is
+   * not the first half again.
+   *
+   * Asked for at the idea stage rather than left to the storyboard, because
+   * the shape of the book is decided here. A list-shaped idea produces a
+   * list-shaped book however well the storyboard is written: a real one came
+   * back as twelve pages of "the next lamp is…", any two of which could have
+   * swapped places without anything breaking.
+   */
+  turn: string
 }
 
 export interface StoryPage {
@@ -236,6 +268,11 @@ export type OrderStatus =
   | 'draft'
   | 'ideas'
   | 'storyboard'
+  /**
+   * The story is written and waiting to be read. Nothing is drawn until it is
+   * approved: text is the cheap place to find out the book is wrong.
+   */
+  | 'storyboard-review'
   /** Model sheets and the two cover options are being drawn. */
   | 'covers'
   /** Both covers are up; nothing else is drawn until the customer picks one. */

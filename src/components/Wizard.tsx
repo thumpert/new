@@ -77,7 +77,7 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
   const [title, setTitle] = useState('')
   const [dedication, setDedication] = useState('')
   const [characters, setCharacters] = useState<Character[]>([
-    { id: 'c1', name: '', kind: 'person', traits: '' },
+    { id: 'c1', name: '', kind: 'person', appearance: '' },
   ])
   const [memories, setMemories] = useState<MemoryPhoto[]>([])
 
@@ -211,7 +211,7 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
     })
 
   const charactersReady = characters.every(
-    (c) => c.name.trim() && c.traits.trim(),
+    (c) => c.name.trim() && c.appearance.trim(),
   )
 
   const footer = (
@@ -553,6 +553,17 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
                       <li key={i}>— {h}</li>
                     ))}
                   </ul>
+                  {/* The turn is shown because it is what separates a story
+                      from a list, and choosing without seeing it is how a
+                      list gets picked. */}
+                  {idea.turn && (
+                    <p className="mt-4 border-t border-line pt-3 text-sm text-ink-soft">
+                      <span className="font-medium text-ink">
+                        {dict.wizard.ideas.turn}
+                      </span>{' '}
+                      {idea.turn}
+                    </p>
+                  )}
                 </button>
               )
             })}

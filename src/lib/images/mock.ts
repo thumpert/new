@@ -50,13 +50,13 @@ export class MockProvider implements ImageProvider {
             req.memoryNote ?? '',
             req.sceneDescription,
             req.artStyleId,
-            req.characterNames,
+            req.characters,
             req.finish,
           )
         : pagePrompt(
             req.sceneDescription,
             req.artStyleId,
-            req.characterNames,
+            req.characters,
             req.referenceUrls.length > 0,
             req.finish,
           ),

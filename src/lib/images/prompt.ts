@@ -79,7 +79,7 @@ const COVER_RULES = [
 
 function castDescription(characters: Character[]): string {
   return characters
-    .map((c) => `${c.name}: ${terminated(c.traits)}`)
+    .map((c) => `${c.name}: ${terminated(c.appearance)}`)
     .join(' ')
 }
 
@@ -190,7 +190,7 @@ export function characterSheetPrompt(
   return [
     `Character model sheet for a children’s book: three views of the same ${subject} side by side on one white sheet — full body facing forward, full body from the side, and a head-and-shoulders close-up.`,
     source,
-    `The character is ${character.name}${character.age ? `, ${character.age}` : ''}. ${terminated(character.traits)}`,
+    `The character is ${character.name}${character.age ? `, ${character.age}` : ''}. ${terminated(character.appearance)}`,
     `Drawing style: ${style.prompt}`,
     'All three views must be unmistakably the same character, with identical clothing and proportions.',
     // The colour book's sheet is the palette every later page copies, so the
@@ -204,21 +204,39 @@ export function characterSheetPrompt(
     .join(' ')
 }
 
+/**
+ * Rules that hold on every drawn page, whatever the style or the book.
+ *
+ * Written because a real book came back with them broken: a figure with a
+ * third arm resting on a shoulder, and a pair of trainers floating unattached
+ * because the words had mentioned trainers. Both are the same failure — the
+ * model adding something the scene never asked for — so both are ruled out by
+ * name rather than left to its judgement.
+ */
+const SANITY_RULES = [
+  'ANATOMY: every person and animal has exactly one head, two arms and two legs, each attached to a body and belonging to someone visible. No spare limbs, no hand resting on a shoulder with nobody behind it, no duplicated face.',
+  'NOTHING FLOATS: every object is held, worn, or resting on a surface. Nothing hovers unattached in the air.',
+  'ONLY WHAT THE SCENE SAYS: draw the people and things the scene describes and nothing else. Do not add extra figures, extra animals, signs, maps, diagrams, screens or logos to fill space.',
+] as const
+
 export function pagePrompt(
   sceneDescription: string,
   artStyleId: ArtStyleId,
-  characterNames: string[],
+  characters: Character[],
   hasReferences: boolean,
   finish: BookFinish,
 ): string {
   const style = getArtStyle(artStyleId)
+  const names = characters.map((c) => c.name)
 
   const consistency =
-    hasReferences && characterNames.length > 0
+    hasReferences && characters.length > 0
       ? [
-          `The reference sheets show exactly how ${formatList(characterNames)} must look. Match their faces, hair, clothing and proportions precisely — they must be the same characters readers saw on every other page.`,
-          // In a colour book the sheet is the palette, and saying so is what
-          // stops a jumper drifting hue over thirty-two pages.
+          `The reference sheets show exactly how ${formatList(names)} must look. Match their faces, hair, clothing and proportions precisely — they must be the same characters readers saw on every other page.`,
+          // The sheet alone drifts over a dozen pages. The written description
+          // alongside it is what holds a character still, and it is the same
+          // pairing that made the covers come back faithful.
+          `In words, so nothing drifts: ${castDescription(characters)}`,
           finish === 'coloured'
             ? 'The sheets are coloured: take every colour from them exactly, without reinterpreting.'
             : '',
@@ -232,6 +250,7 @@ export function pagePrompt(
     `Scene: ${terminated(sceneDescription)}`,
     consistency,
     `Drawing style: ${style.prompt}`,
+    SANITY_RULES.join(' '),
     finishRules(finish, artStyleId),
   ]
     .filter(Boolean)
@@ -252,23 +271,39 @@ export function memoryPagePrompt(
   note: string,
   sceneDescription: string,
   artStyleId: ArtStyleId,
-  characterNames: string[],
+  characters: Character[],
   finish: BookFinish,
 ): string {
   const style = getArtStyle(artStyleId)
+  const names = characters.map((c) => c.name)
 
+  // Deliberately NOT pageFraming(). That instruction asks for a calm band of
+  // scenery along the bottom, which an ordinary page can compose for — but a
+  // photograph's composition is already fixed, and a selfie has no bottom
+  // fifth of landscape to give. Asked for one anyway, the model invented it:
+  // a real book came back with a hallucinated bus-route map and a pair of
+  // floating trainers filling that band on both photo pages. The photograph
+  // owns the whole frame here; the PDF handles the words.
   return [
-    pageFraming(finish),
+    'Vertical portrait illustration for a children’s book, filling the frame.',
     'This page is a real photograph, redrawn.',
     'THE FIRST REFERENCE IMAGE IS THAT PHOTOGRAPH. Recreate what it shows: the same people doing the same thing, in the same arrangement, the same poses and gestures, the same framing and camera distance, the same surroundings. Keep whatever makes the moment itself — a hand on a shoulder, someone caught mid-laugh, the thing being held.',
+    'DRAW ONLY WHAT THE PHOTOGRAPH SHOWS. Do not extend the scene past its edges, do not invent background to fill the frame, and do not add a single object, figure, animal, sign, map or pattern that is not in the photograph. If part of the frame would be empty, let it stay plain.',
     `What the moment is: ${terminated(note)}`,
-    sceneDescription.trim() ? `Context: ${terminated(sceneDescription)}` : '',
-    characterNames.length > 0
-      ? `The remaining reference sheets show how ${formatList(characterNames)} are drawn in this book. Take their faces, hair, clothing and proportions from those sheets, not from the photograph — the photograph decides what is happening, the sheets decide what everyone looks like.`
+    // The story text is context for placement only. Given as scene direction
+    // it gets drawn: a narration that mentioned green trainers produced a pair
+    // of green trainers sitting in mid-air beside the characters.
+    sceneDescription.trim()
+      ? `For context only, not to be drawn: this page falls at the point in the story where ${terminated(sceneDescription)} Draw the photograph, not this sentence.`
+      : '',
+    names.length > 0
+      ? `The remaining reference sheets show how ${formatList(names)} are drawn in this book. Take their faces, hair, clothing and proportions from those sheets, not from the photograph — the photograph decides what is happening, the sheets decide what everyone looks like. In words: ${castDescription(characters)}`
       : '',
     // Photographs carry things a children's book should quietly drop.
     'Redraw it as an illustration rather than copying it: leave out anything incidental the photograph happens to contain — clutter, passers-by, signage, timestamps, brand names — and keep the people and the moment.',
+    `It must look like it belongs in the same book as every other page: same drawing style, same line, same level of stylisation. A page that comes out more realistic than the rest has failed, however faithful it is to the photograph.`,
     `Drawing style: ${style.prompt}`,
+    SANITY_RULES.join(' '),
     finishRules(finish, artStyleId),
   ]
     .filter(Boolean)

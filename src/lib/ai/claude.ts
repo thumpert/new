@@ -16,6 +16,8 @@ import {
   ideasUser,
   interviewUser,
   storyboardUser,
+  REVISE_SYSTEM,
+  reviseUser,
   titlesUser,
 } from './prompts'
 
@@ -65,6 +67,11 @@ const IdeasSchema = z.object({
         highlights: z
           .array(z.string())
           .describe('Exactly three concrete scenes, one sentence each, in order.'),
+        turn: z
+          .string()
+          .describe(
+            'One sentence: what changes partway through, so the second half cannot be swapped with the first.',
+          ),
       }),
     )
     .describe('Exactly four distinct story ideas.'),
@@ -153,6 +160,7 @@ export async function generateIdeas(brief: BookBrief): Promise<StoryIdea[]> {
     logline: idea.logline,
     summary: idea.summary,
     highlights: idea.highlights,
+    turn: idea.turn,
   }))
 }
 
@@ -194,7 +202,31 @@ export async function generateStoryboard(
     output_config: { format: zodOutputFormat(StoryboardSchema) },
   })
 
-  const parsed = expectParsed(response.parsed_output, 'storyboard')
+  const drafted = expectParsed(response.parsed_output, 'storyboard')
+
+  // A second pass, before anything is drawn. Writing page by page produces
+  // pages that are each fine and together a list; the fault is only visible
+  // once the whole thing can be read at once, which is what this pass gets.
+  // Cheap next to the drawings it protects: text against roughly US$0.70 of
+  // images that would otherwise illustrate a story that does not hold.
+  const revision = await getClient().messages.parse({
+    model: MODEL,
+    max_tokens: 16000,
+    thinking: { type: 'adaptive' },
+    system: REVISE_SYSTEM,
+    messages: [
+      {
+        role: 'user',
+        content: reviseUser(idea, JSON.stringify(drafted, null, 2)),
+      },
+    ],
+    output_config: { format: zodOutputFormat(StoryboardSchema) },
+  })
+
+  // If the editor comes back unusable, the draft is still a book. Losing the
+  // revision is worth less than losing the order.
+  const parsed = revision.parsed_output ?? drafted
+
   const knownIds = new Set(brief.characters.map((c) => c.id))
   const knownMemoryIds = new Set((brief.memories ?? []).map((m) => m.id))
 

@@ -31,7 +31,7 @@ export function CharactersStep({
         id: `c${Date.now().toString(36)}`,
         name: '',
         kind,
-        traits: '',
+        appearance: '',
       },
     ])
 
@@ -109,14 +109,38 @@ export function CharactersStep({
             </Field>
           </div>
 
-          <div className="mt-4">
-            <Field label={copy.traits}>
+          {/* Three boxes rather than one, because the two halves go to two
+              different models. Appearance is the only part the illustrator
+              sees; the rest is the writer's. A single box sent everything to
+              both, and the illustrator tried to draw "loves dinosaurs". */}
+          <div className="mt-4 space-y-4">
+            <Field label={copy.appearance} hint={copy.appearanceHint}>
               <TextArea
-                value={character.traits}
+                value={character.appearance}
                 rows={3}
                 maxLength={1200}
-                placeholder={copy.traitsPlaceholder}
-                onChange={(traits) => update(character.id, { traits })}
+                placeholder={copy.appearancePlaceholder}
+                onChange={(appearance) => update(character.id, { appearance })}
+              />
+            </Field>
+
+            <Field label={copy.personality} hint={copy.personalityHint}>
+              <TextArea
+                value={character.personality ?? ''}
+                rows={2}
+                maxLength={1200}
+                placeholder={copy.personalityPlaceholder}
+                onChange={(personality) => update(character.id, { personality })}
+              />
+            </Field>
+
+            <Field label={copy.storyNotes} hint={copy.storyNotesHint}>
+              <TextArea
+                value={character.storyNotes ?? ''}
+                rows={2}
+                maxLength={1200}
+                placeholder={copy.storyNotesPlaceholder}
+                onChange={(storyNotes) => update(character.id, { storyNotes })}
               />
             </Field>
           </div>

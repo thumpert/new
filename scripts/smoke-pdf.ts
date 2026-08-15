@@ -49,7 +49,7 @@ const order: Order = {
         kind: 'person',
         age: '6 anos',
         role: 'aniversariante',
-        traits: 'cabelo cacheado castanho, óculos redondos, adora dinossauros',
+        appearance: 'cabelo cacheado castanho, óculos redondos, adora dinossauros',
         photoUrls: [],
       },
       {
@@ -57,7 +57,7 @@ const order: Order = {
         name: 'Biscoito',
         kind: 'pet',
         role: 'cachorro da família',
-        traits: 'vira-lata caramelo, uma orelha caída, sempre com a bola na boca',
+        appearance: 'vira-lata caramelo, uma orelha caída, sempre com a bola na boca',
       },
     ],
     interview: [],

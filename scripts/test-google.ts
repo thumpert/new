@@ -32,7 +32,7 @@ const LILA: Character = {
   name: 'Lila',
   kind: 'person',
   age: '7 anos',
-  traits:
+  appearance:
     'curly dark hair in two puffs, round glasses, a gap between her front teeth, wears dungarees over a striped t-shirt',
 }
 

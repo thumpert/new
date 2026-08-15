@@ -49,7 +49,7 @@ async function main() {
       sceneDescription: SCENE,
       artStyleId: 'cartoon',
       finish: FINISH,
-      characterNames: [],
+      characters: [],
       referenceUrls: [],
     })
   console.log(`imagem: ${image.url}${reuse ? ' (reaproveitada)' : ''}`)

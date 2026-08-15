@@ -25,7 +25,12 @@ export interface PageRequest {
    * same order as `characterNames`. Line art or coloured, matching `finish`.
    */
   referenceUrls: string[]
-  characterNames: string[]
+  /**
+   * The characters on this page, in the same order as `referenceUrls`. Carries
+   * their written appearance as well as their names: the sheet alone drifts
+   * over a dozen pages, and the description is what holds it.
+   */
+  characters: Character[]
   /**
    * Set when this page redraws one of the customer's photographs. The photo is
    * sent ahead of the model sheets, because the prompt refers to it as the

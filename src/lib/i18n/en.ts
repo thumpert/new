@@ -82,9 +82,19 @@ export const en: Dictionary = {
       rolePlaceholder: 'e.g. birthday kid, mum, best friend',
       age: 'Age',
       agePlaceholder: 'e.g. 6 years old, newborn',
-      traits: 'What are they like?',
-      traitsPlaceholder:
-        'Looks and personality: curly brown hair, glasses, obsessed with dinosaurs, laughs at everything…',
+      appearance: 'What do they look like?',
+      appearanceHint:
+        'Only what can be seen. This is the one part the illustrator gets.',
+      appearancePlaceholder:
+        'Shoulder-length curly brown hair, round glasses, denim dungarees and red trainers…',
+      personality: 'What are they like?',
+      personalityHint: 'This goes to the writer, not to the drawing.',
+      personalityPlaceholder:
+        'Laughs at everything, never stops talking, scared of thunder, stubborn in the good way…',
+      storyNotes: 'Something that has to be in the book',
+      storyNotesHint: 'A real moment, a habit, something they always say.',
+      storyNotesPlaceholder:
+        'Always three steps ahead. Calls everyone "boss". Last Christmas he hid the present and forgot where.',
       photo: 'Reference photos',
       photoHint:
         'Up to 3 sharp, well-lit photos: one front-on, one from the side, one smiling. We only use them to draw the character, once.',
@@ -138,6 +148,7 @@ export const en: Dictionary = {
       chosen: 'Chosen',
       regenerate: 'Generate other ideas',
       highlights: 'What happens',
+      turn: 'What changes partway:',
     },
     review: {
       title: 'All good?',
@@ -159,6 +170,13 @@ export const en: Dictionary = {
     regenerating: 'Redrawing…',
     regenerateHint:
       'The characters stay the same — only this scene is drawn again.',
+    storyReady: 'Read the story before we draw it',
+    storyTitle: 'Here is the story',
+    storyHint: 'Nothing has been drawn yet. Read it properly: if it is not right, ask for another one — text costs almost nothing, drawings do.',
+    approveStory: 'This one is good, draw it',
+    rewriteStory: 'Write a different story',
+    approvingStory: 'Starting…',
+    rewritingStory: 'Writing…',
     covers: 'Drawing the covers…',
     coverReady: 'Choose a cover to carry on',
     chooseCoverTitle: 'Which one is the cover?',

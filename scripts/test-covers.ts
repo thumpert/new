@@ -24,14 +24,14 @@ const CAST: Character[] = [
     name: 'Lila',
     kind: 'person',
     age: '7 anos',
-    traits:
+    appearance:
       'curly dark hair in two puffs, round glasses, a gap between her front teeth, wears blue dungarees over a red-and-white striped t-shirt and red trainers',
   },
   {
     id: 'c2',
     name: 'Zeca',
     kind: 'pet',
-    traits:
+    appearance:
       'a scruffy small mongrel dog with sandy-brown shaggy fur, one floppy ear and one upright, wears a green bandana knotted at his neck',
   },
 ]

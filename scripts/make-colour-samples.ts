@@ -58,7 +58,7 @@ async function main() {
       sceneDescription: SCENE,
       artStyleId: style.id,
       finish: 'coloured',
-      characterNames: [],
+      characters: [],
       referenceUrls: [],
     })
 

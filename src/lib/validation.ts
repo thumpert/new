@@ -19,7 +19,9 @@ export const characterSchema = z.object({
   kind: z.enum(['person', 'pet']),
   role: z.string().max(120).optional(),
   age: z.string().max(60).optional(),
-  traits: z.string().max(1200).default(''),
+  appearance: z.string().max(1200).default(''),
+  personality: z.string().max(1200).optional(),
+  storyNotes: z.string().max(1200).optional(),
   photoUrls: z.array(z.string().max(500)).max(3).optional(),
   referenceSheetUrl: z.string().max(500).optional(),
 })

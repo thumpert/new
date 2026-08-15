@@ -96,7 +96,7 @@ export class GoogleProvider implements ImageProvider {
         req.memoryNote ?? '',
         req.sceneDescription,
         req.artStyleId,
-        req.characterNames,
+        req.characters,
         req.finish,
       )
       // The photograph goes first: the prompt calls it "the first reference".
@@ -106,7 +106,7 @@ export class GoogleProvider implements ImageProvider {
     const prompt = pagePrompt(
       req.sceneDescription,
       req.artStyleId,
-      req.characterNames,
+      req.characters,
       req.referenceUrls.length > 0,
       req.finish,
     )

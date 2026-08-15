@@ -114,20 +114,32 @@ export async function buildBookPdf(order: Order): Promise<Uint8Array> {
     const render = rendersByIndex.get(page.index)
     const sheet = pdf.addPage([A4.width, A4.height])
 
-    const box = bleed
-      ? { x: 0, y: 0, width: A4.width, height: A4.height }
-      : {
+    // A page redrawn from a photograph is laid out like a photograph: mounted
+    // inside the page with the words underneath, never bled to the edge.
+    //
+    // Not decoration. An ordinary page can be composed to leave its foot
+    // empty for the narration, but a photograph's composition is already
+    // fixed — a selfie has no spare sky at the bottom — so words printed onto
+    // it land on faces and dark ground. Mounting it also says something true:
+    // this page is a real moment, and it should not pretend to be drawn like
+    // the rest.
+    const isMemory = Boolean(page.memoryId)
+    const mounted = isMemory || !bleed
+
+    const box = mounted
+      ? {
           x: MARGIN,
           y: MARGIN,
           width: A4.width - MARGIN * 2,
-          height: A4.height - MARGIN * 2,
+          height: A4.height - MARGIN * 2 - (isMemory ? narrationBlock : 0),
         }
+      : { x: 0, y: 0, width: A4.width, height: A4.height }
 
     let art = box
     if (render?.imageUrl) {
-      art = bleed
-        ? await drawImageCover(pdf, sheet, render.imageUrl, box)
-        : await drawImage(pdf, sheet, render.imageUrl, box)
+      art = mounted
+        ? await drawImage(pdf, sheet, render.imageUrl, box)
+        : await drawImageCover(pdf, sheet, render.imageUrl, box)
     } else {
       // The placeholder frame stops above the band, so a preview PDF shows the
       // words in the same place a real illustration would leave them.
@@ -135,10 +147,10 @@ export async function buildBookPdf(order: Order): Promise<Uint8Array> {
         sheet,
         fonts,
         {
-          x: box.x + (bleed ? MARGIN : 0),
-          y: box.y + narrationBlock,
-          width: box.width - (bleed ? MARGIN * 2 : 0),
-          height: box.height - narrationBlock - (bleed ? MARGIN : 0),
+          x: box.x + (mounted ? 0 : MARGIN),
+          y: box.y + (isMemory ? 0 : narrationBlock),
+          width: box.width - (mounted ? 0 : MARGIN * 2),
+          height: box.height - (isMemory ? 0 : narrationBlock),
         },
         {
           label: render?.status === 'failed' ? t.failed : t.placeholder,
@@ -147,9 +159,10 @@ export async function buildBookPdf(order: Order): Promise<Uint8Array> {
       )
     }
 
-    // The words go inside the picture's own reserved bottom fifth, so they are
-    // measured from where the art actually ends rather than from the page edge.
-    // Those two only coincide when the aspect ratio happens to fill the sheet.
+    // On an ordinary page the words go inside the picture's own reserved
+    // bottom fifth, measured from where the art ends. On a photograph page
+    // the art stops short and they go in the white beneath it — same call,
+    // because both are "just under the bottom of the art".
     drawNarration(sheet, fonts, page, page.index, narrationBlock, art)
   }
 

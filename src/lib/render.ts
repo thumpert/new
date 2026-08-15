@@ -323,7 +323,7 @@ async function renderOnePage(
       finish,
       memoryPhotoUrl: memory?.url,
       memoryNote: memory?.note,
-      characterNames: onPage.map((c) => c.name),
+      characters: onPage,
       referenceUrls: onPage
         .map((c) => c.referenceSheetUrl)
         .filter((u): u is string => Boolean(u)),

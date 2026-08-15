@@ -32,12 +32,25 @@ export function uiLanguage(brief: BookBrief): string {
   return LANGUAGE_NAMES[brief.locale] ?? 'English'
 }
 
+/**
+ * The writer's view of a character.
+ *
+ * Deliberately leaves out what they look like. Appearance is the
+ * illustrator's business, and putting hair and glasses in front of the writer
+ * only invites narration that describes a face the reader can already see.
+ */
 function describeCharacter(c: Character): string {
   const parts = [`${c.name} (${c.kind === 'pet' ? 'a pet' : 'a person'}`]
   if (c.age) parts.push(`, age: ${c.age}`)
   if (c.role) parts.push(`, role: ${c.role}`)
   parts.push(')')
-  return `${parts.join('')}: ${c.traits}`
+
+  const lines = [`${parts.join('')}`]
+  if (c.personality?.trim()) lines.push(`  how they are: ${c.personality.trim()}`)
+  if (c.storyNotes?.trim()) {
+    lines.push(`  must appear in the book: ${c.storyNotes.trim()}`)
+  }
+  return lines.join('\n')
 }
 
 /** The shared block of facts every call needs. */
@@ -120,10 +133,15 @@ export const IDEAS_SYSTEM = `You are a children's book author who writes persona
 
 You will be given everything a customer told us about the people they love. Propose four genuinely different story ideas built from those details.
 
+Every idea must have a turn: something that changes partway through, so that the second half of the book cannot be swapped with the first. State it in the "turn" field, in one sentence.
+
+This is the hardest rule and the one most often broken. A premise is not a turn. "Streetlamps that light up memories" is a premise, and on its own it produces twelve pages of "the next lamp is…", any two of which could trade places without anything breaking. Give it a turn — the lamps go out and they have to remember without them — and every page after that depends on the one before it. Apply the same test to each idea you propose: if the pages could be shuffled, it is not a story yet.
+
 Rules:
 - Each idea must use the customer's real details. If they mentioned a one-eared cat named Biscoito, Biscoito is in the story.
-- The four ideas must differ in structure, not just in wording: a quest, a day-in-the-life, a fantastical transformation, a look back through time — pick four distinct shapes.
+- The four ideas must differ in structure, not just in wording: a quest, a day-in-the-life, a fantastical transformation, a look back through time — pick four distinct shapes. Whichever shape you choose, it still needs its turn; a look back through time is the shape most likely to arrive without one.
 - Every idea must be drawable: things that happen in places, with characters doing things. Avoid inner monologue and abstraction.
+- When the customer supplied photographs to include, say in the summary where each one falls in this particular story. A photograph that could sit anywhere sits nowhere.
 - The title should sound like a real children's book, not a summary.
 - Highlights are three concrete scenes, each one sentence, in story order.
 
@@ -191,6 +209,51 @@ Rules:
 - Use the customer's real details throughout.
 - Every listed photograph gets exactly one page. Never two pages for the same photograph, and never a photograph left out.
 - The last page should feel like a gift — warm, and about the person receiving the book.`
+
+/**
+ * A second pass over the storyboard, before a single page is drawn.
+ *
+ * One pass produces pages that are individually fine and collectively a list:
+ * each reads well, nothing carries over, and any two could trade places. That
+ * is invisible while writing page by page and obvious when the whole thing is
+ * laid out, which is exactly what a reviewer gets to see.
+ *
+ * It returns the whole storyboard rather than notes, because a critique
+ * someone has to apply is a critique that does not get applied.
+ */
+export const REVISE_SYSTEM = `You are the editor of a personalized children's book. A storyboard has been drafted. Your job is to find what is wrong with it as a whole and return a fixed version.
+
+Read all the pages together before changing anything, then work through these checks in order:
+
+1. THE SHUFFLE TEST. Could any two pages swap places without the book breaking? If yes, the book is a list rather than a story. Fix it by making pages depend on each other: something set up earlier pays off later, a state changes and stays changed, someone wants something and is closer or further from it than they were.
+
+2. THE TURN. The chosen idea has a turn — something that changes partway through. Find the page where it happens. If it does not happen anywhere, put it in. If it happens on the last page, move it earlier: a turn on the final page has nothing left to change.
+
+3. CONSEQUENCE. Every page after the turn should read differently because of it. If the second half could have been written without the first, rewrite it.
+
+4. THE PHOTOGRAPHS. Pages that recreate a real photograph must land where the story actually arrives at that moment, with the page before leading into it and the page after reacting. A photograph page that could sit anywhere in the book is in the wrong place. Never move one to the end just to be rid of it.
+
+5. THE CAST. Check that each character does what only that character would do. If two characters could be swapped in a page without it reading strangely, they are not yet people. Use what the customer said about how each of them is.
+
+6. THE LAST PAGE. It should land — closing what the first page opened, and warm towards the person receiving the book.
+
+Rules:
+- Keep the same number of pages, the same page order fields, and the same character ids.
+- Keep the narration in the language it is already in, and keep the narrator's voice exactly as it is. You are fixing structure, not style.
+- Keep every scene description in English.
+- Change only what the checks above require. A page that already works should come back untouched.`
+
+export function reviseUser(idea: StoryIdea, storyboard: string): string {
+  return [
+    'Here is the drafted storyboard. Apply the checks and return the corrected version.',
+    '',
+    `THE IDEA IT CAME FROM: ${idea.title} — ${idea.logline}`,
+    `THE TURN IT PROMISED: ${idea.turn}`,
+    '',
+    'DRAFT:',
+    storyboard,
+  ].join('\n')
+}
 
 export function storyboardUser(
   brief: BookBrief,

@@ -81,9 +81,20 @@ export const pt = {
       rolePlaceholder: 'Ex.: aniversariante, mãe, melhor amigo',
       age: 'Idade',
       agePlaceholder: 'Ex.: 6 anos, recém-nascido',
-      traits: 'Como ele(a) é?',
-      traitsPlaceholder:
-        'Aparência e jeito: cabelo cacheado castanho, óculos, adora dinossauros, ri de tudo…',
+      appearance: 'Como ele(a) é fisicamente?',
+      appearanceHint:
+        'Só o que se vê. É a única parte que vai para quem desenha.',
+      appearancePlaceholder:
+        'Cabelo cacheado castanho na altura do ombro, óculos redondos, jardineira jeans e tênis vermelho…',
+      personality: 'Como é o jeito dele(a)?',
+      personalityHint:
+        'Vai para quem escreve a história, não para o desenho.',
+      personalityPlaceholder:
+        'Ri de tudo, fala pelos cotovelos, tem medo de trovão, teimosa do jeito bom…',
+      storyNotes: 'Algo que precisa entrar na história',
+      storyNotesHint: 'Um momento real, uma mania, uma frase que ele(a) sempre diz.',
+      storyNotesPlaceholder:
+        'Sempre chega três passos à frente. Chama todo mundo de "chefe". No Natal passado escondeu o presente e esqueceu onde.',
       photo: 'Fotos de referência',
       photoHint:
         'Até 3 fotos nítidas e com boa luz: uma de frente, uma de lado e uma sorrindo. Usamos só para desenhar o personagem, uma única vez.',
@@ -137,6 +148,7 @@ export const pt = {
       chosen: 'Escolhida',
       regenerate: 'Gerar outras ideias',
       highlights: 'O que acontece',
+      turn: 'O que muda no meio:',
     },
     review: {
       title: 'Tudo certo?',
@@ -158,6 +170,13 @@ export const pt = {
     regenerating: 'Refazendo…',
     regenerateHint:
       'Os personagens continuam iguais — só esta cena é desenhada de novo.',
+    storyReady: 'Leia a história antes de desenharmos',
+    storyTitle: 'A história ficou assim',
+    storyHint: 'Nada foi desenhado ainda. Leia com calma: se não estiver boa, peça outra — texto não custa quase nada, desenho custa.',
+    approveStory: 'Está boa, pode desenhar',
+    rewriteStory: 'Escrever outra história',
+    approvingStory: 'Começando…',
+    rewritingStory: 'Escrevendo…',
     covers: 'Desenhando as capas…',
     coverReady: 'Escolha a capa para continuar',
     chooseCoverTitle: 'Qual vai ser a capa?',

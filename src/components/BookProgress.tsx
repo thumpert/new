@@ -18,6 +18,9 @@ export function BookProgress({
   const [selected, setSelected] = useState<number | null>(null)
   const [regenerating, setRegenerating] = useState<number | null>(null)
   const [choosingCover, setChoosingCover] = useState<CoverKind | null>(null)
+  const [decidingStory, setDecidingStory] = useState<'approve' | 'rewrite' | null>(
+    null,
+  )
   /** Bumped after a redraw so the poller restarts and picks the page up. */
   const [reloadKey, setReloadKey] = useState(0)
 
@@ -40,7 +43,9 @@ export function BookProgress({
         const settled =
           data.status === 'ready' ||
           data.status === 'failed' ||
-          data.status === 'choosing-cover'
+          data.status === 'choosing-cover' ||
+          // Waiting on the customer to read the story, so nothing will move.
+          data.status === 'storyboard-review'
         if (!settled) timer = setTimeout(poll, 3000)
       } catch (err) {
         if (cancelled) return
@@ -76,6 +81,26 @@ export function BookProgress({
     }
   }
 
+  /** Approves the story, or asks for another one. Text only, so it is cheap. */
+  async function decideStory(action: 'approve' | 'rewrite') {
+    setDecidingStory(action)
+    setError(null)
+    try {
+      const res = await fetch(`/api/orders/${orderId}/storyboard`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? dict.common.error)
+      setReloadKey((k) => k + 1)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : dict.common.error)
+    } finally {
+      setDecidingStory(null)
+    }
+  }
+
   /** Locks in a cover and lets the page render start. */
   async function pickCover(kind: CoverKind) {
     setChoosingCover(kind)
@@ -104,11 +129,14 @@ export function BookProgress({
   const total = renders.length
   const ready = order?.status === 'ready'
 
+  const readingStory = order?.status === 'storyboard-review'
   const pickingCover = order?.status === 'choosing-cover'
   const frontCovers = (order?.covers ?? []).filter((c) => c.kind !== 'back')
 
   const stage = !order?.storyboard
     ? dict.progress.writing
+    : readingStory
+      ? dict.progress.storyReady
     : order.status === 'covers'
       ? dict.progress.covers
       : pickingCover
@@ -135,6 +163,58 @@ export function BookProgress({
         <div className="mt-6">
           <ErrorNote message={order.error} />
         </div>
+      )}
+
+      {readingStory && order?.storyboard && (
+        <section className="mt-9">
+          <h2 className="font-serif text-xl text-ink">
+            {dict.progress.storyTitle}
+          </h2>
+          <p className="mt-1 text-sm text-ink-soft">{dict.progress.storyHint}</p>
+
+          <ol className="mt-5 space-y-3">
+            {order.storyboard.pages.map((page) => (
+              <li
+                key={page.index}
+                className="flex gap-3 rounded-xl border border-line bg-paper-raised p-4"
+              >
+                <span className="w-5 shrink-0 pt-0.5 text-xs tabular-nums text-ink-soft">
+                  {page.index}
+                </span>
+                <span className="min-w-0">
+                  <span className="block font-serif text-ink">
+                    {page.narration}
+                  </span>
+                  {page.narrationSecondary && (
+                    <span className="mt-1 block text-sm text-ink-soft">
+                      {page.narrationSecondary}
+                    </span>
+                  )}
+                </span>
+              </li>
+            ))}
+          </ol>
+
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Button
+              disabled={decidingStory !== null}
+              onClick={() => void decideStory('approve')}
+            >
+              {decidingStory === 'approve'
+                ? dict.progress.approvingStory
+                : dict.progress.approveStory}
+            </Button>
+            <Button
+              variant="ghost"
+              disabled={decidingStory !== null}
+              onClick={() => void decideStory('rewrite')}
+            >
+              {decidingStory === 'rewrite'
+                ? dict.progress.rewritingStory
+                : dict.progress.rewriteStory}
+            </Button>
+          </div>
+        </section>
       )}
 
       {pickingCover && (
