@@ -51,6 +51,12 @@ COPY --from=build /app/package.json ./package.json
 RUN mkdir -p /app/.data && chown -R node:node /app/.data
 VOLUME ["/app/.data"]
 
+# Next writes its optimized-image cache under .next at runtime, and everything
+# copied above is owned by root while the process runs as node. Without this
+# every image on the site throws EACCES on first request — the pages still
+# render, but the log fills with unhandled rejections that bury real errors.
+RUN mkdir -p /app/.next/cache && chown -R node:node /app/.next
+
 USER node
 EXPOSE 3000
 CMD ["npm", "run", "start"]

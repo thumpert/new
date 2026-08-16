@@ -1,4 +1,5 @@
 import { checkPage } from './ai/review'
+import { describeError } from './errors'
 import { getImageProvider, type ImageProvider } from './images'
 import { fetchBinary, putFile } from './storage'
 import { getOrder, saveOrder, updateOrder } from './store'
@@ -48,7 +49,7 @@ export function startRender(orderId: string): void {
     await updateOrder(orderId, (order) => ({
       ...order,
       status: 'failed',
-      error: err instanceof Error ? err.message : String(err),
+      error: describeError(err),
     }))
   })
 }
@@ -59,7 +60,7 @@ export function startPageRender(orderId: string): void {
     await updateOrder(orderId, (order) => ({
       ...order,
       status: 'failed',
-      error: err instanceof Error ? err.message : String(err),
+      error: describeError(err),
     }))
   })
 }
@@ -192,7 +193,7 @@ async function renderCover(
   } catch (err) {
     await patchCover(orderId, kind, {
       status: 'failed',
-      error: err instanceof Error ? err.message : String(err),
+      error: describeError(err),
     })
   }
 }
@@ -400,7 +401,7 @@ async function renderOnePage(
   } catch (err) {
     await patchRender(orderId, page.index, {
       status: 'failed',
-      error: err instanceof Error ? err.message : String(err),
+      error: describeError(err),
     })
   }
 }

@@ -1,3 +1,4 @@
+import { describeError } from './errors'
 import { getOrder, updateOrder } from './store'
 import type { Order, OrderTask, TaskKind } from './types'
 
@@ -49,7 +50,7 @@ export function startTask<T>(
           task: {
             ...taskOf(current, kind),
             status: 'failed',
-            error: err instanceof Error ? err.message : String(err),
+            error: describeError(err),
           },
         })),
       )
