@@ -1,4 +1,5 @@
-import { getOrder, updateOrder } from '@/lib/store'
+import { updateOrder } from '@/lib/store'
+import { orderForPolling } from '@/lib/tasks'
 import { briefPatchSchema } from '@/lib/validation'
 import type { BookBrief } from '@/lib/types'
 import { badRequest, jsonError, notFound } from '../../_lib/respond'
@@ -8,7 +9,10 @@ type Context = { params: Promise<{ id: string }> }
 export async function GET(_request: Request, { params }: Context) {
   const { id } = await params
   try {
-    const order = await getOrder(id)
+    // Read through the task view, so work lost to a restart is reported as
+    // failed rather than leaving the browser polling a step that will never
+    // finish.
+    const order = await orderForPolling(id)
     return order ? Response.json(order) : notFound('Order not found.')
   } catch (err) {
     return jsonError(err)

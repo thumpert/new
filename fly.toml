@@ -1,0 +1,30 @@
+# Fly.io. Chosen because the app needs two things a serverless platform does
+# not give it: a process that keeps running after the response (the writing and
+# the drawing are both started and then left to finish), and a disk that keeps
+# what it wrote.
+
+app = "livro-por-tintim"
+primary_region = "gru"   # São Paulo — closest to the people testing this
+
+[build]
+
+[env]
+  PORT = "3000"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  # Never scale to zero: a machine stopped between requests would kill a
+  # storyboard half-written, and the customer would have paid for it.
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+
+[[mounts]]
+  source = "livro_dados"
+  destination = "/app/.data"
+
+[[vm]]
+  size = "shared-cpu-2x"
+  # sharp resizing 2K pages, three at a time, plus Next itself.
+  memory = "2gb"

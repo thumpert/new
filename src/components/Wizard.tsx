@@ -14,6 +14,8 @@ import type { Dictionary } from '@/lib/i18n'
 import { AGE_BANDS, BOOK_FINISHES } from '@/lib/types'
 import type {
   AgeBandId,
+  Order,
+  TaskKind,
   ArtStyleId,
   BookBrief,
   BookFinish,
@@ -175,6 +177,37 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
       return Math.max(0, i)
     })
 
+  /**
+   * Starts a slow step on the server and waits for it here instead.
+   *
+   * The server used to hold the request open until the model was finished,
+   * which works on a laptop and nowhere else: a proxy gives up on a silent
+   * connection long before a storyboard is written, and the customer sees an
+   * error for work that actually succeeded and was paid for. Now the request
+   * returns at once and this asks how it is going, which is exactly what the
+   * drawing screen already does.
+   */
+  async function runTask<T>(
+    id: string,
+    path: string,
+    kind: TaskKind,
+    json?: unknown,
+  ): Promise<T> {
+    await call(path, { method: 'POST', json })
+
+    for (;;) {
+      await new Promise((resolve) => setTimeout(resolve, 2000))
+      const order = await call<Order>(`/api/orders/${id}`)
+      const task = order.task
+      // A task for an earlier step means this one has not been recorded yet.
+      if (!task || task.kind !== kind || task.status === 'running') continue
+      if (task.status === 'failed') {
+        throw new Error(task.error ?? dict.common.error)
+      }
+      return task.result as T
+    }
+  }
+
   /** Creates the order, then asks for interview questions written for it. */
   const startInterview = () =>
     run(async () => {
@@ -184,9 +217,10 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
       })
       setOrderId(created.id)
 
-      const result = await call<{ questions: InterviewQuestion[] }>(
+      const result = await runTask<{ questions: InterviewQuestion[] }>(
+        created.id,
         `/api/orders/${created.id}/interview`,
-        { method: 'POST' },
+        'interview',
       )
       setQuestions(result.questions)
       next()
@@ -206,9 +240,10 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
 
       if (!askedForMore) {
         setAskedForMore(true)
-        const gaps = await call<{ questions: InterviewQuestion[] }>(
+        const gaps = await runTask<{ questions: InterviewQuestion[] }>(
+          orderId,
           `/api/orders/${orderId}/gaps`,
-          { method: 'POST' },
+          'gaps',
         )
         if (gaps.questions.length > 0) {
           setQuestions((current) => [...current, ...gaps.questions])
@@ -216,9 +251,10 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
         }
       }
 
-      const result = await call<{ ideas: StoryIdea[] }>(
+      const result = await runTask<{ ideas: StoryIdea[] }>(
+        orderId,
         `/api/orders/${orderId}/ideas`,
-        { method: 'POST' },
+        'ideas',
       )
       setIdeas(result.ideas)
       setChosenIdeaId(null)
@@ -235,9 +271,11 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
       const chosen = ideas.find((i) => i.id === chosenIdeaId)
       if (chosen && !title.trim()) setTitle(chosen.title)
 
-      const result = await call<{ titles: string[] }>(
+      const result = await runTask<{ titles: string[] }>(
+        orderId,
         `/api/orders/${orderId}/titles`,
-        { method: 'POST', json: { ideaId: chosenIdeaId } },
+        'titles',
+        { ideaId: chosenIdeaId },
       )
       setTitleSuggestions(result.titles)
     })
@@ -245,9 +283,9 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
   const generateBook = () =>
     run(async () => {
       if (!orderId || !chosenIdeaId) throw new Error(dict.common.error)
-      await call(`/api/orders/${orderId}/generate`, {
-        method: 'POST',
-        json: { ideaId: chosenIdeaId, title: title.trim() || undefined },
+      await runTask(orderId, `/api/orders/${orderId}/generate`, 'storyboard', {
+        ideaId: chosenIdeaId,
+        title: title.trim() || undefined,
       })
       router.push(`/${locale}/livro/${orderId}`)
     })

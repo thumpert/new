@@ -1,5 +1,6 @@
 import { reviewBrief } from '@/lib/ai/brief-review'
 import { getOrder } from '@/lib/store'
+import { startTask } from '@/lib/tasks'
 import { jsonError, notFound } from '../../../_lib/respond'
 import type { InterviewQuestion } from '@/lib/types'
 
@@ -25,17 +26,19 @@ export async function POST(_request: Request, { params }: Context) {
     const order = await getOrder(id)
     if (!order) return notFound('Order not found.')
 
-    const review = await reviewBrief(order.brief)
+    await startTask(id, 'gaps', async () => {
+      const review = await reviewBrief(order.brief)
+      const questions: InterviewQuestion[] = review.gaps.map((gap, i) => ({
+        id: `gap${i + 1}`,
+        group: 'gaps',
+        question: gap.ask,
+        hint: gap.missing,
+        suggestions: [],
+      }))
+      return { questions, ready: review.ready }
+    })
 
-    const questions: InterviewQuestion[] = review.gaps.map((gap, i) => ({
-      id: `gap${i + 1}`,
-      group: 'gaps',
-      question: gap.ask,
-      hint: gap.missing,
-      suggestions: [],
-    }))
-
-    return Response.json({ questions, ready: review.ready })
+    return Response.json({ started: true }, { status: 202 })
   } catch (err) {
     return jsonError(err)
   }

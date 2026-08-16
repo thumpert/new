@@ -103,6 +103,7 @@ gastar nada e sem subir o servidor:
 ```bash
 npx tsx scripts/smoke-pdf.ts            # livro de colorir
 npx tsx scripts/smoke-pdf.ts coloured   # livro colorido
+npx tsx scripts/smoke-pdf.ts reading    # livro de leitura, 16 páginas duplas
 ```
 
 ## Configuração
@@ -116,8 +117,52 @@ Veja `.env.example`. Os dois que importam:
 
 A chave do Gemini se cria em [aistudio.google.com/apikey](https://aistudio.google.com/apikey).
 O modelo padrão é `gemini-3.1-flash-image` — o mesmo que outros serviços revendem
-sob o nome "Nano Banana". Uma imagem custa cerca de US$ 0,04, então um livro de
-12 páginas sai por volta de US$ 0,55 de ilustração.
+sob o nome "Nano Banana". A 2K, que é como as páginas são desenhadas, **uma
+imagem custa US$ 0,101**.
+
+Um livro inteiro, medido e não estimado:
+
+| | |
+|---|---|
+| Texto (10 chamadas, com o laço de revisão) | US$ 0,45 – 1,11 |
+| 17 imagens (2 fichas, 3 capas, 12 páginas) | US$ 1,72 |
+| Conferência de visão, 1 centavo por página | US$ 0,13 |
+| **Livro típico** | **~US$ 3,00** |
+
+O pior caso, com toda página redesenhada três vezes, é US$ 5,64. Um livro de
+leitura tem 16 páginas em vez de 12, mas o texto costuma sair mais barato:
+~US$ 2,75.
+
+## Publicando
+
+O app precisa de **duas coisas que uma plataforma serverless não dá**: um
+processo que continua vivo depois da resposta — a escrita e o desenho são
+iniciados e deixados terminar sozinhos — e um disco que guarda o que escreveu,
+porque cada pedido é um JSON e cada página é um arquivo em `.data/`.
+
+Num container com volume, nada disso precisa mudar. Há `Dockerfile` e
+`fly.toml` prontos:
+
+```bash
+fly launch --no-deploy          # só na primeira vez
+fly volumes create livro_dados --size 3 --region gru
+fly secrets set ANTHROPIC_API_KEY=... GEMINI_API_KEY=...
+fly deploy
+```
+
+O `APP_URL` não precisa ser definido: o servidor busca os próprios arquivos e
+o `fly.toml` já expõe o host.
+
+**Não escale para zero.** O `auto_stop_machines = false` está lá de propósito —
+uma máquina parada entre requisições mata um roteiro pela metade, já pago.
+
+Cada passo lento (entrevista, ideias, roteiro) devolve a resposta na hora e
+termina o trabalho depois; o navegador acompanha pelo `task` do pedido. Dá para
+conferir isso contra um servidor rodando:
+
+```bash
+npx tsx scripts/test-async.ts
+```
 
 ## Estrutura
 

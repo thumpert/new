@@ -337,6 +337,26 @@ export type OrderStatus =
   | 'ready'
   | 'failed'
 
+/**
+ * Slow work started by one request and finished after it, so a proxy never
+ * sits watching a silent connection. See src/lib/tasks.ts.
+ */
+export type TaskKind =
+  | 'interview'
+  | 'gaps'
+  | 'ideas'
+  | 'titles'
+  | 'storyboard'
+
+export interface OrderTask {
+  kind: TaskKind
+  status: 'running' | 'done' | 'failed'
+  startedAt: string
+  error?: string
+  /** Whatever the work produced. Its shape follows `kind`. */
+  result?: unknown
+}
+
 export interface Order {
   id: string
   createdAt: string
@@ -352,6 +372,8 @@ export interface Order {
   covers?: CoverRender[]
   /** Which front cover the customer picked. Nothing else renders until it is set. */
   chosenCoverKind?: CoverKind
+  /** The step currently being worked on, if any. */
+  task?: OrderTask
   /** Relative path of the generated PDF once the book is ready. */
   pdfPath?: string
   error?: string

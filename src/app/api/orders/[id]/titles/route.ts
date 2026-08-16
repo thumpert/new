@@ -1,11 +1,12 @@
 import { generateTitleSuggestions } from '@/lib/ai/claude'
 import { getOrder } from '@/lib/store'
+import { startTask } from '@/lib/tasks'
 import { chooseIdeaSchema } from '@/lib/validation'
 import { badRequest, jsonError, notFound } from '../../../_lib/respond'
 
 type Context = { params: Promise<{ id: string }> }
 
-/** Names the chosen story three different ways. */
+/** Starts naming the chosen story three different ways. */
 export async function POST(request: Request, { params }: Context) {
   const { id } = await params
 
@@ -28,8 +29,11 @@ export async function POST(request: Request, { params }: Context) {
     const idea = order.ideas?.find((i) => i.id === parsed.data.ideaId)
     if (!idea) return badRequest('That story idea does not belong to this order.')
 
-    const titles = await generateTitleSuggestions(order.brief, idea)
-    return Response.json({ titles })
+    await startTask(id, 'titles', async () => ({
+      titles: await generateTitleSuggestions(order.brief, idea),
+    }))
+
+    return Response.json({ started: true }, { status: 202 })
   } catch (err) {
     return jsonError(err)
   }

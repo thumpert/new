@@ -1,5 +1,6 @@
 import { generateStoryboard } from '@/lib/ai/claude'
 import { getOrder, updateOrder } from '@/lib/store'
+import { startTask } from '@/lib/tasks'
 import { chooseIdeaSchema } from '@/lib/validation'
 import { badRequest, jsonError, notFound } from '../../../_lib/respond'
 
@@ -39,22 +40,27 @@ export async function POST(request: Request, { params }: Context) {
       ? { ...order.brief, title: parsed.data.title }
       : order.brief
 
-    const storyboard = await generateStoryboard(brief, idea)
+    // The slowest step in the product — a storyboard through up to three
+    // rounds of editing — so it is started, not waited for. See lib/tasks.ts.
+    await startTask(id, 'storyboard', async () => {
+      const storyboard = await generateStoryboard(brief, idea)
 
-    // Deliberately does not start rendering. The story goes to the customer
-    // first: reading twelve sentences costs a minute, and it is the only
-    // place a wrong book can be caught before roughly US$0.70 of drawings
-    // have been made of it.
-    await updateOrder(id, (current) => ({
-      ...current,
-      brief,
-      status: 'storyboard-review',
-      chosenIdeaId: idea.id,
-      storyboard,
-      pdfPath: undefined,
-    }))
+      // Deliberately does not start rendering. The story goes to the customer
+      // first: reading twelve sentences costs a minute, and it is the only
+      // place a wrong book can be caught before roughly US$0.70 of drawings
+      // have been made of it.
+      await updateOrder(id, (current) => ({
+        ...current,
+        brief,
+        status: 'storyboard-review',
+        chosenIdeaId: idea.id,
+        storyboard,
+        pdfPath: undefined,
+      }))
+      return { storyboard }
+    })
 
-    return Response.json({ storyboard })
+    return Response.json({ started: true }, { status: 202 })
   } catch (err) {
     return jsonError(err)
   }
