@@ -2,6 +2,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod'
 import * as z from 'zod'
 import { briefContext, uiLanguage } from './prompts'
+import { record } from './usage'
 import type { BookBrief } from '../types'
 
 /**
@@ -110,6 +111,7 @@ export async function reviewBrief(brief: BookBrief): Promise<BriefReview> {
     output_config: { format: zodOutputFormat(GapSchema) },
   })
 
+  record('conferencia do briefing', MODEL, response.usage)
   const parsed = response.parsed_output
   return {
     ready: parsed?.readyForAGoodBook ?? true,

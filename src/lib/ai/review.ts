@@ -3,6 +3,7 @@ import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod'
 import * as z from 'zod'
 import { measurePage, thumbnail } from '../images/measure'
 import { fetchBinary } from '../storage'
+import { record } from './usage'
 import type { BookFinish } from '../types'
 
 /**
@@ -148,5 +149,6 @@ export async function reviewImageBytes(
     output_config: { format: zodOutputFormat(ReviewSchema) },
   })
 
+  record('revisao de imagem', REVIEW_MODEL, response.usage)
   return { problems: response.parsed_output?.problems ?? [] }
 }

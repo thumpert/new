@@ -3,6 +3,7 @@ import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod'
 import * as z from 'zod'
 import { BOOK_PAGES } from '../catalog'
 import { reviewStoryboard } from './story-review'
+import { record } from './usage'
 import type {
   BookBrief,
   InterviewQuestion,
@@ -137,6 +138,7 @@ export async function generateInterviewQuestions(
     output_config: { format: zodOutputFormat(InterviewSchema) },
   })
 
+  record('perguntas da entrevista', MODEL, response.usage)
   const parsed = expectParsed(response.parsed_output, 'interview questions')
 
   // Keep same-group questions adjacent even if the model interleaves them —
@@ -171,6 +173,7 @@ export async function generateIdeas(brief: BookBrief): Promise<StoryIdea[]> {
     output_config: { format: zodOutputFormat(IdeasSchema) },
   })
 
+  record('ideias de historia', MODEL, response.usage)
   const parsed = expectParsed(response.parsed_output, 'story ideas')
   return parsed.ideas.slice(0, 4).map((idea, i) => ({
     id: `idea${i + 1}`,
@@ -202,6 +205,7 @@ export async function generateTitleSuggestions(
     output_config: { format: zodOutputFormat(TitlesSchema) },
   })
 
+  record('sugestoes de titulo', MODEL, response.usage)
   const parsed = expectParsed(response.parsed_output, 'title suggestions')
   return parsed.titles.map((t) => t.trim()).filter(Boolean).slice(0, 3)
 }
@@ -221,6 +225,7 @@ export async function generateStoryboard(
     output_config: { format: zodOutputFormat(StoryboardSchema) },
   })
 
+  record('roteiro (rascunho)', MODEL, response.usage)
   let parsed = expectParsed(response.parsed_output, 'storyboard')
 
   // Then the same loop the pages get: mark it against the rules, repair only
@@ -263,6 +268,7 @@ export async function generateStoryboard(
 
     // A repair that comes back unusable leaves the previous draft standing.
     // Losing a revision is worth less than losing the order.
+    record(`roteiro (conserto ${attempt})`, MODEL, repaired.usage)
     if (repaired.parsed_output) parsed = repaired.parsed_output
   }
 

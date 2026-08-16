@@ -2,6 +2,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod'
 import * as z from 'zod'
 import { getTone } from '../catalog'
+import { record } from './usage'
 import type { BookBrief, StoryIdea, Storyboard } from '../types'
 
 /**
@@ -168,6 +169,7 @@ export async function reviewStoryboard(
     output_config: { format: zodOutputFormat(VerdictSchema) },
   })
 
+  record('revisao do texto', MODEL, response.usage)
   const verdicts = response.parsed_output?.verdicts ?? []
   const failures = verdicts
     .filter((v) => !v.pass)
