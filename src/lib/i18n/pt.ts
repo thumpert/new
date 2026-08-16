@@ -199,6 +199,15 @@ export const pt = {
       },
     },
   },
+  reader: {
+    previous: 'Voltar',
+    next: 'Avançar',
+    counter: '{n} de {total}',
+    download: 'Baixar o PDF',
+    notReady: 'Este livro ainda está sendo desenhado.',
+    seeProgress: 'Ver como está',
+    open: 'Ler aqui',
+  },
   finishes: {
     coloring: {
       label: 'Livro de colorir',

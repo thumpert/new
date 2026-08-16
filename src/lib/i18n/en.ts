@@ -199,6 +199,15 @@ export const en: Dictionary = {
       },
     },
   },
+  reader: {
+    previous: 'Back',
+    next: 'Next',
+    counter: '{n} of {total}',
+    download: 'Download the PDF',
+    notReady: 'This book is still being drawn.',
+    seeProgress: 'See how it is going',
+    open: 'Read it here',
+  },
   finishes: {
     coloring: {
       label: 'Coloring book',

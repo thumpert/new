@@ -358,8 +358,14 @@ export function BookProgress({
       {(ready || done > 0) && (
         <div className="mt-8 flex gap-3">
           <a
-            href={`/api/orders/${orderId}/pdf`}
+            href={`${window.location.pathname.replace(/\/$/, '')}/ler`}
             className="rounded-full bg-accent px-6 py-3 text-sm font-medium text-white transition hover:brightness-110"
+          >
+            {dict.reader.open}
+          </a>
+          <a
+            href={`/api/orders/${orderId}/pdf`}
+            className="rounded-full border border-line px-6 py-3 text-sm font-medium transition hover:bg-paper-warm"
           >
             {dict.progress.download}
           </a>
