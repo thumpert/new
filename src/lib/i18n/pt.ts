@@ -108,10 +108,10 @@ export const pt = {
         'Diferente das fotos acima. Estas viram páginas: a foto é redesenhada no estilo que você escolheu, com o momento inteiro — quem está, fazendo o quê.',
       notePlaceholder:
         'O que é esse momento? Ex.: o dia em que o Zeca chegou em casa e se escondeu embaixo do sofá a tarde toda.',
-      add: 'Escolher uma foto',
+      add: 'Escolher a foto',
       addAnother: 'Mais uma foto',
       remove: 'Remover esta foto',
-      hint: 'Até 3 fotos. Escreva o que aconteceu — é isso que faz a página virar parte da história em vez de um encarte.',
+      hint: 'Uma foto. Escreva o que aconteceu — é isso que faz a página virar parte da história em vez de um encarte. Uma só porque a história tem que passar por ela: com várias, o livro vira um trajeto entre fotos.',
     },
     place: {
       title: 'Onde a história acontece?',

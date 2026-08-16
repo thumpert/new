@@ -299,9 +299,20 @@ Rules:
 - Keep every scene description in English.
 - Change only what the checks above require. A page that already works should come back untouched.`
 
-export function reviseUser(idea: StoryIdea, storyboard: string): string {
+export function reviseUser(
+  idea: StoryIdea,
+  storyboard: string,
+  failures: string[] = [],
+): string {
   return [
-    'Here is the drafted storyboard. Apply the checks and return the corrected version.',
+    failures.length > 0
+      ? [
+          'An editor marked this storyboard against the rules and it failed on these points. Fix exactly these, and leave everything that passed alone.',
+          '',
+          ...failures.map((f) => `- ${f}`),
+          '',
+        ].join('\n')
+      : 'Here is the drafted storyboard. Apply the checks and return the corrected version.',
     '',
     `THE IDEA IT CAME FROM: ${idea.title} — ${idea.logline}`,
     `THE TURN IT PROMISED: ${idea.turn}`,

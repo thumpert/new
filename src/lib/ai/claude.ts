@@ -2,6 +2,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod'
 import * as z from 'zod'
 import { BOOK_PAGES } from '../catalog'
+import { reviewStoryboard } from './story-review'
 import type {
   BookBrief,
   InterviewQuestion,
@@ -22,6 +23,16 @@ import {
 } from './prompts'
 
 const MODEL = 'claude-opus-5'
+
+/**
+ * How many times the story may be repaired before it goes to the customer.
+ *
+ * Three, matching the pages. The first draft usually fails one or two rules,
+ * the repair clears them, and the third attempt is there for the book that
+ * needs it. All of it is text, so a whole loop costs a fraction of one page
+ * of drawings.
+ */
+const MAX_STORY_ATTEMPTS = 3
 
 let client: Anthropic | null = null
 
@@ -210,31 +221,65 @@ export async function generateStoryboard(
     output_config: { format: zodOutputFormat(StoryboardSchema) },
   })
 
-  const drafted = expectParsed(response.parsed_output, 'storyboard')
+  let parsed = expectParsed(response.parsed_output, 'storyboard')
 
-  // A second pass, before anything is drawn. Writing page by page produces
-  // pages that are each fine and together a list; the fault is only visible
-  // once the whole thing can be read at once, which is what this pass gets.
-  // Cheap next to the drawings it protects: text against roughly US$0.70 of
-  // images that would otherwise illustrate a story that does not hold.
-  const revision = await getClient().messages.parse({
-    model: MODEL,
-    max_tokens: 16000,
-    thinking: { type: 'adaptive' },
-    system: REVISE_SYSTEM,
-    messages: [
-      {
-        role: 'user',
-        content: reviseUser(idea, JSON.stringify(drafted, null, 2)),
-      },
-    ],
-    output_config: { format: zodOutputFormat(StoryboardSchema) },
-  })
+  // Then the same loop the pages get: mark it against the rules, repair only
+  // what failed, mark it again. Text is the cheap place to do this — a story
+  // that does not hold costs a few calls to fix here and roughly US$0.70 of
+  // drawings to discover later.
+  //
+  // What this replaced was a single blind rewrite: hand the draft over, ask
+  // for it to be better, keep whatever came back. Nothing said what was
+  // wrong and nothing confirmed the rewrite had fixed it.
+  for (let attempt = 1; attempt <= MAX_STORY_ATTEMPTS; attempt++) {
+    const review = await reviewStoryboard(brief, idea, toStoryboard(parsed, brief, idea))
+      .catch(() => ({ failures: [] as string[], passed: true }))
+    if (process.env.STORY_REVIEW_LOG) {
+      console.log(
+        review.passed
+          ? `  revisao ${attempt}: passou em todas as regras`
+          : `  revisao ${attempt}: reprovou em ${review.failures.length} —\n    ${review.failures.join('\n    ')}`,
+      )
+    }
+    if (review.passed) break
 
-  // If the editor comes back unusable, the draft is still a book. Losing the
-  // revision is worth less than losing the order.
-  const parsed = revision.parsed_output ?? drafted
+    const repaired = await getClient().messages.parse({
+      model: MODEL,
+      max_tokens: 16000,
+      thinking: { type: 'adaptive' },
+      system: REVISE_SYSTEM,
+      messages: [
+        {
+          role: 'user',
+          content: reviseUser(
+            idea,
+            JSON.stringify(parsed, null, 2),
+            review.failures,
+          ),
+        },
+      ],
+      output_config: { format: zodOutputFormat(StoryboardSchema) },
+    })
 
+    // A repair that comes back unusable leaves the previous draft standing.
+    // Losing a revision is worth less than losing the order.
+    if (repaired.parsed_output) parsed = repaired.parsed_output
+  }
+
+  return toStoryboard(parsed, brief, idea)
+}
+
+/**
+ * Turns what the model returned into a Storyboard, dropping ids it invented.
+ *
+ * Shared by the review loop and the final return so the editor marks exactly
+ * the object the customer will read.
+ */
+function toStoryboard(
+  parsed: z.infer<typeof StoryboardSchema>,
+  brief: BookBrief,
+  idea: StoryIdea,
+): Storyboard {
   const knownIds = new Set(brief.characters.map((c) => c.id))
   const knownMemoryIds = new Set((brief.memories ?? []).map((m) => m.id))
 
@@ -242,7 +287,7 @@ export async function generateStoryboard(
     title: brief.title.trim() || parsed.title,
     device: idea.device,
     dedication: brief.dedication,
-    pages: parsed.pages.slice(0, pageCount).map((page, i) => ({
+    pages: parsed.pages.slice(0, BOOK_PAGES).map((page, i) => ({
       index: i + 1,
       narration: page.narration,
       narrationSecondary: page.narrationSecondary?.trim() || undefined,

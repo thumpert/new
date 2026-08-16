@@ -171,10 +171,17 @@ export interface BookBrief {
 }
 
 /**
- * Three is enough to mark a beginning, a middle and an end. Past that a short
- * book stops being a story with memories in it and becomes an album.
+ * One photograph, not three.
+ *
+ * Each one is a fixed point the story is obliged to pass through, at a moment
+ * the writer did not choose. Three fixed points inside twelve pages leaves
+ * almost no room for an arc: the book becomes a route between photographs
+ * rather than a story that happens to contain one. It showed in a real book —
+ * the two photo pages sat where the plot was not, and read as inserts.
+ *
+ * One is a gift. Three is a constraint disguised as generosity.
  */
-export const MAX_MEMORIES = 3
+export const MAX_MEMORIES = 1
 
 export interface StoryIdea {
   id: string

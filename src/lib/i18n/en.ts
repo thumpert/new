@@ -108,10 +108,10 @@ export const en: Dictionary = {
         'Different from the photos above. These become pages: the photo is redrawn in the style you picked, keeping the whole moment — who is there, doing what.',
       notePlaceholder:
         'What is this moment? e.g. the day Zeca came home and hid under the sofa all afternoon.',
-      add: 'Choose a photo',
+      add: 'Choose the photo',
       addAnother: 'Add another photo',
       remove: 'Remove this photo',
-      hint: 'Up to 3 photos. Write what happened — that is what turns the page into part of the story rather than an insert.',
+      hint: 'One photo. Write what happened — that is what turns the page into part of the story rather than an insert. One, because the story has to pass through it: with several, the book becomes a route between photographs.',
     },
     place: {
       title: 'Where does the story happen?',
