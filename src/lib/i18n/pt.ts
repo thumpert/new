@@ -50,7 +50,7 @@ export const pt = {
     bookLanguage: {
       title: 'Em que idioma será o livro?',
       subtitle:
-        'O site continua em português — isso vale só para o livro impresso.',
+        'O site continua em português — isso vale só para o livro.',
     },
     occasion: {
       title: 'Qual é a ocasião?',

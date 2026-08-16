@@ -51,7 +51,7 @@ export const en: Dictionary = {
     },
     bookLanguage: {
       title: 'What language should the book be in?',
-      subtitle: 'The site stays as it is — this is only about the printed book.',
+      subtitle: 'The site stays as it is — this is only about the book itself.',
     },
     occasion: {
       title: 'What is the occasion?',

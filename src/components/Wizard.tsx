@@ -467,12 +467,17 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
                 label={dict.artStyles[a.id].label}
                 // The sample and the wording both have to match the book being
                 // made, or the picker promises one thing and delivers another.
+                //
+                // Only the coloring book is line art. Testing for 'coloured'
+                // instead put the reading book on the wrong side of both: its
+                // customer read "the easiest to colour in" and was shown a
+                // black-and-white sample of a book that arrives painted.
                 description={
-                  finish === 'coloured'
-                    ? dict.artStyles[a.id].descriptionColoured
-                    : dict.artStyles[a.id].description
+                  finish === 'coloring'
+                    ? dict.artStyles[a.id].description
+                    : dict.artStyles[a.id].descriptionColoured
                 }
-                sample={finish === 'coloured' ? a.sampleColoured : a.sample}
+                sample={finish === 'coloring' ? a.sample : a.sampleColoured}
                 selected={artStyleId === a.id}
                 onSelect={() => setArtStyleId(a.id)}
               />
