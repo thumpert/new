@@ -1,4 +1,4 @@
-import { reviewPageImage } from './ai/review'
+import { checkPage } from './ai/review'
 import { getImageProvider, type ImageProvider } from './images'
 import { fetchBinary, putFile } from './storage'
 import { getOrder, saveOrder, updateOrder } from './store'
@@ -32,6 +32,15 @@ import {
 
 /** Pages generated at once. Keeps us well inside provider rate limits. */
 const PAGE_CONCURRENCY = 3
+
+/**
+ * How many times a page may be drawn before we accept what we have.
+ *
+ * Three, because a defect that survives two redraws is usually in the scene
+ * rather than in the drawing, and redrawing past that spends the customer's
+ * money to no end. Most pages never reach the second.
+ */
+const MAX_PAGE_ATTEMPTS = 3
 
 /** Draws the sheets and both covers, then waits. */
 export function startRender(orderId: string): void {
@@ -342,43 +351,38 @@ async function renderOnePage(
     })
 
   try {
+    // Draw, check, and draw again against what the check found. Up to
+    // MAX_PAGE_ATTEMPTS in total, stopping the moment a page comes back
+    // clean — which most do on the first try, so the extra attempts cost
+    // nothing on a good book and rescue a bad page on a poor one.
+    //
+    // The best attempt is kept rather than the last: a later roll of the dice
+    // can be worse than an earlier one, and the customer should get whichever
+    // page had the fewest faults.
     let image = await draw()
     let stored = image.placeholder ? undefined : await store(image.url)
     let problems: string[] = []
 
-    // Look at what was actually drawn. Nothing else in the pipeline does, and
-    // the alternative first reader is the customer opening the PDF.
     if (stored) {
-      problems = (
-        await reviewPageImage({
-          imageUrl: stored,
+      const check = async (url: string) =>
+        checkPage(await fetchBinary(url), {
           sceneDescription: page.sceneDescription,
           finish,
           device: memory ? undefined : device,
         }).catch(() => ({ problems: [] as string[] }))
-      ).problems
 
-      // One retry, not more. A second attempt fixes the ordinary slip; past
-      // that the fault is usually in the scene rather than the drawing, and
-      // redrawing forever costs the customer money and time to no end.
-      if (problems.length > 0) {
+      problems = (await check(stored)).problems
+
+      for (let attempt = 2; attempt <= MAX_PAGE_ATTEMPTS && problems.length > 0; attempt++) {
         const retry = await draw(problems)
         const retryStored = retry.placeholder ? undefined : await store(retry.url)
-        if (retryStored) {
-          const after = await reviewPageImage({
-            imageUrl: retryStored,
-            sceneDescription: page.sceneDescription,
-            finish,
-            device: memory ? undefined : device,
-          }).catch(() => ({ problems: [] as string[] }))
+        if (!retryStored) break
 
-          // Keep the retry only when it is genuinely better, so a second roll
-          // of the dice cannot make the page worse than the first.
-          if (after.problems.length < problems.length) {
-            image = retry
-            stored = retryStored
-            problems = after.problems
-          }
+        const after = await check(retryStored)
+        if (after.problems.length < problems.length) {
+          image = retry
+          stored = retryStored
+          problems = after.problems
         }
       }
     }
@@ -389,8 +393,8 @@ async function renderOnePage(
       requestId: image.requestId,
       placeholder: image.placeholder,
       promptPreview: image.promptPreview,
-      // Left on the page when the retry did not clear them, so the progress
-      // screen can warn instead of the customer finding it in the PDF.
+      // Only what survived every attempt, so the progress screen warns about
+      // a page that could not be fixed rather than one that was.
       problems: problems.length > 0 ? problems : undefined,
     })
   } catch (err) {

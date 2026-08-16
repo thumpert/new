@@ -1,6 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod'
 import * as z from 'zod'
+import { measurePage, thumbnail } from '../images/measure'
 import { fetchBinary } from '../storage'
 import type { BookFinish } from '../types'
 
@@ -47,6 +48,8 @@ const ReviewSchema = z.object({
 
 const SYSTEM = `You are checking a single illustrated page of a children's book before it is printed. You will be shown the drawing and told what it was supposed to contain.
 
+You are being asked about two things only: whether the bodies are possible, and whether the scene is coherent. Colour, shading and blank areas are counted separately and are not your concern — do not comment on them.
+
 Report only defects that are actually visible. Look for these, in order:
 
 1. ANATOMY. Do this one by counting rather than by impression, because it is the defect most easily missed and the one that ruins a page.
@@ -59,9 +62,9 @@ Report only defects that are actually visible. Look for these, in order:
 
 3. INVENTED CONTENT. Maps, diagrams, charts, screens, signage, logos, or text of any kind: letters, numbers, words, captions, watermarks. None of these belong on the page. Also flag extra people or animals that the scene did not ask for.
 
-4. FRAMES. A drawn border, box, panel outline or empty rectangle around or inside the picture.
+4. FRAMES AND LETTERING. A drawn border, box, panel outline or empty rectangle around or inside the picture. Any writing at all: words, numbers, labels, signage, a watermark.
 
-5. THE SCENE. Anything the description clearly asked for that is missing, or something clearly contradicting it.
+5. SCENE LOGIC. Does the picture hold together as a place? Someone standing on nothing, an object twice the size it could be, a figure behind a wall that is also in front of it, two light sources fighting, a body cut off by scenery that should be behind it. Also: anything the description clearly asked for that is missing.
 
 Rules:
 - Report what you can see, not what you suspect. If you are unsure, leave it out.
@@ -84,23 +87,45 @@ export async function reviewPageImage(opts: {
   return reviewImageBytes(bytes, opts)
 }
 
+/**
+ * Both halves of the check, cheap one first.
+ *
+ * The measurement is local and free, so it always runs. The vision call is
+ * the expensive half and is asked only what pixels cannot answer.
+ */
+export async function checkPage(
+  bytes: Buffer,
+  opts: { sceneDescription: string; finish: BookFinish; device?: string },
+): Promise<PageReview> {
+  const [measured, seen] = await Promise.all([
+    measurePage(bytes, opts.finish),
+    reviewImageBytes(bytes, opts),
+  ])
+  return { problems: [...measured.problems, ...seen.problems] }
+}
+
 /** The same check against bytes already in hand, so it can be run offline. */
 export async function reviewImageBytes(
   bytes: Buffer,
   opts: { sceneDescription: string; finish: BookFinish; device?: string },
 ): Promise<PageReview> {
 
-  const colourRule =
-    opts.finish === 'coloring'
-      ? opts.device
-        ? `6. COLOUR. This is a coloring book page: it must be black line art on white, with exactly one exception — ${opts.device} — which is drawn in its own flat colour. Flag any other coloured area, however small: tinted eyes, a shaded cheek and a coloured leaf are all defects here. Flag grey shading and filled black areas too.`
-        : '6. COLOUR. This is a coloring book page: it must be pure black line art on white, with no colour anywhere, no grey shading and no filled black areas. Flag any of those.'
-      : '6. COLOUR. This is a finished colour page. Flag any area left blank or unpainted as though waiting to be coloured in.'
+  // Colour is the one thing the vision model is still asked about, and only
+  // in the narrow form counting cannot answer: whether the coloured thing is
+  // the right thing. How much colour there is gets measured, not looked at.
+  const colourRule = opts.device
+    ? `6. THE COLOURED OBJECT. Exactly one thing on this page may carry colour: ${opts.device}. Say so if something else is coloured — a tinted eye and a shaded cheek both count — or if that object is missing from the page altogether.`
+    : ''
+
+  // A quarter the width costs a fraction of the tokens, and every defect
+  // this is asked about — a spare arm, a floating shoe, a drawn frame —
+  // is still plainly there at 700px.
+  const small = await thumbnail(bytes)
 
   const response = await getClient().messages.parse({
     model: REVIEW_MODEL,
-    max_tokens: 2000,
-    system: `${SYSTEM}\n\n${colourRule}`,
+    max_tokens: 1500,
+    system: colourRule ? `${SYSTEM}\n\n${colourRule}` : SYSTEM,
     messages: [
       {
         role: 'user',
@@ -109,8 +134,8 @@ export async function reviewImageBytes(
             type: 'image',
             source: {
               type: 'base64',
-              media_type: bytes[0] === 0x89 ? 'image/png' : 'image/jpeg',
-              data: bytes.toString('base64'),
+              media_type: 'image/jpeg',
+              data: small.toString('base64'),
             },
           },
           {
