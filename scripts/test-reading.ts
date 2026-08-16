@@ -1,7 +1,7 @@
 import { promises as fs } from 'node:fs'
 import { spent, resetSpend } from '../src/lib/ai/usage'
 import { getAgeBand } from '../src/lib/catalog'
-import type { AgeBandId } from '../src/lib/types'
+import type { AgeBandId, BookBrief } from '../src/lib/types'
 
 /**
  * Generates a real reading book and checks it against the age it was ordered
@@ -20,7 +20,7 @@ async function main() {
   const bandId = (process.argv[2] as AgeBandId) || 'little'
   const { generateIdeas, generateStoryboard } = await import('../src/lib/ai/claude')
 
-  const brief: any = {
+  const brief: BookBrief = {
     locale: 'pt', bookLanguage: 'pt', finish: 'reading', ageBandId: bandId,
     occasionId: 'child', storyTypeId: 'adventure', toneId: 'playful',
     artStyleId: 'chibi', title: '', place: 'a casa da avó em Petrópolis, com o quintal de mangueiras',
