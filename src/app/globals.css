@@ -1,17 +1,28 @@
 @import 'tailwindcss';
 
 /*
- * Warm paper palette — the product is a printed book, and the site should
- * feel like the paper it ends up on rather than a SaaS dashboard.
+ * Kraft paper, and a teal cold enough to cut it.
+ *
+ * The product is a printed book, so the site is the material it is printed
+ * on — but the off-white a page like this usually reaches for is the same
+ * off-white every generated page reaches for, and it reads as nobody's
+ * decision. Recycled kraft is a real stock with a real colour, it makes the
+ * white book pages sitting on it look like paper rather than like screens,
+ * and the one cold accent stops the whole thing going sepia.
+ *
+ * The risk it carries: kraft a shade too grey or too dark stops reading as
+ * handmade and starts reading as cheap. These values are tuned warm and
+ * light on purpose, and any change to them should be checked against a real
+ * page of the book sitting on top.
  */
 :root {
-  --paper: #faf7f2;
-  --paper-raised: #ffffff;
-  --ink: #1f1b16;
-  --ink-soft: #6b6259;
-  --line: #e6ded2;
-  --accent: #b4532a;
-  --accent-soft: #f4e6de;
+  --paper: #c2a184;
+  --paper-raised: #cdb098;
+  --ink: #241b12;
+  --ink-soft: #57432f;
+  --line: #b08f72;
+  --accent: #0e5f5a;
+  --accent-soft: #d6e6e3;
 }
 
 @theme inline {

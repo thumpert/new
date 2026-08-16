@@ -54,8 +54,12 @@ export default async function LandingPage({ params }: PageProps<'/[locale]'>) {
 
         {/* A real spread, laid out as the printed book lays it out: art to the
             edge, and the narration across the calm band the illustration was
-            drawn to leave open. */}
-        <figure className="m-0 grid grid-cols-2 bg-white shadow-[0_18px_46px_rgba(0,0,0,0.14)]">
+            drawn to leave open.
+            
+            Tilted a degree, as a book left open on the bed rather than a
+            product shot. Straightened on small screens, where the rotation
+            only costs width. */}
+        <figure className="m-0 grid grid-cols-2 overflow-hidden rounded-2xl bg-white shadow-[0_16px_40px_rgba(36,27,18,0.32)] md:-rotate-[1.2deg]">
           <Image
             src="/exemplo/pagina-1.jpg"
             alt={dict.landing.sampleAlt}
@@ -80,15 +84,18 @@ export default async function LandingPage({ params }: PageProps<'/[locale]'>) {
         </figure>
       </div>
 
-      <section className="border-t border-line pt-7">
+      <section>
         <h2 className="sr-only">{dict.landing.how}</h2>
-        <ol className="grid gap-7 sm:grid-cols-3">
+        <ol className="grid gap-4 sm:grid-cols-3">
           {dict.landing.steps.map((step, i) => (
-            <li key={step.title}>
-              <span className="block font-mono text-[11px] text-ink-soft">
+            <li
+              key={step.title}
+              className="rounded-2xl bg-paper-raised px-5 pb-5 pt-4.5"
+            >
+              <span className="block font-mono text-[11px] text-ink-soft/80">
                 {String(i + 1).padStart(2, '0')}
               </span>
-              <h3 className="mt-2.5 font-serif text-lg text-ink">{step.title}</h3>
+              <h3 className="mt-2 font-serif text-lg text-ink">{step.title}</h3>
               <p className="mt-1.5 text-sm leading-relaxed text-ink-soft">
                 {step.body}
               </p>
@@ -97,9 +104,7 @@ export default async function LandingPage({ params }: PageProps<'/[locale]'>) {
         </ol>
       </section>
 
-      <p className="mt-12 border-t border-line pt-5 text-xs text-ink-soft">
-        {dict.landing.footnote}
-      </p>
+      <p className="mt-10 text-xs text-ink-soft">{dict.landing.footnote}</p>
     </main>
   )
 }
