@@ -451,9 +451,12 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
         <StepShell
           title={dict.wizard.artStyle.title}
           subtitle={
-            finish === 'coloured'
-              ? dict.wizard.artStyle.subtitleColoured
-              : dict.wizard.artStyle.subtitle
+            // Only the coloring book is line art. Testing for 'coloured'
+            // instead sent the reading book down the wrong branch and told
+            // the customer their colour storybook would be black and white.
+            finish === 'coloring'
+              ? dict.wizard.artStyle.subtitle
+              : dict.wizard.artStyle.subtitleColoured
           }
           footer={footer(next)}
         >

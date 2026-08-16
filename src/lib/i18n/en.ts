@@ -2,8 +2,8 @@ import type { Dictionary } from './pt'
 
 export const en: Dictionary = {
   meta: {
-    name: 'Coloring Book',
-    tagline: 'A coloring book made only for someone you love',
+    name: 'Por Tintim',
+    tagline: 'A book made out of one person',
   },
   common: {
     next: 'Continue',
@@ -19,23 +19,23 @@ export const en: Dictionary = {
     of: 'of',
   },
   landing: {
-    title: 'A coloring book made only for someone you love',
+    title: 'A book made out of one person',
     subtitle:
-      'Tell us your story, pick the drawing style, and get a personalized coloring book printed and delivered to your door.',
-    cta: 'Create my book',
+      'Not their name on the cover. The one shoe they kick off at the door, the question their grandmother always answers with another question, the ant hill they visit every day. We ask, we write the story, we draw it — and the book comes back with those things inside.',
+    cta: 'Start mine',
     how: 'How it works',
     steps: [
       {
-        title: 'Tell the story',
-        body: 'Pick the occasion and the characters, then answer a few questions about them.',
+        title: 'We ask',
+        body: 'Questions written for this book, not a form. A story comes out of “stops in the middle of the street to look at an ant”. Nothing comes out of “she is very sweet”.',
       },
       {
-        title: 'Pick the idea',
-        body: 'We write four possible stories. You choose your favourite.',
+        title: 'You read it before anything is drawn',
+        body: 'We write four possible stories; you pick one and read it whole. If it is not right, we write another — words are cheap, drawings are not.',
       },
       {
-        title: 'Get it printed',
-        body: 'Every page becomes an A4 illustration, ready to be coloured.',
+        title: 'You choose the cover, then it is drawn',
+        body: 'Two covers to decide between. Then every page is illustrated in the style you picked, checked one by one, and comes back as a print-ready PDF — and as a link you can read straight away.',
       },
     ],
   },

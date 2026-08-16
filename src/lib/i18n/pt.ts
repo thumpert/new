@@ -1,7 +1,7 @@
 export const pt = {
   meta: {
-    name: 'Livro de Colorir',
-    tagline: 'Um livro de colorir feito só para quem você ama',
+    name: 'Por Tintim',
+    tagline: 'Um livro feito de uma pessoa só',
   },
   common: {
     next: 'Continuar',
@@ -17,23 +17,23 @@ export const pt = {
     of: 'de',
   },
   landing: {
-    title: 'Um livro de colorir feito só para quem você ama',
+    title: 'Um livro feito de uma pessoa só',
     subtitle:
-      'Conte a história de vocês, escolha o estilo do desenho e receba um livro de colorir personalizado, impresso e entregue na sua casa.',
-    cta: 'Criar meu livro',
+      'Não é o nome dela na capa. É o tênis que ela tira ao chegar, a pergunta que a avó sempre devolve, o formigueiro que ela visita todo dia. A gente pergunta, escreve a história e desenha — e o livro sai com essas coisas dentro.',
+    cta: 'Começar o meu',
     how: 'Como funciona',
     steps: [
       {
-        title: 'Conte a história',
-        body: 'Escolha a ocasião, os personagens e responda algumas perguntas sobre eles.',
+        title: 'A gente pergunta',
+        body: 'Perguntas escritas para este livro, não um formulário. É de "para no meio da rua para olhar formiga" que sai uma história — de "é muito querida" não sai nada.',
       },
       {
-        title: 'Escolha a ideia',
-        body: 'A gente escreve quatro histórias possíveis. Você escolhe a sua favorita.',
+        title: 'Você lê antes de desenhar',
+        body: 'Escrevemos quatro histórias possíveis; você escolhe uma e lê inteira. Se não for aquilo, a gente escreve outra — texto é barato, desenho não.',
       },
       {
-        title: 'Receba impresso',
-        body: 'Cada página vira uma ilustração em A4, pronta para colorir.',
+        title: 'Escolhe a capa, e o livro é desenhado',
+        body: 'Duas capas para você decidir. Depois cada página é ilustrada no estilo que você escolheu, conferida uma a uma, e sai em PDF pronto para imprimir — e num link para ler na hora.',
       },
     ],
   },
