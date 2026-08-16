@@ -518,8 +518,12 @@ function drawStoryPage(
   brief: BookBrief,
 ): void {
   const band = getAgeBand(brief.ageBandId)
-  const size = band.id === 'little' ? 16 : band.id === 'middle' ? 13.5 : 11.5
-  const leading = size * 1.62
+  // Children's book type, not adult book type. The trade's floor for a
+  // beginning reader is 16–18pt and picture-book body runs to 24pt; 14pt is
+  // the bottom of the range and belongs to the oldest band only. Leading sits
+  // 6–9pt above the size, which is what a child decoding a line needs.
+  const size = band.id === 'little' ? 20 : band.id === 'middle' ? 17 : 14
+  const leading = size * 1.45
   // A measure of roughly 60 characters, which is what a line wants to be.
   const measure = A4.width - MARGIN * 2 - 54
   const left = (A4.width - measure) / 2

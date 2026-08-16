@@ -199,27 +199,44 @@ function Sheet({ sheet, title }: { sheet: BookSheet; title: string }) {
   // book is centred, which suits three short lines; longer text is ranged
   // left, because a centred paragraph makes the eye hunt for each new line.
   if (sheet.kind === 'text') {
-    const size =
+    // Two sizes at once. The cqw term keeps the printed proportion — 20pt,
+    // 17pt and 14pt of A4's width — so a large screen shows the book as it is
+    // printed. The px floor is what a small screen falls back to, because a
+    // faithful proportion on a 350px sheet is four-point type, and a story
+    // nobody can read is not a story. The floors are the largest that still
+    // fit the wordiest page of each band on a phone.
+    const type =
       sheet.band === 'little'
-        ? 'text-[2.7cqw]'
+        ? { size: 'max(18px, 3.36cqw)', align: 'text-center' }
         : sheet.band === 'big'
-          ? 'text-[1.93cqw]'
-          : 'text-[2.27cqw]'
-    const align = sheet.band === 'little' ? 'text-center' : 'text-left'
+          ? { size: 'max(15px, 2.35cqw)', align: 'text-left' }
+          : { size: 'max(16px, 2.86cqw)', align: 'text-left' }
+
+    // The text page scrolls rather than clipping. On the smallest screens the
+    // wordiest page of the oldest band needs about 650px at a legible size and
+    // the sheet is 485px, so something has to give — and losing the end of a
+    // sentence off the bottom of the page is the one outcome worth refusing.
+    // It centres while it fits and only scrolls when it must, which on a
+    // desktop is never.
     return (
       <div className={base}>
-        <div className="flex h-full flex-col justify-center px-[13%] pb-[6%]">
-          <p className={`font-serif ${size} ${align} leading-[1.62]`}>
+        <div className="h-full overflow-y-auto overscroll-contain px-[9%] py-[7%]">
+          <div className="flex min-h-full flex-col justify-center">
+          <p
+            className={`font-serif ${type.align} leading-[1.45]`}
+            style={{ fontSize: type.size }}
+          >
             {sheet.narration}
           </p>
           {sheet.narrationSecondary && (
             <p
-              className={`mt-[4%] font-serif italic ${align} leading-[1.5] text-ink-soft`}
-              style={{ fontSize: '0.8em' }}
+              className={`mt-[4%] font-serif italic ${type.align} leading-[1.4] text-ink-soft`}
+              style={{ fontSize: `calc(${type.size} * 0.8)` }}
             >
               {sheet.narrationSecondary}
             </p>
           )}
+          </div>
         </div>
         <PageNumber n={sheet.number} />
       </div>
