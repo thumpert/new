@@ -1,3 +1,4 @@
+import { reviewPageImage } from './ai/review'
 import { getImageProvider, type ImageProvider } from './images'
 import { fetchBinary, putFile } from './storage'
 import { getOrder, saveOrder, updateOrder } from './store'
@@ -318,10 +319,14 @@ async function renderOnePage(
     ? (memories ?? []).find((m) => m.id === page.memoryId)
     : undefined
 
-  try {
-    const image = await provider.generatePage({
+  const draw = (avoid?: string[]) =>
+    provider.generatePage({
       index: page.index,
-      sceneDescription: page.sceneDescription,
+      // A retry says what went wrong last time, in the scene itself, because
+      // that is the part of the prompt the model is actually composing from.
+      sceneDescription: avoid?.length
+        ? `${page.sceneDescription} The previous attempt at this page had to be discarded because of these faults — do not repeat them: ${avoid.join('; ')}.`
+        : page.sceneDescription,
       artStyleId,
       finish,
       // Not passed on a memory page: that page draws only what the photograph
@@ -336,12 +341,57 @@ async function renderOnePage(
         .filter((u): u is string => Boolean(u)),
     })
 
+  try {
+    let image = await draw()
+    let stored = image.placeholder ? undefined : await store(image.url)
+    let problems: string[] = []
+
+    // Look at what was actually drawn. Nothing else in the pipeline does, and
+    // the alternative first reader is the customer opening the PDF.
+    if (stored) {
+      problems = (
+        await reviewPageImage({
+          imageUrl: stored,
+          sceneDescription: page.sceneDescription,
+          finish,
+          device: memory ? undefined : device,
+        }).catch(() => ({ problems: [] as string[] }))
+      ).problems
+
+      // One retry, not more. A second attempt fixes the ordinary slip; past
+      // that the fault is usually in the scene rather than the drawing, and
+      // redrawing forever costs the customer money and time to no end.
+      if (problems.length > 0) {
+        const retry = await draw(problems)
+        const retryStored = retry.placeholder ? undefined : await store(retry.url)
+        if (retryStored) {
+          const after = await reviewPageImage({
+            imageUrl: retryStored,
+            sceneDescription: page.sceneDescription,
+            finish,
+            device: memory ? undefined : device,
+          }).catch(() => ({ problems: [] as string[] }))
+
+          // Keep the retry only when it is genuinely better, so a second roll
+          // of the dice cannot make the page worse than the first.
+          if (after.problems.length < problems.length) {
+            image = retry
+            stored = retryStored
+            problems = after.problems
+          }
+        }
+      }
+    }
+
     await patchRender(orderId, page.index, {
       status: 'done',
-      imageUrl: image.placeholder ? undefined : await store(image.url),
+      imageUrl: stored,
       requestId: image.requestId,
       placeholder: image.placeholder,
       promptPreview: image.promptPreview,
+      // Left on the page when the retry did not clear them, so the progress
+      // screen can warn instead of the customer finding it in the PDF.
+      problems: problems.length > 0 ? problems : undefined,
     })
   } catch (err) {
     await patchRender(orderId, page.index, {

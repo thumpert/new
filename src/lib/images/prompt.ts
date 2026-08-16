@@ -54,6 +54,7 @@ function spotColourRule(device: string): string {
     'That object, and only that object, is drawn in its own flat colour, filled in solid. It is the single coloured thing on the page and it is what the eye follows from page to page.',
     'Everything else in the drawing — every character, every background, every other object — stays pure black line art on white, unfilled and waiting to be coloured in.',
     'The coloured object carries no shading, no gradient and no second tone: one flat colour, inside a black outline like everything else.',
+    'Nothing else takes a tint of any kind — not eyes, not cheeks, not a leaf, not the sky. A page reviewer found brown irises on three characters in a book whose only colour was meant to be one red thread.',
   ].join(' ')
 }
 

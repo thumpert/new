@@ -286,6 +286,14 @@ export interface PageRender {
   placeholder?: boolean
   /** The image prompt, surfaced by the mock provider so it can be reviewed. */
   promptPreview?: string
+  /**
+   * Defects a reviewer could still see after the page was redrawn, if any.
+   *
+   * Present means the page shipped with something visibly wrong — the retry
+   * did not fix it — and the customer is shown a warning so they can redraw
+   * it themselves rather than finding it in the PDF.
+   */
+  problems?: string[]
 }
 
 export type OrderStatus =
