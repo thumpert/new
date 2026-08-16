@@ -62,10 +62,15 @@ export async function readFile(name: string): Promise<Buffer | null> {
  * on Vercel's VERCEL_URL) so the server resolves its own origin correctly.
  */
 export function absoluteUrl(pathname: string): string {
+  // The last fallback is the server calling itself, which is what actually
+  // happens in a container: nothing outside needs to reach these files, the
+  // PDF builder just reads back pages this same process wrote. It has to
+  // follow PORT rather than assume 3000 — otherwise moving the port makes
+  // every PDF fail to find its own illustrations, and nothing says why.
   const base =
     process.env.APP_URL ??
     (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) ??
-    'http://localhost:3000'
+    `http://localhost:${process.env.PORT ?? 3000}`
   return pathname.startsWith('http') ? pathname : `${base}${pathname}`
 }
 
