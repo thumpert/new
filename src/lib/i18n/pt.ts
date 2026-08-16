@@ -17,6 +17,11 @@ export const pt = {
     of: 'de',
   },
   landing: {
+    eyebrow: 'Livro personalizado',
+    sampleAlt: 'Uma página dupla de um livro já feito',
+    sampleNarration:
+      'Torotito é assim: anda rápido. Sempre três passos à frente, contando uma história, virando a esquina antes de a história acabar.',
+    footnote: 'Impresso em A4 · também para ler no navegador',
     title: 'Um livro feito de uma pessoa só',
     subtitle:
       'Não é o nome dela na capa. É o tênis que ela tira ao chegar, a pergunta que a avó sempre devolve, o formigueiro que ela visita todo dia. A gente pergunta, escreve a história e desenha — e o livro sai com essas coisas dentro.',

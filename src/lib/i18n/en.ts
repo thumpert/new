@@ -19,6 +19,11 @@ export const en: Dictionary = {
     of: 'of',
   },
   landing: {
+    eyebrow: 'A personalized book',
+    sampleAlt: 'A spread from a book already made',
+    sampleNarration:
+      'Torotito is like this: he walks fast. Always three steps ahead, telling a story, turning the corner before the story is finished.',
+    footnote: 'Printed A4 · and a link to read it in the browser',
     title: 'A book made out of one person',
     subtitle:
       'Not their name on the cover. The one shoe they kick off at the door, the question their grandmother always answers with another question, the ant hill they visit every day. We ask, we write the story, we draw it — and the book comes back with those things inside.',
