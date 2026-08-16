@@ -4,7 +4,7 @@
 # a disk that keeps what it wrote, because an order is a JSON file and a page
 # is an image beside it.
 
-app = 'livro-por-tintim'
+app = 'portintim'
 primary_region = 'gru'
 
 [build]
