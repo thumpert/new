@@ -86,6 +86,8 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
   const [ideas, setIdeas] = useState<StoryIdea[]>([])
   const [chosenIdeaId, setChosenIdeaId] = useState<string | null>(null)
   const [titleSuggestions, setTitleSuggestions] = useState<string[]>([])
+  /** The brief is only checked for gaps once, however many times they go back. */
+  const [askedForMore, setAskedForMore] = useState(false)
 
   const current: Step = STEPS[step]
 
@@ -170,10 +172,30 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
       next()
     })
 
+  /**
+   * Leaving the interview. Before writing anything, the brief is read the way
+   * the writer will read it, and anything still too thin comes back as more
+   * questions on this same screen — the last moment where the person who can
+   * fix it is still here. Asked once: a second refusal to move on would be
+   * nagging, and the customer is allowed a thin book.
+   */
   const loadIdeas = () =>
     run(async () => {
       if (!orderId) throw new Error(dict.common.error)
       await call(`/api/orders/${orderId}`, { method: 'PATCH', json: brief() })
+
+      if (!askedForMore) {
+        setAskedForMore(true)
+        const gaps = await call<{ questions: InterviewQuestion[] }>(
+          `/api/orders/${orderId}/gaps`,
+          { method: 'POST' },
+        )
+        if (gaps.questions.length > 0) {
+          setQuestions((current) => [...current, ...gaps.questions])
+          return
+        }
+      }
+
       const result = await call<{ ideas: StoryIdea[] }>(
         `/api/orders/${orderId}/ideas`,
         { method: 'POST' },
