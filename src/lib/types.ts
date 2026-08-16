@@ -209,8 +209,12 @@ export interface StoryIdea {
    *
    * In a coloring book it is drawn as the only coloured thing on the page —
    * see the spot-colour rule in images/prompt.ts.
+   *
+   * Empty when nothing fits. An object with no connection to these people,
+   * carried through twelve pages because the format wanted one, reads worse
+   * than a book without one.
    */
-  device: string
+  device?: string
 }
 
 export interface StoryPage {

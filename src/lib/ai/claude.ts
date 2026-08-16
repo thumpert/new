@@ -75,7 +75,7 @@ const IdeasSchema = z.object({
         device: z
           .string()
           .describe(
-            'The guide object and its colour, e.g. "a blue woollen thread". One thing, present and acting on every page.',
+            'The guide object and its colour, e.g. "a blue woollen thread". One thing, present and acting on every page. Empty when no object genuinely belongs to this story — a forced one is worse than none.',
           ),
       }),
     )
@@ -151,7 +151,9 @@ export async function generateInterviewQuestions(
 export async function generateIdeas(brief: BookBrief): Promise<StoryIdea[]> {
   const response = await getClient().messages.parse({
     model: MODEL,
-    max_tokens: 8000,
+    // Four ideas each carrying a summary, three highlights, a turn and a guide
+    // object. At 8000 the reply came back cut off mid-string.
+    max_tokens: 16000,
     thinking: { type: 'adaptive' },
     system: IDEAS_SYSTEM,
     messages: [{ role: 'user', content: ideasUser(brief) }],
