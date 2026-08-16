@@ -11,8 +11,9 @@ import {
   getOccasion,
 } from '@/lib/catalog'
 import type { Dictionary } from '@/lib/i18n'
-import { BOOK_FINISHES } from '@/lib/types'
+import { AGE_BANDS, BOOK_FINISHES } from '@/lib/types'
 import type {
+  AgeBandId,
   ArtStyleId,
   BookBrief,
   BookFinish,
@@ -43,6 +44,9 @@ const STEPS = [
   // The finish comes first: it is the biggest fork in the product, and every
   // later screen reads differently once you know which book you are making.
   'finish',
+  // Only a reading book asks this, so the step is skipped for the other two
+  // rather than existing twice or being hidden inside another screen.
+  'age',
   'bookLanguage',
   'occasion',
   'storyType',
@@ -68,6 +72,7 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
 
   const [orderId, setOrderId] = useState<string | null>(null)
   const [finish, setFinish] = useState<BookFinish>('coloring')
+  const [ageBandId, setAgeBandId] = useState<AgeBandId>('middle')
   const [bookLanguage, setBookLanguage] = useState<BookLanguageId>(locale)
   const [occasionId, setOccasionId] = useState<OccasionId>('child')
   const [storyTypeId, setStoryTypeId] = useState<StoryTypeId>('adventure')
@@ -104,6 +109,7 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
     locale,
     bookLanguage,
     finish,
+    ageBandId: finish === 'reading' ? ageBandId : undefined,
     occasionId,
     storyTypeId,
     toneId,
@@ -152,8 +158,22 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
     }
   }
 
-  const next = () => setStep((s) => Math.min(STEPS.length - 1, s + 1))
-  const back = () => setStep((s) => Math.max(0, s - 1))
+  /** The age step exists only for a reading book; the rest walk past it. */
+  const shown = (s: Step) => s !== 'age' || finish === 'reading'
+
+  const next = () =>
+    setStep((s) => {
+      let i = s + 1
+      while (i < STEPS.length - 1 && !shown(STEPS[i])) i++
+      return Math.min(STEPS.length - 1, i)
+    })
+
+  const back = () =>
+    setStep((s) => {
+      let i = s - 1
+      while (i > 0 && !shown(STEPS[i])) i--
+      return Math.max(0, i)
+    })
 
   /** Creates the order, then asks for interview questions written for it. */
   const startInterview = () =>
@@ -282,6 +302,26 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
                 description={dict.finishes[f].description}
                 selected={finish === f}
                 onSelect={() => setFinish(f)}
+              />
+            ))}
+          </div>
+        </StepShell>
+      )}
+
+      {current === 'age' && (
+        <StepShell
+          title={dict.ageBands.title}
+          subtitle={dict.ageBands.hint}
+          footer={footer(next)}
+        >
+          <div className="grid gap-3">
+            {AGE_BANDS.map((b) => (
+              <OptionCard
+                key={b}
+                label={dict.ageBands[b].label}
+                description={dict.ageBands[b].description}
+                selected={ageBandId === b}
+                onSelect={() => setAgeBandId(b)}
               />
             ))}
           </div>

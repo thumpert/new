@@ -91,6 +91,15 @@ function finishRules(
  * happens to be empty, and never as a place for words.
  */
 function pageFraming(finish: BookFinish): string {
+  // A reading book prints its words on the facing page, so this picture needs
+  // no calm band at all — and must not be given one, or it comes back with a
+  // fifth of the frame wasted on empty sky for text that is printed elsewhere.
+  // In exchange it carries a harder requirement: it is the only thing on its
+  // page, and a child who cannot read yet follows the book through it.
+  if (finish === 'reading') {
+    return 'Single full-page children’s picture-book illustration, vertical portrait orientation, composed to fill the frame edge to edge with no border and no white margin. No words are printed on this picture, so use the whole frame: no calm band, no empty strip, no reserved space anywhere. It must tell its moment on its own — clear enough that a child who cannot yet read could follow the story from the pictures alone — so make the action, the faces and what everyone wants unmistakable. Absolutely no lettering: no signs, no labels, no numbers, no writing of any kind.'
+  }
+
   return finish === 'coloring'
     ? 'Single full-page children’s coloring book illustration, vertical portrait orientation, the whole scene comfortably inside the frame with clear white space at the edges. Compose so the bottom fifth of the page stays open white background, with no linework and no detail crossing into it — let the scene rest above it, as though the ground simply ran out. Do not draw a box, a frame, a banner or a rule to mark that area off: it is plain untouched paper, continuous with the white the rest of the drawing sits on.'
     : // Full bleed: the PDF prints these edge to edge, so anything that matters

@@ -219,6 +219,30 @@ export const en: Dictionary = {
       description:
         'The pages arrive already painted, ready to read. Each style has its own palette — the comic one is vivid, the kawaii one is pastel.',
     },
+    reading: {
+      label: 'A story book to read',
+      description:
+        'Sixteen spreads: the picture fills the left-hand page and the words sit alone on the right. Made to be read together, at bedtime.',
+    },
+  },
+  ageBands: {
+    title: 'What age is it for?',
+    hint: 'This changes the story itself, not just its length: how much is left unexplained, how long a question may stay open, and whether a page may end unresolved.',
+    little: {
+      label: '3 to 5',
+      description:
+        'To be read aloud, on someone’s lap. One or two sentences a page, one thing happening at a time, and a refrain the child joins in on.',
+    },
+    middle: {
+      label: '6 to 8',
+      description:
+        'For a child beginning to read alone. Three to five sentences a page, and a question that can stay open for several pages — this is the age that discovers suspense.',
+    },
+    big: {
+      label: '9 to 12',
+      description:
+        'For reading alone. A paragraph a page, with room for a second thread. The character may be wrong about something and find out later.',
+    },
   },
   bookLanguages: {
     pt: {

@@ -1,7 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod'
 import * as z from 'zod'
-import { getTone } from '../catalog'
+import { getAgeBand, getTone } from '../catalog'
 import { record } from './usage'
 import type { BookBrief, StoryIdea, Storyboard } from '../types'
 
@@ -91,6 +91,37 @@ const RULES = [
   },
 ] as const
 
+/**
+ * What is additionally true of a reading book, and only of a reading book.
+ *
+ * The base rules above hold for all three finishes. These four are the ones
+ * the customer is actually buying when they choose a story to read aloud —
+ * and they are the four that separate a book a child asks for again from a
+ * book that is merely personalized.
+ */
+const READING_RULES = [
+  {
+    id: 'shape',
+    title: 'A jornada acontece',
+    test: 'The sixteen spreads carry a real journey: an ordinary world worth missing, something that will not let the child stay, a hesitation with a reason behind it, a crossing, a hard part that is hard because of what page 1 established, and a return to the same place changed. Name the page each turn happens on. A book that is sixteen nice moments in a row fails this.',
+  },
+  {
+    id: 'mystery',
+    title: 'Mistério',
+    test: 'Something is established early that the reader does not understand yet and wants to, and it is answered before the end. Name the page it opens and the page it closes. If nothing is withheld, the reader has no reason to turn the page.',
+  },
+  {
+    id: 'empathy',
+    title: 'Empatia',
+    test: 'Somewhere the reader knows something the character does not, or wants something for them they have not asked for. That gap is where feeling for a character comes from, and without it the child watches rather than cares.',
+  },
+  {
+    id: 'picture-alone',
+    title: 'A imagem se sustenta sozinha',
+    test: 'Each scene description is a complete picture in its own right: a child who cannot read yet could follow the whole book from the left-hand pages alone. And no narration merely describes what its picture already shows — the words alone on their page have to carry what the picture cannot.',
+  },
+] as const
+
 const VerdictSchema = z.object({
   verdicts: z
     .array(
@@ -113,18 +144,50 @@ export interface StoryReview {
   passed: boolean
 }
 
-function rubric(): string {
-  return RULES.map((r) => `- ${r.id} — ${r.title}: ${r.test}`).join('\n')
+type Rule = { id: string; title: string; test: string }
+
+function rulesFor(brief: BookBrief): readonly Rule[] {
+  return brief.finish === 'reading' ? [...RULES, ...READING_RULES] : RULES
 }
 
-const SYSTEM = `You are the editor marking a personalized children's book before it is shown to the person who ordered it.
+function rubric(rules: readonly Rule[]): string {
+  return rules.map((r) => `- ${r.id} — ${r.title}: ${r.test}`).join('\n')
+}
+
+/**
+ * The one check that needs no model at all: is each page the right length for
+ * the child it was ordered for?
+ *
+ * Counting words is counting, so it is done by counting — locally, free, and
+ * without the chance of a reviewer deciding a 200-word page "feels about
+ * right" for a four-year-old. The same split the page images get.
+ */
+function measureLength(brief: BookBrief, storyboard: Storyboard): string[] {
+  if (brief.finish !== 'reading') return []
+  const band = getAgeBand(brief.ageBandId)
+
+  const wrong = storyboard.pages
+    .map((p) => ({ index: p.index, words: p.narration.trim().split(/\s+/).filter(Boolean).length }))
+    .filter((p) => p.words < band.words.min || p.words > band.words.max)
+
+  if (wrong.length === 0) return []
+  return [
+    `Tamanho das páginas: a book for ${band.years} carries ${band.words.min}–${band.words.max} words a page. These are outside it — ${wrong
+      .map((p) => `page ${p.index} has ${p.words}`)
+      .join(', ')}. Rewrite those pages to length without cutting anything the story needs; if a page cannot be said in that many words, the page is doing too much and should be split across the turn.`,
+  ]
+}
+
+function systemFor(rules: readonly Rule[]): string {
+  return `You are the editor marking a personalized children's book before it is shown to the person who ordered it.
 
 Mark each rule below separately. Be hard: the book is a gift someone is paying for, and the common failure is a storyboard where every page reads acceptably and the whole is lifeless. A rule you are unsure about has not been met.
 
 RULES:
-${rubric()}
+${rubric(rules)}
 
 For a failure, say what is wrong and name the pages, concretely enough that a writer could fix it without asking you anything. "Pages 4 to 9 are all 'the next lamp is X' and could be shuffled freely" is useful. "Needs more depth" is not.`
+}
 
 export async function reviewStoryboard(
   brief: BookBrief,
@@ -132,6 +195,7 @@ export async function reviewStoryboard(
   storyboard: Storyboard,
 ): Promise<StoryReview> {
   const tone = getTone(brief.toneId)
+  const rules = rulesFor(brief)
 
   const pages = storyboard.pages
     .map((p) => `${p.index}. ${p.narration}`)
@@ -141,7 +205,7 @@ export async function reviewStoryboard(
     model: MODEL,
     max_tokens: 8000,
     thinking: { type: 'adaptive' },
-    system: SYSTEM,
+    system: systemFor(rules),
     messages: [
       {
         role: 'user',
@@ -171,12 +235,15 @@ export async function reviewStoryboard(
 
   record('revisao do texto', MODEL, response.usage)
   const verdicts = response.parsed_output?.verdicts ?? []
-  const failures = verdicts
-    .filter((v) => !v.pass)
-    .map((v) => {
-      const rule = RULES.find((r) => r.id === v.id)
-      return `${rule?.title ?? v.id}: ${v.note}`
-    })
+  const failures = [
+    ...measureLength(brief, storyboard),
+    ...verdicts
+      .filter((v) => !v.pass)
+      .map((v) => {
+        const rule = rules.find((r) => r.id === v.id)
+        return `${rule?.title ?? v.id}: ${v.note}`
+      }),
+  ]
 
   return { failures, passed: failures.length === 0 }
 }

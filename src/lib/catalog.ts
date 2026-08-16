@@ -1,4 +1,6 @@
 import type {
+  AgeBandId,
+  BookFinish,
   ArtStyleId,
   BookLanguageId,
   OccasionId,
@@ -407,6 +409,69 @@ export const BOOK_LANGUAGES: BookLanguageDef[] = [
  * A multiple of four, which is what a printer wants for a folded signature.
  */
 export const BOOK_PAGES = 12
+
+/**
+ * How many illustrated pages a book carries.
+ *
+ * A reading book is sixteen because that is its unit: sixteen spreads, each a
+ * picture facing its words. The other two are twelve, which is a multiple of
+ * four — what a printer wants for a folded signature.
+ */
+export function pagesFor(finish: BookFinish): number {
+  return finish === 'reading' ? READING_PAGES : BOOK_PAGES
+}
+
+export const READING_PAGES = 16
+
+/**
+ * What a page of a reading book holds, and what the story has to be, for each
+ * of the three ages it can be ordered for.
+ *
+ * The word counts are the trade's own: a picture book for the youngest runs
+ * to a few hundred words in total and one or two sentences a spread, while a
+ * book for a nine-year-old carries a paragraph and can hold a subplot. What
+ * changes with them is not only length — it is how much is left unsaid, how
+ * long a question may stay open, and whether a chapter may end unresolved.
+ */
+export interface AgeBandDef {
+  id: AgeBandId
+  years: string
+  /** Words on one right-hand page. The writer is held to this. */
+  words: { min: number; max: number }
+  /** What the story may do at this age, in the writer's own terms. */
+  prompt: string
+}
+
+export const AGE_BANDS_CATALOG: AgeBandDef[] = [
+  {
+    id: 'little',
+    years: '3–5',
+    words: { min: 20, max: 40 },
+    prompt:
+      'READ ALOUD TO A CHILD OF THREE TO FIVE, ON SOMEBODY\'S LAP. One or two sentences a page, short ones, and they must sound good said out loud — this book will be heard before it is read. Concrete nouns the child can point at. One thing happens per page and it is visible. A refrain the child can join in on by the third time, changed slightly each time. Nothing frightening and no question left open across more than two pages: at this age an unresolved worry is not suspense, it is a child who will not sleep. The surprise is a delight, not a twist.',
+  },
+  {
+    id: 'middle',
+    years: '6–8',
+    words: { min: 50, max: 85 },
+    prompt:
+      'FOR A CHILD OF SIX TO EIGHT, WHO IS BEGINNING TO READ IT ALONE. Three to five sentences a page. A question may stay open for several pages and should — this is the age that discovers suspense and loves it. The child can now be trusted with something the character does not know yet, which is the beginning of real irony. Humour lands. A gentle wrongness in the middle of the book that the character has to put right themselves.',
+  },
+  {
+    id: 'big',
+    years: '9–12',
+    words: { min: 100, max: 150 },
+    prompt:
+      'FOR A CHILD OF NINE TO TWELVE, READING ALONE. A full paragraph a page, with room for a second thread that pays off late. Do not explain feelings — at this age being told what to feel is what makes a book babyish. Let a page end unresolved. The character may be wrong about something for a stretch of the book and find out. Interiority is allowed: what they thought, what they did not say.',
+  },
+]
+
+export function getAgeBand(id: AgeBandId | undefined): AgeBandDef {
+  const found = AGE_BANDS_CATALOG.find((b) => b.id === id)
+  // A missing band means a book that never asked, so the middle one is the
+  // honest default: wrong for nobody by much.
+  return found ?? AGE_BANDS_CATALOG[1]
+}
 
 export function getOccasion(id: OccasionId): OccasionDef {
   const found = OCCASIONS.find((o) => o.id === id)

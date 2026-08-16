@@ -48,14 +48,29 @@ export type BookLanguageId = 'pt' | 'en' | 'en-pt'
  *
  * 'coloring'  — black line art on white, for the child to fill in.
  * 'coloured'  — a finished picture book, printed in colour.
+ * 'reading'   — a story to be read aloud: sixteen spreads, a full-page
+ *               picture on the left and the words alone on the right.
  *
  * It reaches all the way down: it decides whether the model sheets and pages
- * are drawn in line or in colour. The covers ignore it — they are always in
- * colour, in both books.
+ * are drawn in line or in colour, how many are drawn, and how the sheet is
+ * laid out. The covers ignore it — they are always in colour, in all three.
  */
-export type BookFinish = 'coloring' | 'coloured'
+export type BookFinish = 'coloring' | 'coloured' | 'reading'
 
-export const BOOK_FINISHES: BookFinish[] = ['coloring', 'coloured']
+export const BOOK_FINISHES: BookFinish[] = ['coloring', 'coloured', 'reading']
+
+/**
+ * Who the reading book is for, which decides how much text a page carries.
+ *
+ * The one thing every competitor gets asked for and none of them does: they
+ * personalise the name and the face, and then hand a six-year-old and a
+ * ten-year-old the same sentences. A book that is read aloud to a
+ * four-year-old and a book a nine-year-old reads alone are different objects,
+ * and the difference is mostly length and how much is left unexplained.
+ */
+export type AgeBandId = 'little' | 'middle' | 'big'
+
+export const AGE_BANDS: AgeBandId[] = ['little', 'middle', 'big']
 
 export interface Character {
   id: string
@@ -149,8 +164,10 @@ export interface BookBrief {
   locale: Locale
   /** Language the book itself is written in. Chosen explicitly. */
   bookLanguage: BookLanguageId
-  /** Line art to colour in, or a finished colour book. The first choice made. */
+  /** Line art to colour in, a finished colour book, or a story to read. */
   finish: BookFinish
+  /** Who it is for. Only asked, and only used, for a reading book. */
+  ageBandId?: AgeBandId
   occasionId: OccasionId
   storyTypeId: StoryTypeId
   toneId: ToneId

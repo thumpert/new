@@ -1,3 +1,4 @@
+import { readingBookRules } from './reading-book'
 import {
   getArtStyle,
   getBookLanguage,
@@ -346,6 +347,9 @@ export function storyboardUser(
     `${narrationRule} Scene descriptions must always be in English — they are read by the image model, not by a person.`,
     detail,
     '',
+    // A reading book is a different object from the other two, so its rules
+    // go in first and everything below is read in their light.
+    ...(brief.finish === 'reading' ? [readingBookRules(brief), ''] : []),
     'CHOSEN STORY:',
     `Title: ${idea.title}`,
     `Logline: ${idea.logline}`,

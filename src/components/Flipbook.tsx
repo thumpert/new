@@ -179,6 +179,53 @@ function Sheet({ sheet, title }: { sheet: BookSheet; title: string }) {
     )
   }
 
+  // A reading book's picture page: the whole sheet, and nothing written on
+  // it. The words are on the sheet facing it, which is the format's point.
+  if (sheet.kind === 'picture') {
+    return (
+      <div className={base}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={sheet.imageUrl}
+          alt={title}
+          className="h-full w-full object-cover"
+        />
+      </div>
+    )
+  }
+
+  // Its facing page: words alone, set larger and looser than a caption
+  // because this is read rather than glanced at, often aloud. The youngest
+  // book is centred, which suits three short lines; longer text is ranged
+  // left, because a centred paragraph makes the eye hunt for each new line.
+  if (sheet.kind === 'text') {
+    const size =
+      sheet.band === 'little'
+        ? 'text-[2.7cqw]'
+        : sheet.band === 'big'
+          ? 'text-[1.93cqw]'
+          : 'text-[2.27cqw]'
+    const align = sheet.band === 'little' ? 'text-center' : 'text-left'
+    return (
+      <div className={base}>
+        <div className="flex h-full flex-col justify-center px-[13%] pb-[6%]">
+          <p className={`font-serif ${size} ${align} leading-[1.62]`}>
+            {sheet.narration}
+          </p>
+          {sheet.narrationSecondary && (
+            <p
+              className={`mt-[4%] font-serif italic ${align} leading-[1.5] text-ink-soft`}
+              style={{ fontSize: '0.8em' }}
+            >
+              {sheet.narrationSecondary}
+            </p>
+          )}
+        </div>
+        <PageNumber n={sheet.number} />
+      </div>
+    )
+  }
+
   // Covers are the one place the art is allowed to fill the sheet edge to
   // edge whatever the finish: they were composed for it, and they carry no
   // words of ours.

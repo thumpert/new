@@ -1,4 +1,4 @@
-import type { Order } from './types'
+import type { AgeBandId, Order } from './types'
 
 /**
  * The order, laid out as the sheets a reader turns.
@@ -15,7 +15,13 @@ import type { Order } from './types'
  */
 
 export interface BookSheet {
-  kind: 'cover' | 'dedication' | 'page' | 'back'
+  /**
+   * 'picture' and 'text' are the two halves of a reading book's spread. They
+   * are separate sheets rather than one, because that is what they are in the
+   * book: the reader turns to a picture, and the words are on the page facing
+   * it.
+   */
+  kind: 'cover' | 'dedication' | 'page' | 'picture' | 'text' | 'back'
   imageUrl?: string
   /** Words printed on the art, as in the book. */
   narration?: string
@@ -36,6 +42,8 @@ export interface BookSheet {
    * and words printed onto it land on faces and dark ground.
    */
   mounted?: boolean
+  /** On a reading book's text page, how large the words are set. */
+  band?: AgeBandId
 }
 
 export function bookSheets(order: Order): BookSheet[] {
@@ -53,9 +61,24 @@ export function bookSheets(order: Order): BookSheet[] {
   if (dedication) sheets.push({ kind: 'dedication', narration: dedication })
 
   const renders = new Map((order.renders ?? []).map((r) => [r.index, r]))
+  const reading = order.brief.finish === 'reading'
+
   for (const page of order.storyboard?.pages ?? []) {
     const render = renders.get(page.index)
     if (!render || render.status !== 'done' || !render.imageUrl) continue
+
+    if (reading) {
+      sheets.push({ kind: 'picture', imageUrl: render.imageUrl })
+      sheets.push({
+        kind: 'text',
+        narration: page.narration,
+        narrationSecondary: page.narrationSecondary,
+        number: page.index,
+        band: order.brief.ageBandId,
+      })
+      continue
+    }
+
     sheets.push({
       kind: 'page',
       imageUrl: render.imageUrl,

@@ -219,6 +219,30 @@ export const pt = {
       description:
         'As páginas já vêm pintadas, prontas para ler. Cada estilo tem sua paleta — o de quadrinhos sai vibrante, o kawaii sai em pastel.',
     },
+    reading: {
+      label: 'Livro de histórias para ler',
+      description:
+        'Dezesseis páginas duplas: o desenho ocupa a página da esquerda inteira e a história fica sozinha na direita. Feito para ler junto, na hora de dormir.',
+    },
+  },
+  ageBands: {
+    title: 'Para que idade?',
+    hint: 'Isso muda a história de verdade, não só o tamanho: quanto fica sem explicação, quanto tempo uma pergunta pode ficar no ar, e se um capítulo pode terminar sem resposta.',
+    little: {
+      label: '3 a 5 anos',
+      description:
+        'Para ler em voz alta, no colo. Uma ou duas frases por página, uma coisa acontecendo de cada vez, e um refrão que a criança repete junto.',
+    },
+    middle: {
+      label: '6 a 8 anos',
+      description:
+        'Para quem está começando a ler sozinho. Três a cinco frases por página, e uma pergunta que pode ficar no ar por várias páginas — é a idade que descobre o suspense.',
+    },
+    big: {
+      label: '9 a 12 anos',
+      description:
+        'Para ler sozinho. Um parágrafo por página, com espaço para uma segunda linha da história. O personagem pode estar errado sobre algo e descobrir depois.',
+    },
   },
   bookLanguages: {
     pt: {

@@ -19,8 +19,10 @@ import type { BookFinish, Order } from '../src/lib/types'
 
 process.env.IMAGE_PROVIDER ??= 'mock'
 
-/** npx tsx scripts/smoke-pdf.ts coloured — o padrao e o livro de colorir. */
-const FINISH: BookFinish = process.argv[2] === 'coloured' ? 'coloured' : 'coloring'
+/** npx tsx scripts/smoke-pdf.ts coloured|reading — o padrao e o livro de colorir. */
+const arg = process.argv[2]
+const FINISH: BookFinish =
+  arg === 'coloured' ? 'coloured' : arg === 'reading' ? 'reading' : 'coloring'
 
 const now = new Date().toISOString()
 
@@ -35,6 +37,7 @@ const order: Order = {
     // one printing two text blocks under the drawing.
     bookLanguage: 'en-pt',
     finish: FINISH,
+    ageBandId: 'little',
     occasionId: 'birthday',
     storyTypeId: 'adventure',
     toneId: 'warm',
@@ -76,7 +79,7 @@ const order: Order = {
     // Exercita a cor unica: no livro de colorir este objeto e a unica cor.
     device: 'a red woollen thread',
     dedication: 'Para a Lila, que transforma qualquer quintal em floresta.',
-    pages: Array.from({ length: 12 }, (_, i) => ({
+    pages: Array.from({ length: FINISH === 'reading' ? 16 : 12 }, (_, i) => ({
       index: i + 1,
       narration: `Page ${i + 1}: Lila and Biscoito follow the path between the mango trees, and the backyard keeps growing.`,
       narrationSecondary: `Página ${i + 1}: a Lila e o Biscoito seguem a trilha entre as mangueiras, e o quintal fica cada vez maior.`,

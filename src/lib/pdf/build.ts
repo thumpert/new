@@ -6,8 +6,9 @@ import {
   rgb,
   type RGB,
 } from 'pdf-lib'
+import { getAgeBand } from '../catalog'
 import { fetchBinary, putFile } from '../storage'
-import type { Locale, Order, StoryPage } from '../types'
+import type { BookBrief, Locale, Order, StoryPage } from '../types'
 
 /**
  * Builds the print-ready A4 PDF.
@@ -112,6 +113,31 @@ export async function buildBookPdf(order: Order): Promise<Uint8Array> {
 
   for (const page of order.storyboard.pages) {
     const render = rendersByIndex.get(page.index)
+
+    // A reading book is spreads, not pages: the picture takes the left-hand
+    // sheet whole and the words get the right-hand sheet to themselves. That
+    // is the format's whole point — the listener's eye stays on the picture
+    // while the reader's has somewhere quiet to be.
+    if (order.brief.finish === 'reading') {
+      const picture = pdf.addPage([A4.width, A4.height])
+      const full = { x: 0, y: 0, width: A4.width, height: A4.height }
+      if (render?.imageUrl) {
+        await drawImageCover(pdf, picture, render.imageUrl, full)
+      } else {
+        drawPlaceholder(
+          picture,
+          fonts,
+          { x: MARGIN, y: MARGIN, width: A4.width - MARGIN * 2, height: A4.height - MARGIN * 2 },
+          {
+            label: render?.status === 'failed' ? t.failed : t.placeholder,
+            detail: render?.error ?? render?.promptPreview ?? page.sceneDescription,
+          },
+        )
+      }
+      drawStoryPage(pdf.addPage([A4.width, A4.height]), fonts, page, order.brief)
+      continue
+    }
+
     const sheet = pdf.addPage([A4.width, A4.height])
 
     // A page redrawn from a photograph is laid out like a photograph: mounted
@@ -472,6 +498,61 @@ function drawNarration(
   }
 
   drawCentered(page, String(pageNumber), fonts.body, 9, MARGIN - 4, MUTED)
+}
+
+
+/**
+ * The right-hand page of a reading book: words, and nothing else.
+ *
+ * Set larger and looser than the narration printed on a picture, because this
+ * is read rather than glanced at, and often read aloud by somebody holding a
+ * child. The type size follows the age the book was ordered for — a page for
+ * a four-year-old is a few short lines set large, a page for a ten-year-old is
+ * a paragraph — and the block sits on the optical centre rather than the
+ * geometric one, which is slightly above it.
+ */
+function drawStoryPage(
+  page: PDFPage,
+  fonts: Fonts,
+  story: StoryPage,
+  brief: BookBrief,
+): void {
+  const band = getAgeBand(brief.ageBandId)
+  const size = band.id === 'little' ? 16 : band.id === 'middle' ? 13.5 : 11.5
+  const leading = size * 1.62
+  // A measure of roughly 60 characters, which is what a line wants to be.
+  const measure = A4.width - MARGIN * 2 - 54
+  const left = (A4.width - measure) / 2
+
+  const lines = wrap(story.narration, fonts.body, size, measure)
+  const secondary = story.narrationSecondary?.trim()
+  const support = secondary ? wrap(secondary, fonts.bodyItalic, size * 0.8, measure) : []
+
+  const blockHeight =
+    lines.length * leading + (support.length ? support.length * leading * 0.82 + leading * 0.6 : 0)
+  let y = (A4.height + blockHeight) / 2 - leading + A4.height * 0.04
+
+  // The youngest book is centred, which suits three short lines. Longer text
+  // is ranged left: a centred paragraph makes the eye hunt for each new line.
+  const centred = band.id === 'little'
+
+  for (const line of lines) {
+    if (centred) drawCentered(page, line, fonts.body, size, y, INK)
+    else page.drawText(sanitize(line), { x: left, y, size, font: fonts.body, color: INK })
+    y -= leading
+  }
+
+  if (support.length) {
+    y -= leading * 0.6
+    for (const line of support) {
+      const s = size * 0.8
+      if (centred) drawCentered(page, line, fonts.bodyItalic, s, y, MUTED)
+      else page.drawText(sanitize(line), { x: left, y, size: s, font: fonts.bodyItalic, color: MUTED })
+      y -= leading * 0.82
+    }
+  }
+
+  drawCentered(page, String(story.index), fonts.body, 9, MARGIN - 4, MUTED)
 }
 
 /* ------------------------------------------------------------------ *

@@ -1,7 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod'
 import * as z from 'zod'
-import { BOOK_PAGES } from '../catalog'
+import { pagesFor } from '../catalog'
 import { reviewStoryboard } from './story-review'
 import { record } from './usage'
 import type {
@@ -214,7 +214,7 @@ export async function generateStoryboard(
   brief: BookBrief,
   idea: StoryIdea,
 ): Promise<Storyboard> {
-  const pageCount = BOOK_PAGES
+  const pageCount = pagesFor(brief.finish)
 
   const response = await getClient().messages.parse({
     model: MODEL,
@@ -293,7 +293,7 @@ function toStoryboard(
     title: brief.title.trim() || parsed.title,
     device: idea.device,
     dedication: brief.dedication,
-    pages: parsed.pages.slice(0, BOOK_PAGES).map((page, i) => ({
+    pages: parsed.pages.slice(0, pagesFor(brief.finish)).map((page, i) => ({
       index: i + 1,
       narration: page.narration,
       narrationSecondary: page.narrationSecondary?.trim() || undefined,
