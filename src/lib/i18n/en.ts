@@ -22,7 +22,7 @@ export const en: Dictionary = {
     eyebrow: 'A personalized book',
     sampleAlt: 'A spread from a book already made',
     sampleNarration:
-      'Torotito is like this: he walks fast. Always three steps ahead, telling a story, turning the corner before the story is finished.',
+      'The turquoise button had been waiting for this day all along. It jumped onto the table. It went between two cups without knocking either over.',
     footnote: 'Printed A4 · and a link to read it in the browser',
     title: 'A book made out of one person',
     subtitle:

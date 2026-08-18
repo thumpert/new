@@ -34,11 +34,11 @@ const BRIEF: BookBrief = {
   toneId: 'playful',
   artStyleId: 'fine-line',
   title: '',
-  place: 'Buenos Aires — Palermo, San Telmo, e a livraria Eterna Cadencia',
+  place: 'Lisboa — Alfama, Graça, e a livraria da esquina',
   characters: [
     {
       id: 'c1',
-      name: 'Torotito',
+      name: 'Nuno',
       kind: 'person',
       role: 'namorado',
       appearance:
@@ -50,7 +50,7 @@ const BRIEF: BookBrief = {
     },
     {
       id: 'c2',
-      name: 'Terecoteco',
+      name: 'Rui',
       kind: 'person',
       role: 'namorado',
       appearance:
@@ -76,7 +76,7 @@ const BRIEF: BookBrief = {
     {
       questionId: 'q3',
       question: 'Que lugar é só de vocês?',
-      answer: 'A livraria Eterna Cadencia, em Palermo. Vamos todo sábado.',
+      answer: 'A livraria da esquina, na Graça. Vamos todo sábado.',
     },
     {
       questionId: 'q4',
@@ -86,7 +86,7 @@ const BRIEF: BookBrief = {
     {
       questionId: 'q5',
       question: 'Onde foi o pedido de namoro?',
-      answer: 'Numa praça em Palermo, num fim de tarde.',
+      answer: 'Num miradouro da Graça, num fim de tarde.',
     },
   ],
 }

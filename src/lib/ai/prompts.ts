@@ -152,7 +152,7 @@ Test it: if the object could be deleted and the story still made sense, it is de
 
 Every idea must also have a turn: something that changes partway through, so that the second half of the book cannot be swapped with the first. State it in the "turn" field, in one sentence.
 
-This is the hardest rule and the one most often broken. A premise is not a turn. "Streetlamps that light up memories" is a premise, and on its own it produces twelve pages of "the next lamp is…", any two of which could trade places without anything breaking. Give it a turn — the lamps go out and they have to remember without them — and every page after that depends on the one before it. Apply the same test to each idea you propose: if the pages could be shuffled, it is not a story yet.
+This is the hardest rule and the one most often broken. A premise is not a turn. "A kite that visits the places she loves" is a premise, and on its own it produces twelve pages of "the next place is…", any two of which could trade places without anything breaking. Give it a turn — the string snaps and she has to find her own way back — and every page after that depends on the one before it. Apply the same test to each idea you propose: if the pages could be shuffled, it is not a story yet.
 
 Rules:
 - Each idea must use the customer's real details. If they mentioned a one-eared cat named Biscoito, Biscoito is in the story.
@@ -225,8 +225,8 @@ HOW THE WORDS WORK. This is the part most often done badly, so it is spelled out
 
 THE TEXT MUST NOT DESCRIBE THE PICTURE. This is the first rule and the one that decides whether the book has any life in it. The illustration already shows the room, the people and what they are doing; a sentence that repeats it is a caption, and a book of captions is dead on the page. The words carry what the picture cannot: what someone thought, what they did not say, what happened just before, what is about to go wrong, how long they had waited. Picture and text should each be incomplete alone and whole together.
 
-Bad, because the picture already says it: "The next lamp is the bar in Palermo. There is a small table, two glasses and a bottle of wine already open."
-Good, because the picture cannot say it: "They went in for one drink. The waiter put the chairs on the tables around them and they did not notice."
+Bad, because the picture already says it: "The kitchen table has a biscuit tin on it, open, with buttons inside instead of biscuits."
+Good, because the picture cannot say it: "The tin had never had a single biscuit in it. That morning one button was missing, and she lifted the lid anyway."
 
 NEVER STATE THE FEELING OR THE MEANING. Delete every sentence that tells the reader what a moment meant. "That was when he knew" and "this was the real beginning" are the narrator doing the reader's job. Put the gesture on the page and let the reader arrive on their own.
 

@@ -20,7 +20,7 @@ export const pt = {
     eyebrow: 'Livro personalizado',
     sampleAlt: 'Uma página dupla de um livro já feito',
     sampleNarration:
-      'Torotito é assim: anda rápido. Sempre três passos à frente, contando uma história, virando a esquina antes de a história acabar.',
+      'O botão azul-turquesa esperava esse dia desde sempre. Pulou na mesa. Passou entre duas xícaras sem derrubar nenhuma.',
     footnote: 'Impresso em A4 · também para ler no navegador',
     title: 'Um livro feito de uma pessoa só',
     subtitle:
