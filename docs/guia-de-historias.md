@@ -146,10 +146,20 @@ vírgula na mesma linha:
 Zeca não respondeu.
 
 — Já estou indo, disse a Lila.
+— Que foi? perguntou o Rui.
 ```
+
+A atribuição fica na mesma linha da fala. Ponto final vira vírgula; ponto de
+interrogação ou exclamação **fica e não leva vírgula** — `?,` está errado em
+português, e essa regra existe porque a primeira versão dela produziu
+exatamente isso num livro gerado.
 
 Nunca dois traços, nunca hífen, nunca aspas, nunca travessão no meio da frase
 falada. Cerca de um terço das páginas tem alguém falando.
+
+> A forma editorial mais canônica no Brasil usa um segundo travessão antes da
+> atribuição — `— Que foi? — perguntou o Rui.` Aqui ficou o travessão único,
+> como combinado. Trocar é uma linha.
 
 ---
 

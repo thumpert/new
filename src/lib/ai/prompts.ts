@@ -248,9 +248,10 @@ Every spoken line sits on a line of its own, opened with one em dash and a space
 
 — Você vem?
 
-One dash. Never two, never a hyphen, never quotation marks, and never a dash dropped into the middle of a spoken line. When the narrator says who spoke, it follows the speech on the same line after a comma:
+One dash. Never two, never a hyphen, never quotation marks, and never a dash dropped into the middle of a spoken line. When the narrator says who spoke, it follows the speech on the same line. A speech ending in a full stop swaps that stop for a comma; a speech ending in a question mark or an exclamation keeps it and takes NO comma — "?," and "!," are wrong in Portuguese and are the mistake this rule exists to prevent:
 
 — Já estou indo, disse a Lila.
+— Que foi? perguntou o Rui.
 
 Narration around the speech goes on its own lines, above or below it. Put real newline characters inside the "narration" string to make these breaks — they are printed exactly as you write them, so a page whose speech is buried mid-paragraph will be printed that way.
 
@@ -315,7 +316,7 @@ Read all the pages together before changing anything, then work through these ch
 
 9c. WHO AND WHERE. Any page relying on "she" or "he" to carry an identity across a page turn gets the name put back. Any page where the reader cannot tell where they are, or what has just happened, gets told plainly. Meaning may be withheld; information may not.
 
-9d. SPEECH. Roughly a third of the pages should have somebody speak. Every spoken line sits alone on its own line, opened with a single em dash and a space — "— Você vem?" — with any attribution after a comma on the same line. Convert quotation marks, double dashes and speech buried inside a paragraph. Write the breaks as real newline characters in the narration.
+9d. SPEECH. Roughly a third of the pages should have somebody speak. Every spoken line sits alone on its own line, opened with a single em dash and a space — "— Você vem?" — with any attribution following on the same line — a full stop becomes a comma ("— Já estou indo, disse a Lila."), while a question mark or exclamation stays and takes no comma ("— Que foi? perguntou o Rui."), because "?," is wrong in Portuguese. Convert quotation marks, double dashes and speech buried inside a paragraph, and fix every "?," and "!," you find. Write the breaks as real newline characters in the narration.
 
 10. THE REFRAIN. There should be one short phrase or gesture that comes back three or four times, changed a little each time, and pays off at the end. If there is none, find the line most worth repeating and plant it. If there is one, check it actually changes rather than merely repeating.
 

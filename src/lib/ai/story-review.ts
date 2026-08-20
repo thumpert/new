@@ -71,7 +71,7 @@ const RULES = [
   {
     id: 'dialogue',
     title: 'Alguém fala, e do jeito certo',
-    test: 'Roughly a third of the pages carry a spoken line. Every spoken line sits alone on its own line inside the narration, opened with a single em dash and a space ("— Você vem?"), with any attribution after a comma on the same line. Quotation marks, double dashes, hyphens, and speech buried mid-paragraph all fail this. The line breaks must be real newline characters in the narration text.',
+    test: 'Roughly a third of the pages carry a spoken line. Every spoken line sits alone on its own line inside the narration, opened with a single em dash and a space ("— Você vem?"), with any attribution following on the same line — a full stop becomes a comma ("— Já estou indo, disse a Lila."), while a question mark or exclamation stays and takes no comma ("— Que foi? perguntou o Rui."), because "?," is wrong in Portuguese. Quotation marks, double dashes, hyphens, "?,", "!,", and speech buried mid-paragraph all fail this. The line breaks must be real newline characters in the narration text.',
   },
   {
     id: 'specificity',
