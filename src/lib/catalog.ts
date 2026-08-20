@@ -442,27 +442,83 @@ export interface AgeBandDef {
   prompt: string
 }
 
+/**
+ * What a book may do at each age.
+ *
+ * Written as mechanisms, never as names. Asking a model to write "like" an
+ * author produces pastiche of that author's protected work; describing what
+ * the technique does produces the technique, and it can be marked. Same rule
+ * as the rubric in story-review.ts.
+ *
+ * The three are different crafts rather than one craft in three sizes, which
+ * is the part every competitor gets wrong: they personalise the name and the
+ * face and then hand a four-year-old and a ten-year-old the same sentences.
+ *
+ * Where these came from, so the next person can argue with them:
+ *
+ *   Rule of three, setup-setup-payoff, escalation
+ *     emmawaltonhamilton.com/blog/the-rule-of-3-in-picture-books-when-why-how-to-use-it
+ *     picturebookden.blogspot.com/2014/02/the-wonderful-rule-of-3.html
+ *   Proactive protagonist, no preaching, spread-by-spread stakes
+ *     kidlit.com/picture-book-structure
+ *   Page turn: question on the right, payoff after the turn
+ *     made.live/mastering-page-turns-picture-books
+ *     laurasassitales.wordpress.com/2021/04/05
+ *   Chapter-book sentence length, single POV, no subplots
+ *     karencioffiwritingforchildren.com/2020/10/18/chapter-book-guidelines
+ *   Middle grade: the child owns the conflict AND resolves it; adults are
+ *   sidelined but must be rounded rather than 2D
+ *     nelsonagency.com/2019/01/the-most-common-pitfalls-in-middle-grade-manuscripts
+ *     nathanbransford.com/blog/2021/04/how-to-write-adult-characters-in-childrens-books
+ *     madeleinemilburn.co.uk/news/new-deals/writing-middle-grade-fiction
+ */
 export const AGE_BANDS_CATALOG: AgeBandDef[] = [
   {
     id: 'little',
     years: '3–5',
     words: { min: 20, max: 40 },
-    prompt:
-      'READ ALOUD TO A CHILD OF THREE TO FIVE, ON SOMEBODY\'S LAP. One or two sentences a page, short ones, and they must sound good said out loud — this book will be heard before it is read. Concrete nouns the child can point at. One thing happens per page and it is visible. A refrain the child can join in on by the third time, changed slightly each time. Nothing frightening and no question left open across more than two pages: at this age an unresolved worry is not suspense, it is a child who will not sleep. The surprise is a delight, not a twist.',
+    prompt: [
+      'READ ALOUD, ON SOMEBODY\'S LAP, TO A CHILD WHO CANNOT READ YET. It is heard before it is seen and it will be heard again tomorrow night, so build it to be anticipated rather than discovered.',
+      'THREE, AND THE THIRD IS DIFFERENT. The middle of the book is three of something — three tries, three places, three people asked. The first two set the expectation and the third pays it off, bigger or funnier or simply not what the pattern promised. Two is not a pattern; four is a queue. Each of the three must raise the stakes on the one before, or the reader stops worrying.',
+      'A REFRAIN THEY CAN JOIN IN ON. One short phrase or gesture, back with each of the three, one word different each time. By the third the child says it before you do. On the last page it returns changed for good.',
+      'THE PAGE TURN IS THE JOKE. End a page on the question and let the next one answer it. This is the one place a sentence may break in half — an ellipsis or a dash carrying it over the turn — and it must finish on the next page. Everywhere else, finish the sentence.',
+      'SOUND FIRST. It has to survive being said out loud by a tired adult at the end of a long day. Short declarative sentences. Physical verbs a child can do with their own body — stamp, squeeze, tiptoe, shove. Concrete nouns they can put a finger on. No abstract noun anywhere: not courage, not loneliness, not adventure. At this age a feeling is a thing somebody does.',
+      'SMALL VOCABULARY, USED AGAIN ON PURPOSE. Reuse your own words. Anticipation, not variety, is what a three-year-old is reading for.',
+      'THE CHILD SOLVES IT. Whatever goes wrong is put right by the child in the book, not by a grown-up arriving. One visible event a page. And the picture may quietly know something the words do not say — a child who cannot read spotting what the narrator has not mentioned is the best joke this format has.',
+      'NOTHING LEFT HANGING, AND NOTHING PREACHED. No question stays open across more than two pages: at this age an unresolved worry is not suspense, it is a child who will not go to sleep. The surprise is a delight, never a twist. The ending is physical — home, a light on, something warm, somebody\'s lap — and it never explains what the book was about.',
+    ].join(' '),
   },
   {
     id: 'middle',
     years: '6–8',
     words: { min: 50, max: 85 },
-    prompt:
-      'FOR A CHILD OF SIX TO EIGHT, WHO IS BEGINNING TO READ IT ALONE. Three to five sentences a page. A question may stay open for several pages and should — this is the age that discovers suspense and loves it. The child can now be trusted with something the character does not know yet, which is the beginning of real irony. Humour lands. A gentle wrongness in the middle of the book that the character has to put right themselves.',
+    prompt: [
+      'FOR A CHILD OF SIX TO EIGHT WHO IS BEGINNING TO READ IT ALONE, and who will be proud of having finished it. Sentences of roughly twelve to twenty words, varied deliberately, with the occasional deliberate fragment for emphasis — "No way." Three to five sentences a page.',
+      'ONE STORY, ONE HEAD. No subplot and no second point of view. A reader at this age is spending most of their effort on the words themselves, and a second thread is what makes them lose the first.',
+      'LET THEM TALK. Dialogue is the fastest thing on the page here and the part that gets reread. Character arrives through it: who somebody is shows in what they say, and more in what they will not say. Two friends disagreeing about something small is a whole chapter at six.',
+      'THE THING SOMEBODY HAS GOT WRONG. Give a character a wrong idea and let them keep it for several pages while the reader sees it plainly. That gap is the beginning of irony, and children of six discover it with enormous pleasure. The misunderstanding is not decoration — it drives the middle of the book and it is the child, not an adult, who resolves it.',
+      'SMALL STAKES, TAKEN ENTIRELY SERIOUSLY. A lost button, a promise made too fast, a cake meant for somebody else. The character treats it as enormous and the narrator does not comment. The distance between those two is where both the comedy and the tenderness live.',
+      'DO NOT EXPLAIN THE JOKE, and get drier as the feeling gets bigger. Understatement at the emotional moment is what keeps this age from feeling talked down to.',
+      'A LITTLE TROUBLE, SURVIVED. They do the thing they were told not to. The consequence is real, and survivable, and nobody stops loving them.',
+      'A LIST SOMEWHERE. One page that is a catalogue — what was in the bag, everyone who came, all the names they tried. Children of this age reread lists.',
+      'DO NOT DESCRIBE WHAT THE PICTURE ALREADY SHOWS, including what anybody looks like. A question may stay open across several pages, and should.',
+    ].join(' '),
   },
   {
     id: 'big',
     years: '9–12',
     words: { min: 100, max: 150 },
-    prompt:
-      'FOR A CHILD OF NINE TO TWELVE, READING ALONE. A full paragraph a page, with room for a second thread that pays off late. Do not explain feelings — at this age being told what to feel is what makes a book babyish. Let a page end unresolved. The character may be wrong about something for a stretch of the book and find out. Interiority is allowed: what they thought, what they did not say.',
+    prompt: [
+      'FOR A CHILD OF NINE TO TWELVE READING ALONE, IN BED, PAST THE TIME THEY WERE MEANT TO STOP. A full paragraph a page and a narrator who trusts them completely.',
+      'THE CONFLICT IS THEIRS AND SO IS THE SOLUTION. The child holds the central problem of this book and the child is the one who resolves it. The commonest failure at this age is an adult quietly taking the story over.',
+      'ADULTS ON THE SIDELINES, BUT REAL PEOPLE. Do not kill the parents off or send them away to clear the stage — that is the oldest cliché on this shelf. Keep them present, specific and rounded, and give at least one of them a life of their own that has nothing to do with the child. An adult entirely on the child\'s side who listens and still cannot fix the thing is worth more here than any rescue.',
+      'NEVER STATE A FEELING. At this age being told what to feel is exactly what makes a book babyish. Emotion arrives through what somebody does, what they say instead of the true thing, and what their body is doing while they say it. Interiority is wanted — what they thought, what they decided not to say — but the conclusion belongs to the reader.',
+      'NO RUN-ONS, NO SCENERY FOR ITS OWN SAKE. Sentences may take a subordinate clause and no more. A paragraph of description with nothing happening in it is where this reader puts the book down. Detail earns its place by being noticed by somebody, for a reason.',
+      'TWO THREADS. Plant a second thing early that looks incidental — a habit, an object, a remark made in passing — and let it turn out to be what matters at the end.',
+      'WRONG FOR A WHILE. The character may believe something untrue for a long stretch and find out, with the reader suspecting it first.',
+      'THE STRANGE, RENDERED PLAINLY. Whatever is extraordinary here is described in precise ordinary terms: its weight, its temperature, what it did to the grass, how it sounded in a closed room. Matter-of-fact description is what makes the impossible land at this age; adjectives are what make it silly.',
+      'A COST. Something is given up, not only gained. Small — this is a present — but real, and not quietly undone on the last page. Specific hours and specific weather: a page should know what time of day it is. A page may end unresolved, and should.',
+    ].join(' '),
   },
 ]
 

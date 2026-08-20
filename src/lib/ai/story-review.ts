@@ -106,8 +106,13 @@ const RULES = [
 const READING_RULES = [
   {
     id: 'shape',
-    title: 'A jornada acontece',
-    test: 'The sixteen spreads carry a real journey: an ordinary world worth missing, something that will not let the child stay, a hesitation with a reason behind it, a crossing, a hard part that is hard because of what page 1 established, and a return to the same place changed. Name the page each turn happens on. A book that is sixteen nice moments in a row fails this.',
+    title: 'A forma da idade acontece',
+    test: 'The sixteen spreads carry the shape given for THIS age band, and mark it against that shape only — a three-year-old\'s book is a pattern of three broken once and returning home, a six-year-old\'s is a misunderstanding found out, a nine-year-old\'s is a secret kept and what it cost. None of them is a hero\'s journey, and marking them against one fails books that are right. Name the page each turn happens on. Whatever the age, a book that is sixteen nice moments in a row fails this.',
+  },
+  {
+    id: 'age-craft',
+    title: 'Escrito para esta idade',
+    test: 'The prose does what this age band asks and avoids what it forbids. For 3–5: short declarative sentences, physical verbs, concrete nouns, no abstract nouns at all, a pattern of three, a refrain that changes by one word, nothing left open across more than two pages. For 6–8: dialogue carrying real weight, one character holding a wrong idea for several pages while the reader sees it, small stakes treated as enormous, no joke explained. For 9–12: no stated feelings anywhere, a second thread planted early and paid late, the extraordinary described in plain measurable terms, and something genuinely given up. Quote the page and the phrase for any failure.',
   },
   {
     id: 'mystery',
