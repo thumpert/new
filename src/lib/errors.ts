@@ -32,3 +32,51 @@ export function describeError(err: unknown): string {
 
   return parts.join(' ← ')
 }
+
+/**
+ * A failure that carries the status the provider answered with.
+ *
+ * The status lives in a field rather than in the sentence because the retry
+ * policy has to tell "the server said 429, wait and ask again" from "the
+ * server said 400, asking again only spends money to arrive at the same
+ * error". Reading that back out of a sentence breaks the moment the sentence
+ * contains any other number — and it did: `describeError` appends the port, so
+ * every TLS failure to Google carried ":443" and was misread as an HTTP 4xx,
+ * which switched off the network retry exactly where it was needed.
+ */
+export class ProviderError extends Error {
+  /** The HTTP status the provider answered with, if it answered at all. */
+  readonly status?: number
+  /** What the provider asked us to wait, from its Retry-After header. */
+  readonly retryAfterMs?: number
+  /** Set only when the status alone does not settle whether to ask again. */
+  readonly retryable?: boolean
+
+  constructor(
+    message: string,
+    options: {
+      status?: number
+      retryAfterMs?: number
+      retryable?: boolean
+      cause?: unknown
+    } = {},
+  ) {
+    super(message, { cause: options.cause })
+    this.name = 'ProviderError'
+    this.status = options.status
+    this.retryAfterMs = options.retryAfterMs
+    this.retryable = options.retryable
+  }
+}
+
+/** The first ProviderError anywhere in the cause chain. */
+export function providerError(err: unknown): ProviderError | undefined {
+  const seen = new Set<unknown>()
+  let current: unknown = err
+  while (current instanceof Error && !seen.has(current)) {
+    if (current instanceof ProviderError) return current
+    seen.add(current)
+    current = current.cause
+  }
+  return undefined
+}

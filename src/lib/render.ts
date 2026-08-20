@@ -1,5 +1,5 @@
 import { checkPage } from "./ai/review";
-import { describeError } from "./errors";
+import { describeError, providerError } from "./errors";
 import { getImageProvider, type ImageProvider } from "./images";
 import { fetchBinary, putFile } from "./storage";
 import { getOrder, saveOrder, updateOrder } from "./store";
@@ -44,24 +44,49 @@ const PAGE_CONCURRENCY = 3;
 const MAX_PAGE_ATTEMPTS = 3;
 
 /**
- * Retries a drawing when the network gives up on it, not when the model
- * draws badly.
+ * Retries a drawing that failed for a reason likely to have passed by the
+ * time we ask again.
  *
  * Observed in production: one page of twelve died with
  * "Headers Timeout Error (UND_ERR_HEADERS_TIMEOUT)" — Node stops waiting for
  * response headers after five minutes, and image generation occasionally
  * takes longer than that. The other eleven were fine, so this is weather
  * rather than a broken request, and the answer is to ask again.
- *
- * Deliberately narrow. A rejected prompt or a bad API key fails the same way
- * every time, and retrying those three times only spends the customer's money
- * to arrive at the same error more slowly. So only failures that carry no
- * HTTP status — the ones where the request never got an answer at all — are
- * retried.
  */
 const NETWORK_ATTEMPTS = 3;
 
-async function drawingWithRetry<T>(
+/**
+ * Whether a failed drawing is worth asking about again.
+ *
+ * A rejected prompt or a bad API key fails identically every time, and
+ * retrying those only spends the customer's money to arrive at the same error
+ * more slowly. A refused rate limit, an overloaded provider, a connection that
+ * dropped — those clear on their own.
+ *
+ * This used to be decided by looking for a three-digit number in the error
+ * text, which got it wrong in both directions and is why single pages kept
+ * dying on an otherwise finished book:
+ *
+ *   - `describeError` appends the port, so every TLS failure carried ":443",
+ *     matched as a 4xx, and was treated as a final answer — switching off the
+ *     network retry precisely where it was written to help.
+ *   - A 429 counted as "the server answered", so the one failure this app
+ *     actually meets with three pages in flight — Google rate-limiting one of
+ *     them — killed that page on the first refusal.
+ *
+ * So the status is read off the error object now, not out of its prose.
+ */
+export function worthAskingAgain(err: unknown): boolean {
+  const failure = providerError(err);
+  if (failure?.retryable !== undefined) return failure.retryable;
+
+  const status = failure?.status;
+  // No status at all: the request never got an answer. Weather.
+  if (status === undefined) return true;
+  return status === 408 || status === 429 || status >= 500;
+}
+
+export async function drawingWithRetry<T>(
   what: string,
   run: () => Promise<T>,
 ): Promise<T> {
@@ -71,15 +96,14 @@ async function drawingWithRetry<T>(
       return await run();
     } catch (err) {
       last = err;
-      const message = describeError(err);
-      // An answer from the server, however unwelcome, is not weather.
-      const answered = /\b(4\d\d|5\d\d)\b/.test(message);
-      if (answered || attempt === NETWORK_ATTEMPTS) break;
+      if (!worthAskingAgain(err) || attempt === NETWORK_ATTEMPTS) break;
       console.warn(
-        `${what}: attempt ${attempt} failed (${message}) — asking again`,
+        `${what}: attempt ${attempt} failed (${describeError(err)}) — asking again`,
       );
-      // A moment, in case the far side is briefly unwell.
-      await new Promise((resolve) => setTimeout(resolve, 2000 * attempt));
+      // A moment, in case the far side is briefly unwell — or exactly as long
+      // as it asked us to wait, when it bothered to say.
+      const wait = providerError(err)?.retryAfterMs ?? 2000 * attempt;
+      await new Promise((resolve) => setTimeout(resolve, wait));
     }
   }
   throw last;
@@ -433,25 +457,36 @@ async function renderOnePage(
           device: memory ? undefined : device,
         }).catch(() => ({ problems: [] as string[] }));
 
-      problems = (await check(stored)).problems;
+      // Everything from here on is an attempt to improve a page we already
+      // have, so nothing in here may lose it. It used to: a redraw that hit a
+      // rate limit threw straight out of the page, and the customer was told
+      // page 5 failed about a page that had been drawn, stored and checked.
+      // Failing to improve a drawing is not the same as failing to draw it.
+      try {
+        problems = (await check(stored)).problems;
 
-      for (
-        let attempt = 2;
-        attempt <= MAX_PAGE_ATTEMPTS && problems.length > 0;
-        attempt++
-      ) {
-        const retry = await draw(problems);
-        const retryStored = retry.placeholder
-          ? undefined
-          : await store(retry.url);
-        if (!retryStored) break;
+        for (
+          let attempt = 2;
+          attempt <= MAX_PAGE_ATTEMPTS && problems.length > 0;
+          attempt++
+        ) {
+          const retry = await draw(problems);
+          const retryStored = retry.placeholder
+            ? undefined
+            : await store(retry.url);
+          if (!retryStored) break;
 
-        const after = await check(retryStored);
-        if (after.problems.length < problems.length) {
-          image = retry;
-          stored = retryStored;
-          problems = after.problems;
+          const after = await check(retryStored);
+          if (after.problems.length < problems.length) {
+            image = retry;
+            stored = retryStored;
+            problems = after.problems;
+          }
         }
+      } catch (err) {
+        console.warn(
+          `page ${page.index}: could not be improved (${describeError(err)}) — keeping the drawing we have`,
+        );
       }
     }
 

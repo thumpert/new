@@ -361,7 +361,11 @@ export function BookProgress({
               {failedRenders.map((r) => r.index).join(', ')}
             </p>
             {firstFailure && (
-              <p className="mt-1 text-xs text-accent">{firstFailure}</p>
+              // Provider errors arrive as one long unbroken JSON payload;
+              // without this it runs straight out of the card on a phone.
+              <p className="mt-1 break-words text-xs text-accent">
+                {firstFailure}
+              </p>
             )}
             <p className="mt-1 text-xs text-ink-soft">
               {dict.progress.failedHint}

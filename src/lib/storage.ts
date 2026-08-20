@@ -1,6 +1,7 @@
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
 import { randomUUID } from 'node:crypto'
+import { ProviderError } from './errors'
 
 /**
  * Binary storage for reference photos and generated pages.
@@ -78,7 +79,10 @@ export function absoluteUrl(pathname: string): string {
 export async function fetchBinary(url: string): Promise<Buffer> {
   const res = await fetch(absoluteUrl(url))
   if (!res.ok) {
-    throw new Error(`Failed to fetch ${url}: ${res.status} ${res.statusText}`)
+    throw new ProviderError(
+      `Failed to fetch ${url}: ${res.status} ${res.statusText}`,
+      { status: res.status },
+    )
   }
   return Buffer.from(await res.arrayBuffer())
 }
