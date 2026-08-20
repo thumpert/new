@@ -1,9 +1,7 @@
-import Anthropic from '@anthropic-ai/sdk'
-import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod'
 import * as z from 'zod'
 import { pagesFor } from '../catalog'
+import { askForJson } from './ask'
 import { reviewStoryboard } from './story-review'
-import { record } from './usage'
 import type {
   BookBrief,
   InterviewQuestion,
@@ -23,8 +21,6 @@ import {
   titlesUser,
 } from './prompts'
 
-const MODEL = 'claude-opus-5'
-
 /**
  * How many times the story may be repaired before it goes to the customer.
  *
@@ -34,17 +30,6 @@ const MODEL = 'claude-opus-5'
  * of drawings.
  */
 const MAX_STORY_ATTEMPTS = 3
-
-let client: Anthropic | null = null
-
-function getClient(): Anthropic {
-  if (!client) client = new Anthropic()
-  return client
-}
-
-export function hasAnthropicKey(): boolean {
-  return Boolean(process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_AUTH_TOKEN)
-}
 
 /* ------------------------------------------------------------------ *
  * Schemas — these double as the structured-output contract and as the
@@ -129,17 +114,17 @@ export async function generateInterviewQuestions(
   brief: BookBrief,
   count = 9,
 ): Promise<InterviewQuestion[]> {
-  const response = await getClient().messages.parse({
-    model: MODEL,
-    max_tokens: 8000,
-    thinking: { type: 'adaptive' },
+  // Roughly 250 tokens per question once the three suggestions are counted,
+  // and adaptive thinking spends from this same budget before it starts
+  // writing — which is what put the old 8000 over the edge.
+  const parsed = await askForJson({
+    what: 'interview questions',
+    label: 'perguntas da entrevista',
+    schema: InterviewSchema,
+    maxTokens: 24_000,
     system: INTERVIEW_SYSTEM,
-    messages: [{ role: 'user', content: interviewUser(brief, count) }],
-    output_config: { format: zodOutputFormat(InterviewSchema) },
+    user: interviewUser(brief, count),
   })
-
-  record('perguntas da entrevista', MODEL, response.usage)
-  const parsed = expectParsed(response.parsed_output, 'interview questions')
 
   // Keep same-group questions adjacent even if the model interleaves them —
   // the UI shows one group per screen and a split group reads as a bug.
@@ -162,19 +147,16 @@ export async function generateInterviewQuestions(
 }
 
 export async function generateIdeas(brief: BookBrief): Promise<StoryIdea[]> {
-  const response = await getClient().messages.parse({
-    model: MODEL,
-    // Four ideas each carrying a summary, three highlights, a turn and a guide
-    // object. At 8000 the reply came back cut off mid-string.
-    max_tokens: 16000,
-    thinking: { type: 'adaptive' },
+  // Four ideas each carrying a summary, three highlights, a turn and a guide
+  // object. At 8000 the reply came back cut off mid-string.
+  const parsed = await askForJson({
+    what: 'story ideas',
+    label: 'ideias de historia',
+    schema: IdeasSchema,
+    maxTokens: 24_000,
     system: IDEAS_SYSTEM,
-    messages: [{ role: 'user', content: ideasUser(brief) }],
-    output_config: { format: zodOutputFormat(IdeasSchema) },
+    user: ideasUser(brief),
   })
-
-  record('ideias de historia', MODEL, response.usage)
-  const parsed = expectParsed(response.parsed_output, 'story ideas')
   return parsed.ideas.slice(0, 4).map((idea, i) => ({
     id: `idea${i + 1}`,
     title: idea.title,
@@ -196,17 +178,16 @@ export async function generateTitleSuggestions(
   brief: BookBrief,
   idea: StoryIdea,
 ): Promise<string[]> {
-  const response = await getClient().messages.parse({
-    model: MODEL,
-    max_tokens: 4000,
-    thinking: { type: 'adaptive' },
+  // Three short strings, but adaptive thinking still needs headroom to weigh
+  // them: the output is tiny, the budget is not.
+  const parsed = await askForJson({
+    what: 'title suggestions',
+    label: 'sugestoes de titulo',
+    schema: TitlesSchema,
+    maxTokens: 12_000,
     system: TITLES_SYSTEM,
-    messages: [{ role: 'user', content: titlesUser(brief, idea) }],
-    output_config: { format: zodOutputFormat(TitlesSchema) },
+    user: titlesUser(brief, idea),
   })
-
-  record('sugestoes de titulo', MODEL, response.usage)
-  const parsed = expectParsed(response.parsed_output, 'title suggestions')
   return parsed.titles.map((t) => t.trim()).filter(Boolean).slice(0, 3)
 }
 
@@ -216,17 +197,19 @@ export async function generateStoryboard(
 ): Promise<Storyboard> {
   const pageCount = pagesFor(brief.finish)
 
-  const response = await getClient().messages.parse({
-    model: MODEL,
-    max_tokens: 16000,
-    thinking: { type: 'adaptive' },
-    system: STORYBOARD_SYSTEM,
-    messages: [{ role: 'user', content: storyboardUser(brief, idea, pageCount) }],
-    output_config: { format: zodOutputFormat(StoryboardSchema) },
-  })
+  // The largest answer by far: every page carries narration, an optional
+  // translation and an English scene description. The ceiling scales with the
+  // book so a long one cannot quietly hit a limit a short one never reached.
+  const storyboardTokens = 16_000 + pageCount * 1_500
 
-  record('roteiro (rascunho)', MODEL, response.usage)
-  let parsed = expectParsed(response.parsed_output, 'storyboard')
+  let parsed = await askForJson({
+    what: 'storyboard',
+    label: 'roteiro (rascunho)',
+    schema: StoryboardSchema,
+    maxTokens: storyboardTokens,
+    system: STORYBOARD_SYSTEM,
+    user: storyboardUser(brief, idea, pageCount),
+  })
 
   // Then the same loop the pages get: mark it against the rules, repair only
   // what failed, mark it again. Text is the cheap place to do this — a story
@@ -248,28 +231,27 @@ export async function generateStoryboard(
     }
     if (review.passed) break
 
-    const repaired = await getClient().messages.parse({
-      model: MODEL,
-      max_tokens: 16000,
-      thinking: { type: 'adaptive' },
-      system: REVISE_SYSTEM,
-      messages: [
-        {
-          role: 'user',
-          content: reviseUser(
-            idea,
-            JSON.stringify(parsed, null, 2),
-            review.failures,
-          ),
-        },
-      ],
-      output_config: { format: zodOutputFormat(StoryboardSchema) },
-    })
-
     // A repair that comes back unusable leaves the previous draft standing.
-    // Losing a revision is worth less than losing the order.
-    record(`roteiro (conserto ${attempt})`, MODEL, repaired.usage)
-    if (repaired.parsed_output) parsed = repaired.parsed_output
+    // Losing a revision is worth less than losing the order. The rewrite is
+    // a whole storyboard, so it needs the same ceiling as the draft.
+    try {
+      parsed = await askForJson({
+        what: 'storyboard repair',
+        label: `roteiro (conserto ${attempt})`,
+        schema: StoryboardSchema,
+        maxTokens: storyboardTokens,
+        system: REVISE_SYSTEM,
+        user: reviseUser(idea, JSON.stringify(parsed, null, 2), review.failures),
+      })
+    } catch (err) {
+      if (process.env.STORY_REVIEW_LOG) {
+        console.log(
+          `  conserto ${attempt} falhou, mantendo o rascunho: ${
+            err instanceof Error ? err.message : err
+          }`,
+        )
+      }
+    }
   }
 
   return toStoryboard(parsed, brief, idea)
@@ -310,9 +292,3 @@ function toStoryboard(
   }
 }
 
-function expectParsed<T>(parsed: T | null | undefined, what: string): T {
-  if (!parsed) {
-    throw new Error(`The model did not return usable ${what}. Try again.`)
-  }
-  return parsed
-}

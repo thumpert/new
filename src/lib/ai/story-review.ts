@@ -1,8 +1,6 @@
-import Anthropic from '@anthropic-ai/sdk'
-import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod'
 import * as z from 'zod'
 import { getAgeBand, getTone } from '../catalog'
-import { record } from './usage'
+import { askForJson } from './ask'
 import type { BookBrief, StoryIdea, Storyboard } from '../types'
 
 /**
@@ -24,15 +22,6 @@ import type { BookBrief, StoryIdea, Storyboard } from '../types'
  * "like" someone produces pastiche of that person's protected work, and
  * describing what the technique actually does produces the technique.
  */
-const MODEL = 'claude-opus-5'
-
-let client: Anthropic | null = null
-
-function getClient(): Anthropic {
-  if (!client) client = new Anthropic()
-  return client
-}
-
 const RULES = [
   {
     id: 'chaining',
@@ -201,40 +190,35 @@ export async function reviewStoryboard(
     .map((p) => `${p.index}. ${p.narration}`)
     .join('\n')
 
-  const response = await getClient().messages.parse({
-    model: MODEL,
-    max_tokens: 8000,
-    thinking: { type: 'adaptive' },
+  // One verdict per rule, each with its reasoning, plus whatever adaptive
+  // thinking spends reading a 32-page storyboard first.
+  const parsed = await askForJson({
+    what: 'story review',
+    label: 'revisao do texto',
+    schema: VerdictSchema,
+    maxTokens: 24_000,
     system: systemFor(rules),
-    messages: [
-      {
-        role: 'user',
-        content: [
-          `THE TONE THIS BOOK WAS ORDERED IN: ${tone.prompt}`,
-          `THE TURN THE IDEA PROMISED: ${idea.turn}`,
-          idea.device ? `THE GUIDE OBJECT: ${idea.device}` : '',
-          '',
-          'WHAT THE CUSTOMER TOLD US:',
-          ...brief.interview
-            .filter((a) => a.answer.trim())
-            .map((a) => `- ${a.question} ${a.answer}`),
-          ...brief.characters.map(
-            (c) =>
-              `- ${c.name}: ${c.personality ?? ''} ${c.storyNotes ?? ''}`.trim(),
-          ),
-          '',
-          'THE STORYBOARD:',
-          pages,
-        ]
-          .filter(Boolean)
-          .join('\n'),
-      },
-    ],
-    output_config: { format: zodOutputFormat(VerdictSchema) },
+    user: [
+      `THE TONE THIS BOOK WAS ORDERED IN: ${tone.prompt}`,
+      `THE TURN THE IDEA PROMISED: ${idea.turn}`,
+      idea.device ? `THE GUIDE OBJECT: ${idea.device}` : '',
+      '',
+      'WHAT THE CUSTOMER TOLD US:',
+      ...brief.interview
+        .filter((a) => a.answer.trim())
+        .map((a) => `- ${a.question} ${a.answer}`),
+      ...brief.characters.map(
+        (c) => `- ${c.name}: ${c.personality ?? ''} ${c.storyNotes ?? ''}`.trim(),
+      ),
+      '',
+      'THE STORYBOARD:',
+      pages,
+    ]
+      .filter(Boolean)
+      .join('\n'),
   })
 
-  record('revisao do texto', MODEL, response.usage)
-  const verdicts = response.parsed_output?.verdicts ?? []
+  const verdicts = parsed.verdicts ?? []
   const failures = [
     ...measureLength(brief, storyboard),
     ...verdicts
