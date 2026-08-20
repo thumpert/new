@@ -64,6 +64,9 @@ export const chooseIdeaSchema = z.object({
 
 export const chooseCoverSchema = z.object({
   kind: z.enum(COVER_KINDS as [string, ...string[]]),
+  // Optional so a client that predates the second take still chooses the
+  // first one rather than being rejected.
+  variant: z.union([z.literal(1), z.literal(2)]).optional(),
 })
 
 export type BriefInput = z.infer<typeof briefSchema>

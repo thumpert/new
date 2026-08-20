@@ -108,19 +108,21 @@ async function main() {
   const covers = atChoice?.covers ?? []
   console.log(`status na escolha: ${atChoice?.status}`)
   console.log(
-    `capas: ${covers.map((c) => `${c.kind}=${c.status}`).join(', ')}`,
+    `capas: ${covers.map((c) => `${c.kind}${c.variant ?? ''}=${c.status}`).join(', ')}`,
   )
   if (atChoice?.status !== 'choosing-cover') {
     throw new Error(`expected to be waiting on a cover, got ${atChoice?.status}`)
   }
 
   // Second half only starts once a cover is chosen.
-  await chooseCover(order.id, 'scene')
+  await chooseCover(order.id, 'scene', 2)
   await renderPageStage(order.id)
 
   const rendered = await getOrder(order.id)
   if (!rendered) throw new Error('order vanished')
-  console.log(`capa escolhida: ${rendered.chosenCoverKind}`)
+  console.log(
+    `capa escolhida: ${rendered.chosenCoverKind} (versao ${rendered.chosenCoverVariant})`,
+  )
   console.log(
     `contracapa: ${rendered.covers?.find((c) => c.kind === 'back')?.status}`,
   )

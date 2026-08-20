@@ -1,7 +1,7 @@
 import { chooseCover } from '@/lib/render'
 import { getOrder } from '@/lib/store'
 import { chooseCoverSchema } from '@/lib/validation'
-import type { CoverKind } from '@/lib/types'
+import type { CoverKind, CoverVariant } from '@/lib/types'
 import { badRequest, jsonError, notFound } from '../../../_lib/respond'
 
 type Context = { params: Promise<{ id: string }> }
@@ -39,9 +39,13 @@ export async function POST(request: Request, { params }: Context) {
       return badRequest('The covers are not ready to be chosen yet.')
     }
 
-    await chooseCover(id, parsed.data.kind as CoverKind)
+    const variant = (parsed.data.variant ?? 1) as CoverVariant
+    await chooseCover(id, parsed.data.kind as CoverKind, variant)
 
-    return Response.json({ chosenCoverKind: parsed.data.kind })
+    return Response.json({
+      chosenCoverKind: parsed.data.kind,
+      chosenCoverVariant: variant,
+    })
   } catch (err) {
     return jsonError(err)
   }

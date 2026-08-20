@@ -67,7 +67,7 @@ export class MockProvider implements ImageProvider {
   async generateCover(req: CoverRequest): Promise<GeneratedImage> {
     await delay()
     return {
-      url: `mock:cover/${req.kind}`,
+      url: `mock:cover/${req.kind}${req.variant ?? ''}`,
       placeholder: true,
       promptPreview:
         req.kind === 'back'
@@ -78,6 +78,7 @@ export class MockProvider implements ImageProvider {
               finish: req.finish,
             })
           : coverPrompt(req.kind, {
+              variant: req.variant,
               artStyleId: req.artStyleId,
               characters: req.characters,
               place: req.place,

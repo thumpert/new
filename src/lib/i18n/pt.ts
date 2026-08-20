@@ -188,12 +188,23 @@ export const pt = {
     coverReady: 'Escolha a capa para continuar',
     chooseCoverTitle: 'Qual vai ser a capa?',
     chooseCoverHint:
-      'As duas são coloridas, no estilo que você escolheu. O livro só começa a ser desenhado depois desta escolha.',
+      'Quatro capas: duas de cada enquadramento, todas coloridas no estilo que você escolheu. Compare as duas versões de cada uma — o livro só começa a ser desenhado depois desta escolha.',
     chooseThis: 'Escolher esta',
     choosingCover: 'Escolhendo…',
     coverFailed: 'Esta capa não pôde ser desenhada.',
     failedPages: 'Não deu para desenhar:',
     failedHint: 'Toque no número da página para vê-la e tentar de novo.',
+    coverVariant: 'Versão {n}',
+    coverTakes: {
+      portrait: {
+        1: 'Os dois de frente, grandes e no centro, olhando para quem abre o presente.',
+        2: 'Mais perto e de lado, virados um para o outro, um passo à frente do outro.',
+      },
+      scene: {
+        1: 'O mundo da história aberto, com eles dentro dele.',
+        2: 'Vistos por trás, de cima, entrando na história — o lugar ocupa quase tudo.',
+      },
+    },
     coverKinds: {
       portrait: {
         label: 'Retrato',

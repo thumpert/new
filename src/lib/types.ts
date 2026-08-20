@@ -301,9 +301,28 @@ export type CoverKind = 'portrait' | 'scene'
 
 export const COVER_KINDS: CoverKind[] = ['portrait', 'scene']
 
+/**
+ * How many of each kind are drawn.
+ *
+ * Two, because one portrait and one scene is not a choice between styles, it
+ * is a choice between two pictures that happen to differ in everything at
+ * once. With two of each the customer can prefer the framing and still reject
+ * the take — and the second of a pair is a different composition rather than
+ * a reroll, or it would only be the same cover with the heads moved.
+ */
+export const COVER_VARIANTS = [1, 2] as const
+
+export type CoverVariant = (typeof COVER_VARIANTS)[number]
+
 export interface CoverRender {
   /** 'back' is the closing image, drawn only after a front cover is chosen. */
   kind: CoverKind | 'back'
+  /**
+   * Which of the two takes of this kind. Absent on the back cover, which has
+   * only one, and on orders written before there were two — everything that
+   * reads it treats absent as 1 rather than assuming a backfill nobody ran.
+   */
+  variant?: CoverVariant
   status: RenderStatus
   imageUrl?: string
   error?: string
@@ -386,6 +405,8 @@ export interface Order {
   covers?: CoverRender[]
   /** Which front cover the customer picked. Nothing else renders until it is set. */
   chosenCoverKind?: CoverKind
+  /** Which take of that kind. Absent means the first, for older orders. */
+  chosenCoverVariant?: CoverVariant
   /** The step currently being worked on, if any. */
   task?: OrderTask
   /** Relative path of the generated PDF once the book is ready. */

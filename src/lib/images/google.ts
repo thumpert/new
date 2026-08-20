@@ -125,6 +125,7 @@ export class GoogleProvider implements ImageProvider {
             finish: req.finish,
           })
         : coverPrompt(req.kind, {
+            variant: req.variant,
             artStyleId: req.artStyleId,
             characters: req.characters,
             place: req.place,

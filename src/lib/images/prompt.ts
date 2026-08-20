@@ -154,6 +154,15 @@ export type CoverKind = 'portrait' | 'scene'
 export function coverPrompt(
   kind: CoverKind,
   opts: {
+    /**
+     * Which of the two takes of this kind.
+     *
+     * The second is given a different composition rather than being asked
+     * again with the same words. Two runs of one prompt differ in the way two
+     * photographs from the same burst differ — the customer is offered a
+     * choice and cannot see one, which is worse than offering only one cover.
+     */
+    variant?: 1 | 2
     artStyleId: ArtStyleId
     characters: Character[]
     /** Where the story happens, in the customer's words. */
@@ -167,18 +176,32 @@ export function coverPrompt(
   const style = getArtStyle(opts.artStyleId)
   const names = opts.characters.map((c) => c.name)
 
+  const second = opts.variant === 2
+
   const composition =
     kind === 'portrait'
-      ? [
-          'Book cover portrait: the characters posed together, large and central, facing the viewer as if looking at the person holding the book.',
-          'They fill most of the frame from roughly the waist up, close enough to read every expression.',
-          `Behind them, a simple suggestion of ${terminated(opts.place)} — enough to place them, not enough to compete.`,
-        ]
-      : [
-          'Book cover scene: a wide establishing shot of the world of the story, with the characters inside it rather than posed for the camera.',
-          `The moment: ${terminated(opts.moment)}`,
-          'The characters read clearly but occupy a modest part of the frame; the setting carries the rest.',
-        ]
+      ? second
+        ? [
+            'Book cover portrait, second take: the characters at three-quarter view, turned slightly towards each other rather than at the viewer, one a step ahead of the other.',
+            'Framed closer and off-centre — heads and shoulders, set to one side of the frame with clear space beside them.',
+            `Behind them, ${terminated(opts.place)} reduced almost to a flat shape — a silhouette of the place rather than a drawing of it.`,
+          ]
+        : [
+            'Book cover portrait: the characters posed together, large and central, facing the viewer as if looking at the person holding the book.',
+            'They fill most of the frame from roughly the waist up, close enough to read every expression.',
+            `Behind them, a simple suggestion of ${terminated(opts.place)} — enough to place them, not enough to compete.`,
+          ]
+      : second
+        ? [
+            'Book cover scene, second take: seen from behind and slightly above, looking over the characters into the world of the story as they head into it.',
+            `The moment: ${terminated(opts.moment)}`,
+            'The characters are small against the setting, near the lower third, with the world opening away in front of them. Faces need not be visible.',
+          ]
+        : [
+            'Book cover scene: a wide establishing shot of the world of the story, with the characters inside it rather than posed for the camera.',
+            `The moment: ${terminated(opts.moment)}`,
+            'The characters read clearly but occupy a modest part of the frame; the setting carries the rest.',
+          ]
 
   return [
     'Vertical portrait cover illustration for a personalised children’s book.',

@@ -71,6 +71,8 @@ export interface GeneratedImage {
 export interface CoverRequest {
   /** 'back' is the closing image; the other two are the front-cover options. */
   kind: CoverKind | 'back'
+  /** Which of the two takes of that kind. Unused by the back cover. */
+  variant?: 1 | 2
   artStyleId: ArtStyleId
   /** Covers are always coloured; this only decides how the sheets are read. */
   finish: BookFinish

@@ -5,11 +5,13 @@ import { fetchBinary, putFile } from "./storage";
 import { getOrder, saveOrder, updateOrder } from "./store";
 import {
   COVER_KINDS,
+  COVER_VARIANTS,
   type ArtStyleId,
   type BookFinish,
   type Character,
   type CoverKind,
   type CoverRender,
+  type CoverVariant,
   type MemoryPhoto,
   type Order,
   type PageRender,
@@ -143,7 +145,16 @@ export async function renderCoverStage(orderId: string): Promise<void> {
     status: "covers",
     error: undefined,
     chosenCoverKind: undefined,
-    covers: COVER_KINDS.map((kind) => ({ kind, status: "pending" as const })),
+    // Two takes of each kind, so the customer is choosing between framings
+    // and between takes rather than between two pictures that differ in
+    // everything at once.
+    covers: COVER_KINDS.flatMap((kind) =>
+      COVER_VARIANTS.map((variant) => ({
+        kind,
+        variant,
+        status: "pending" as const,
+      })),
+    ),
     // The page slots exist from the start so the progress screen can show the
     // whole shape of the job, not just the part currently running.
     renders: order.storyboard.pages.map((page) => ({
@@ -154,7 +165,11 @@ export async function renderCoverStage(orderId: string): Promise<void> {
 
   const characters = await renderCharacterSheets(orderId, provider);
   await Promise.all(
-    COVER_KINDS.map((kind) => renderCover(orderId, provider, characters, kind)),
+    COVER_KINDS.flatMap((kind) =>
+      COVER_VARIANTS.map((variant) =>
+        renderCover(orderId, provider, characters, kind, variant),
+      ),
+    ),
   );
 
   await updateOrder(orderId, (current) => {
@@ -196,12 +211,13 @@ export async function renderPageStage(orderId: string): Promise<void> {
 export async function chooseCover(
   orderId: string,
   kind: CoverKind,
+  variant: CoverVariant = 1,
 ): Promise<void> {
   const order = await getOrder(orderId);
   if (!order) throw new Error(`Order ${orderId} not found`);
 
-  const cover = (order.covers ?? []).find((c) => c.kind === kind);
-  if (!cover) throw new Error(`This book has no ${kind} cover.`);
+  const cover = (order.covers ?? []).find((c) => sameCover(c, kind, variant));
+  if (!cover) throw new Error(`This book has no ${kind} cover ${variant}.`);
   if (cover.status !== "done") {
     throw new Error(`The ${kind} cover was not drawn, so it cannot be chosen.`);
   }
@@ -209,6 +225,7 @@ export async function chooseCover(
   await updateOrder(orderId, (current) => ({
     ...current,
     chosenCoverKind: kind,
+    chosenCoverVariant: variant,
     // A rebuild has to pick the new cover up.
     pdfPath: undefined,
   }));
@@ -226,8 +243,12 @@ async function renderCover(
   provider: ImageProvider,
   characters: Character[],
   kind: CoverKind | "back",
+  variant?: CoverVariant,
 ): Promise<void> {
-  await patchCover(orderId, kind, { status: "generating", error: undefined });
+  await patchCover(orderId, kind, variant, {
+    status: "generating",
+    error: undefined,
+  });
 
   const order = await getOrder(orderId);
   if (!order?.storyboard)
@@ -239,9 +260,10 @@ async function renderCover(
   const moment = pages[Math.floor(pages.length / 2)]?.sceneDescription ?? "";
 
   try {
-    const image = await drawingWithRetry(`cover ${kind}`, () =>
+    const image = await drawingWithRetry(`cover ${kind}${variant ?? ""}`, () =>
       provider.generateCover({
         kind,
+        variant,
         artStyleId: order.brief.artStyleId,
         finish: order.brief.finish,
         characters,
@@ -253,33 +275,54 @@ async function renderCover(
       }),
     );
 
-    await patchCover(orderId, kind, {
+    await patchCover(orderId, kind, variant, {
       status: "done",
       imageUrl: image.placeholder ? undefined : await store(image.url),
       placeholder: image.placeholder,
       promptPreview: image.promptPreview,
     });
   } catch (err) {
-    await patchCover(orderId, kind, {
+    await patchCover(orderId, kind, variant, {
       status: "failed",
       error: describeError(err),
     });
   }
 }
 
+/**
+ * Whether this is the cover being named.
+ *
+ * A cover used to be identified by its kind alone, which stopped being enough
+ * the moment there were two of each. Orders written before that have no
+ * variant on them at all, so an absent one counts as the first — otherwise an
+ * old book would lose the cover its customer already chose.
+ */
+function sameCover(
+  cover: CoverRender,
+  kind: CoverKind | "back",
+  variant?: CoverVariant,
+): boolean {
+  if (cover.kind !== kind) return false;
+  if (kind === "back") return true;
+  return (cover.variant ?? 1) === (variant ?? 1);
+}
+
 async function patchCover(
   orderId: string,
   kind: CoverKind | "back",
+  variant: CoverVariant | undefined,
   patch: Partial<CoverRender>,
 ): Promise<Order | null> {
   return updateOrder(orderId, (current) => {
     const covers = current.covers ?? [];
-    const existing = covers.find((c) => c.kind === kind);
+    const existing = covers.find((c) => sameCover(c, kind, variant));
     return {
       ...current,
       covers: existing
-        ? covers.map((c) => (c.kind === kind ? { ...c, ...patch } : c))
-        : [...covers, { kind, status: "pending" as const, ...patch }],
+        ? covers.map((c) =>
+            sameCover(c, kind, variant) ? { ...c, ...patch } : c,
+          )
+        : [...covers, { kind, variant, status: "pending" as const, ...patch }],
     };
   });
 }
@@ -288,8 +331,28 @@ async function patchCover(
 async function settleStatus(orderId: string): Promise<void> {
   await updateOrder(orderId, (current) => {
     const failed = (current.renders ?? []).filter((r) => r.status === "failed");
-    if (failed.length === 0) {
+    // The back cover is drawn alongside the pages and was never counted here,
+    // so a book whose closing illustration died came back "ready" and the PDF
+    // quietly printed the typographic fallback instead. Nobody was told, and
+    // the first anyone knew was the finished book.
+    const backFailed = (current.covers ?? []).some(
+      (c) => c.kind === "back" && c.status === "failed",
+    );
+    if (failed.length === 0 && !backFailed) {
       return { ...current, status: "ready", error: undefined };
+    }
+
+    if (failed.length === 0) {
+      const reason = (current.covers ?? []).find(
+        (c) => c.kind === "back" && c.error,
+      )?.error;
+      return {
+        ...current,
+        status: "failed",
+        error: reason
+          ? `The back cover could not be drawn: ${reason}`
+          : "The back cover could not be drawn.",
+      };
     }
 
     // This used to read "1 page(s) failed to render." — a count, which the
@@ -299,13 +362,14 @@ async function settleStatus(orderId: string): Promise<void> {
     const pages = failed.map((r) => r.index).join(", ");
     const label = failed.length === 1 ? `Page ${pages}` : `Pages ${pages}`;
     const reason = failed.find((r) => r.error)?.error;
+    const andBack = backFailed ? " The back cover failed too." : "";
 
     return {
       ...current,
       status: "failed",
       error: reason
-        ? `${label} could not be drawn: ${reason}`
-        : `${label} could not be drawn.`,
+        ? `${label} could not be drawn: ${reason}${andBack}`
+        : `${label} could not be drawn.${andBack}`,
     };
   });
 }

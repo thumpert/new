@@ -2,8 +2,13 @@
 
 import { useEffect, useState } from 'react'
 import type { Dictionary } from '@/lib/i18n'
-import type { CoverKind, Order } from '@/lib/types'
+import type { CoverKind, CoverVariant, Order } from '@/lib/types'
 import { Button, ErrorNote } from './ui'
+
+/** One card's identity: kind alone stopped being unique at two takes each. */
+function coverId(kind: CoverKind, variant: CoverVariant): string {
+  return `${kind}-${variant}`
+}
 
 /** Polls while the pages are drawn, then offers the finished PDF. */
 export function BookProgress({
@@ -17,7 +22,8 @@ export function BookProgress({
   const [error, setError] = useState<string | null>(null)
   const [selected, setSelected] = useState<number | null>(null)
   const [regenerating, setRegenerating] = useState<number | null>(null)
-  const [choosingCover, setChoosingCover] = useState<CoverKind | null>(null)
+  /** The cover being locked in, as "kind-variant" — the id of one card. */
+  const [choosingCover, setChoosingCover] = useState<string | null>(null)
   const [decidingStory, setDecidingStory] = useState<'approve' | 'rewrite' | null>(
     null,
   )
@@ -102,14 +108,14 @@ export function BookProgress({
   }
 
   /** Locks in a cover and lets the page render start. */
-  async function pickCover(kind: CoverKind) {
-    setChoosingCover(kind)
+  async function pickCover(kind: CoverKind, variant: CoverVariant) {
+    setChoosingCover(coverId(kind, variant))
     setError(null)
     try {
       const res = await fetch(`/api/orders/${orderId}/cover`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ kind }),
+        body: JSON.stringify({ kind, variant }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? dict.common.error)
@@ -232,14 +238,20 @@ export function BookProgress({
             {dict.progress.chooseCoverHint}
           </p>
 
-          <div className="mt-5 grid gap-4 sm:grid-cols-2">
+          {/* Two columns even on a phone. Four covers at full width is a
+              scroll through four pictures, and a choice you cannot see side
+              by side is not a choice — you are comparing the last one against
+              your memory of the first. */}
+          <div className="mt-5 grid grid-cols-2 gap-3 sm:gap-4">
             {frontCovers.map((cover) => {
               const kind = cover.kind as CoverKind
+              const variant = (cover.variant ?? 1) as CoverVariant
+              const id = coverId(kind, variant)
               const usable = cover.status === 'done' && Boolean(cover.imageUrl)
               return (
                 <div
-                  key={cover.kind}
-                  className="overflow-hidden rounded-2xl border border-line bg-paper-raised"
+                  key={id}
+                  className="flex flex-col overflow-hidden rounded-2xl border border-line bg-paper-raised"
                 >
                   <div className="flex aspect-[3/4] items-center justify-center bg-paper">
                     {cover.imageUrl ? (
@@ -257,19 +269,36 @@ export function BookProgress({
                       </p>
                     )}
                   </div>
-                  <div className="p-4">
-                    <p className="font-serif text-lg text-ink">
-                      {dict.progress.coverKinds[kind].label}
+                  <div className="flex flex-1 flex-col p-3 sm:p-4">
+                    <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-1">
+                      <p className="font-serif text-base text-ink sm:text-lg">
+                        {dict.progress.coverKinds[kind].label}
+                      </p>
+                      {/* Two takes of each framing, so the card has to say
+                          which one it is — otherwise the grid reads as four
+                          unrelated covers and the pairing is invisible. */}
+                      <span className="shrink-0 text-xs uppercase tracking-wide text-ink-soft">
+                        {dict.progress.coverVariant.replace(
+                          '{n}',
+                          String(variant),
+                        )}
+                      </span>
+                    </div>
+                    {/* The take's own description, not the kind's. Two cards
+                        reading "the characters together, large and central"
+                        under two different pictures is not a choice being
+                        offered, it is the same card printed twice. */}
+                    <p className="mt-1 flex-1 text-xs text-ink-soft sm:text-sm">
+                      {dict.progress.coverTakes[kind][variant]}
                     </p>
-                    <p className="mt-1 text-sm text-ink-soft">
-                      {dict.progress.coverKinds[kind].description}
-                    </p>
-                    <div className="mt-4">
+                    {/* Pushed to the bottom so the two buttons of a pair sit
+                        on the same line however long the descriptions run. */}
+                    <div className="mt-3 pt-1 sm:mt-4">
                       <Button
                         disabled={!usable || choosingCover !== null}
-                        onClick={() => void pickCover(kind)}
+                        onClick={() => void pickCover(kind, variant)}
                       >
-                        {choosingCover === kind
+                        {choosingCover === id
                           ? dict.progress.choosingCover
                           : dict.progress.chooseThis}
                       </Button>

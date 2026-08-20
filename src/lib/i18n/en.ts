@@ -188,12 +188,23 @@ export const en: Dictionary = {
     coverReady: 'Choose a cover to carry on',
     chooseCoverTitle: 'Which one is the cover?',
     chooseCoverHint:
-      'Both are in colour, in the style you picked. The book is only drawn once you have chosen.',
+      'Four covers: two takes of each framing, all in colour in the style you picked. Compare the pair before you pick — the book is only drawn once you have chosen.',
     chooseThis: 'Choose this one',
     choosingCover: 'Choosing…',
     coverFailed: 'This cover could not be drawn.',
     failedPages: 'Could not draw:',
     failedHint: 'Tap a page number to open it and try again.',
+    coverVariant: 'Take {n}',
+    coverTakes: {
+      portrait: {
+        1: 'The two face on, large and central, looking at whoever opens the present.',
+        2: 'Closer and off to one side, turned towards each other, one a step ahead.',
+      },
+      scene: {
+        1: 'The world of the story opened out, with them inside it.',
+        2: 'Seen from behind and above, heading into it — the place takes almost everything.',
+      },
+    },
     coverKinds: {
       portrait: {
         label: 'Portrait',

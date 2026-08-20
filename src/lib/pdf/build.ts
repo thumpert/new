@@ -225,8 +225,15 @@ async function drawCover(
   const title = order.storyboard!.title
   const names = order.brief.characters.map((c) => c.name).filter(Boolean)
 
+  // Matched on the take as well as the kind: there are two of each, and
+  // matching on kind alone would hand the printer whichever of the pair the
+  // array happened to hold first. An order from before there were two carries
+  // no variant, and its single cover is the first by definition.
   const chosen = (order.covers ?? []).find(
-    (c) => c.kind === order.chosenCoverKind && c.imageUrl,
+    (c) =>
+      c.kind === order.chosenCoverKind &&
+      (c.variant ?? 1) === (order.chosenCoverVariant ?? 1) &&
+      c.imageUrl,
   )
 
   if (chosen?.imageUrl) {
