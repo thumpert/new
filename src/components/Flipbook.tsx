@@ -222,15 +222,18 @@ function Sheet({ sheet, title }: { sheet: BookSheet; title: string }) {
       <div className={base}>
         <div className="h-full overflow-y-auto overscroll-contain px-[9%] py-[7%]">
           <div className="flex min-h-full flex-col justify-center">
+          {/* whitespace-pre-line: a spoken line is written on a line of
+              its own, opened with a travessão. Collapsing the break puts the
+              dash in the middle of a sentence, where it means nothing. */}
           <p
-            className={`font-serif ${type.align} leading-[1.45]`}
+            className={`whitespace-pre-line font-serif ${type.align} leading-[1.45]`}
             style={{ fontSize: type.size }}
           >
             {sheet.narration}
           </p>
           {sheet.narrationSecondary && (
             <p
-              className={`mt-[4%] font-serif italic ${type.align} leading-[1.4] text-ink-soft`}
+              className={`mt-[4%] whitespace-pre-line font-serif italic ${type.align} leading-[1.4] text-ink-soft`}
               style={{ fontSize: `calc(${type.size} * 0.8)` }}
             >
               {sheet.narrationSecondary}
@@ -303,11 +306,11 @@ function Words({ sheet, className = '' }: { sheet: BookSheet; className?: string
       {/* 13pt of A4's 595pt width, and the same narrow column the printed
           book uses — a full-width line runs off the calm part and into
           whatever scenery is at the edges. */}
-      <p className="mx-auto max-w-[54%] text-center font-serif text-[2.18cqw] italic leading-[1.46]">
+      <p className="mx-auto max-w-[54%] whitespace-pre-line text-center font-serif text-[2.18cqw] italic leading-[1.46]">
         {sheet.narration}
       </p>
       {sheet.narrationSecondary && (
-        <p className="mx-auto mt-[1%] max-w-[54%] text-center font-serif text-[1.68cqw] leading-[1.4] text-ink-soft">
+        <p className="mx-auto mt-[1%] max-w-[54%] whitespace-pre-line text-center font-serif text-[1.68cqw] leading-[1.4] text-ink-soft">
           {sheet.narrationSecondary}
         </p>
       )}

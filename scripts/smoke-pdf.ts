@@ -81,8 +81,16 @@ const order: Order = {
     dedication: 'Para a Lila, que transforma qualquer quintal em floresta.',
     pages: Array.from({ length: FINISH === 'reading' ? 16 : 12 }, (_, i) => ({
       index: i + 1,
-      narration: `Page ${i + 1}: Lila and Biscoito follow the path between the mango trees, and the backyard keeps growing.`,
-      narrationSecondary: `Página ${i + 1}: a Lila e o Biscoito seguem a trilha entre as mangueiras, e o quintal fica cada vez maior.`,
+      // Toda terceira pagina fala, com travessao e quebra de linha — e a
+      // combinacao que a tipografia do PDF costumava destruir sem avisar.
+      narration:
+        i % 3 === 2
+          ? `— Você vem?\nBiscoito não respondeu. Page ${i + 1}: he was already halfway up the path, pulling her in after him.`
+          : `Page ${i + 1}: Lila and Biscoito follow the path between the mango trees, and the backyard keeps growing.`,
+      narrationSecondary:
+        i % 3 === 2
+          ? `— Você vem?\nO Biscoito não respondeu. Página ${i + 1}: já estava no meio da trilha, puxando ela atrás.`
+          : `Página ${i + 1}: a Lila e o Biscoito seguem a trilha entre as mangueiras, e o quintal fica cada vez maior.`,
       sceneDescription: `Wide shot of Lila and her dog Biscoito walking along a garden path between mango trees, page ${i + 1} of the journey.`,
       charactersOnPage: ['c1', 'c2'],
       memoryId: i === 3 ? 'm1' : undefined,

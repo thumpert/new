@@ -7,6 +7,7 @@ import {
   type RGB,
 } from 'pdf-lib'
 import { getAgeBand } from '../catalog'
+import { fit, sanitize, wrap } from './text'
 import { fetchBinary, putFile } from '../storage'
 import type { BookBrief, Locale, Order, StoryPage } from '../types'
 
@@ -474,15 +475,20 @@ function drawNarration(
   // clear part of the picture. Measured on a real page: full width put the
   // last three words into a clump of reeds.
   const measure = A4.width * 0.54
-  const lines = wrap(story.narration, fonts.bodyItalic, 13, measure)
+  // Four lines at 13pt is what the band holds. A page that needs more is set
+  // a step smaller rather than having its last line dropped — which is what
+  // used to happen, silently, and reads to the customer as a sentence that
+  // stops in the middle of itself. Dialogue makes this common: a spoken line
+  // takes a whole line of its own however short it is.
+  const [lines, size, leading] = fit(story.narration, fonts.bodyItalic, measure)
   // Sit inside the art's reserved band, which starts at its bottom edge. Never
   // below the page margin, so a picture that ends low cannot push the words
   // off the sheet.
   let y = Math.max(art.y, MARGIN) + block - 30
 
-  for (const line of lines.slice(0, 4)) {
-    drawCentered(page, line, fonts.bodyItalic, 13, y, INK)
-    y -= 19
+  for (const line of lines) {
+    drawCentered(page, line, fonts.bodyItalic, size, y, INK)
+    y -= leading
   }
 
   // The translation sits smaller and lighter: there to be checked against,
@@ -574,53 +580,6 @@ function drawCentered(
   const safe = sanitize(text)
   const width = font.widthOfTextAtSize(safe, size)
   page.drawText(safe, { x: (A4.width - width) / 2, y, size, font, color })
-}
-
-function wrap(
-  text: string,
-  font: PDFFont,
-  size: number,
-  maxWidth: number,
-): string[] {
-  const words = sanitize(text).split(/\s+/).filter(Boolean)
-  const lines: string[] = []
-  let line = ''
-
-  for (const word of words) {
-    const candidate = line ? `${line} ${word}` : word
-    if (line && font.widthOfTextAtSize(candidate, size) > maxWidth) {
-      lines.push(line)
-      line = word
-    } else {
-      line = candidate
-    }
-  }
-  if (line) lines.push(line)
-  return lines
-}
-
-/**
- * The standard PDF fonts are WinAnsi-encoded, which covers Portuguese
- * accents but throws on anything outside it. Map the few typographic
- * characters models like to emit, and drop the rest.
- */
-const REPLACEMENTS: Record<string, string> = {
-  '‘': "'",
-  '’': "'",
-  '“': '"',
-  '”': '"',
-  '–': '-',
-  '—': '--',
-  '…': '...',
-  ' ': ' ',
-}
-
-function sanitize(text: string): string {
-  let out = text
-  for (const [from, to] of Object.entries(REPLACEMENTS)) {
-    out = out.split(from).join(to)
-  }
-  return out.replace(/[^\x20-\x7E\xA0-\xFF\n]/g, '')
 }
 
 function formatNames(names: string[], locale: Locale): string {

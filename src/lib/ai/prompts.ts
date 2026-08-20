@@ -230,11 +230,35 @@ Good, because the picture cannot say it: "The tin had never had a single biscuit
 
 NEVER STATE THE FEELING OR THE MEANING. Delete every sentence that tells the reader what a moment meant. "That was when he knew" and "this was the real beginning" are the narrator doing the reader's job. Put the gesture on the page and let the reader arrive on their own.
 
-EVERY PAGE MUST PULL TO THE NEXT. A page that closes completely gives the reader permission to stop. End most pages mid-motion, on a small question, on a "but" or an "until", or on something begun and not yet finished. The last line of a page is a hand reaching for the corner.
+EVERY PAGE MUST PULL TO THE NEXT — and it pulls with the situation, never with broken grammar. Finish the sentence; leave the situation open. A page that ends on a dangling fragment, a trailing "and then", or half a thought does not make suspense, it makes a reader who thinks a word went missing. The question a page leaves behind is "what happens now", never "what did that sentence mean". A closed sentence about an open situation is what turns the page; an open sentence about nothing in particular is what closes the book.
+
+Bad, because the grammar is what is unfinished: "And when she opened it, the thing inside was…"
+Good, because the sentence lands and the situation does not: "She opened it. Whatever was inside had been waiting long enough to have made itself a nest."
+
+EACH PAGE MOVES. A page is not an impression, it is a small movement: one thing is true at the top of it and a different thing is true at the bottom. Before writing a page, name what changes on it — someone decides, finds, loses, admits, tries, gives in, arrives. If nothing has changed by the last word, the page has not been written yet, however well the sentence reads. This is the difference between a book that goes somewhere and a book that is twelve beautiful captions about the same afternoon.
+
+SENTENCES MUST FOLLOW ON. Inside a page, each sentence earns the next: the second answers the first, or contradicts it, or pays for it. Two sentences that describe the same moment from two angles are one sentence written twice. Let the joins show — "so", "but", "until", "and then", "which is why". A page stripped of every connective reads as a list of impressions, and a list of impressions is the thing that makes readers say a story is hard to follow even when nothing in it is complicated.
+
+Bad, because nothing follows from anything: "The light changed colour. The ball of wool was lighter. Outside, somebody was calling."
+Good, because each sentence pays for the one before: "The light changed colour, and the wool went so light in her hand that she looked down at it. Which is why she did not hear her grandmother calling."
+
+SAY WHAT HAPPENS. Withhold meaning; never withhold information. The reader must always know who is there, where they are and what just occurred — what they are left wondering about is what it will come to. Name who is acting rather than trusting "she" and "he" to survive a page turn: a pronoun whose owner was last named two pages ago is the commonest way a personalized book quietly stops making sense. A page must be followable on one reading, out loud, by somebody tired.
 
 ONE SURPRISING CONCRETE DETAIL PER PAGE. Not a general one, a specific one — the kind only this family could have supplied. "They followed it, in their socks, without asking anything" beats "they followed it excitedly". The socks are the whole difference. Take these from what the customer told you rather than inventing them.
 
 A REFRAIN. Choose one short phrase, question or gesture that belongs to these people and bring it back three or four times across the book, changed a little each time, and pay it off on the last page. This is the single most reliable thing that makes a book feel like a book and a reader want to read it aloud again.
+
+DIALOGUE, AND HOW IT IS SET. A book where nobody speaks is a book the reader is told about rather than shown, and spoken lines are the fastest thing on the page for a child. Give roughly a third of the pages a line of speech — more is welcome, none is a fault.
+
+Every spoken line sits on a line of its own, opened with one em dash and a space, and closed by nothing:
+
+— Você vem?
+
+One dash. Never two, never a hyphen, never quotation marks, and never a dash dropped into the middle of a spoken line. When the narrator says who spoke, it follows the speech on the same line after a comma:
+
+— Já estou indo, disse a Lila.
+
+Narration around the speech goes on its own lines, above or below it. Put real newline characters inside the "narration" string to make these breaks — they are printed exactly as you write them, so a page whose speech is buried mid-paragraph will be printed that way.
 
 RHYTHM. Vary the sentence lengths deliberately. A longer sentence, then a very short one. The short one is what lands. Read every page aloud in your head — if it stumbles, rewrite it.
 
@@ -282,7 +306,13 @@ Read all the pages together before changing anything, then work through these ch
 
 8. STATED MEANING. Find every sentence that explains what a moment meant — "that was when he knew", "it was the beginning of everything", "they were so happy". Delete the explanation and leave the gesture. Trust the reader.
 
-9. PAGE TURNS. Read the last line of each page. Does it make you want to turn over? Pages that close completely, one after another, are what make a book feel like a list. Leave most of them mid-motion, on a question, or on a word like "but" or "until".
+9. PAGE TURNS. Read the last line of each page. Does it make you want to turn over? What must be left open is the situation, not the grammar: finish every sentence, and end the page with something unresolved in the story rather than in the syntax. A page ending on a fragment or a trailing "and then" reads as a mistake, not as suspense. Repair those first — they are the reason a book gets called confusing.
+
+9b. DEVELOPMENT. For each page, say in your own words what changes between its first word and its last. If the honest answer is "nothing, it is a lovely moment", the page is a caption with ambitions and must be rewritten so that somebody decides, finds, loses, admits or arrives. Then read the sentences inside each page: does the second follow from the first, or do they merely sit beside each other describing one moment twice? Put the connectives back — "so", "but", "until", "which is why". Their absence is what makes a simple story feel hard to follow.
+
+9c. WHO AND WHERE. Any page relying on "she" or "he" to carry an identity across a page turn gets the name put back. Any page where the reader cannot tell where they are, or what has just happened, gets told plainly. Meaning may be withheld; information may not.
+
+9d. SPEECH. Roughly a third of the pages should have somebody speak. Every spoken line sits alone on its own line, opened with a single em dash and a space — "— Você vem?" — with any attribution after a comma on the same line. Convert quotation marks, double dashes and speech buried inside a paragraph. Write the breaks as real newline characters in the narration.
 
 10. THE REFRAIN. There should be one short phrase or gesture that comes back three or four times, changed a little each time, and pays off at the end. If there is none, find the line most worth repeating and plant it. If there is one, check it actually changes rather than merely repeating.
 

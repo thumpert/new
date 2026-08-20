@@ -46,7 +46,22 @@ const RULES = [
   {
     id: 'page-turns',
     title: 'Cada página puxa a seguinte',
-    test: 'Most pages end mid-motion, on a question, or on a word that leans forward. A book of closed statements gives the reader permission to stop.',
+    test: 'Most pages end with the situation unresolved — a question, something begun, something about to go wrong. What must NOT be unresolved is the grammar: every sentence is finished. A page ending on a fragment or a trailing "and then" fails this, because a reader takes it for a mistake rather than for suspense.',
+  },
+  {
+    id: 'development',
+    title: 'A página se desenvolve',
+    test: 'On each page, one thing is true at the start and a different thing is true at the end — somebody decides, finds, loses, admits, tries or arrives. Name what changes on each page. A page that is a lovely moment in which nothing moves is a caption, and fails. Then check inside the page: each sentence must follow from the one before it, with the joins visible ("so", "but", "until", "which is why"). Sentences that merely sit side by side describing one moment from two angles fail this — it is what makes a simple story read as confusing.',
+  },
+  {
+    id: 'clarity',
+    title: 'Dá para acompanhar em uma leitura',
+    test: 'Every page can be followed on a single reading aloud. The reader always knows who is present, where they are and what just happened; only the meaning is withheld. Any page carrying an identity on "ela" or "ele" alone across a page turn fails, as does any page whose setting or event the reader has to reconstruct.',
+  },
+  {
+    id: 'dialogue',
+    title: 'Alguém fala, e do jeito certo',
+    test: 'Roughly a third of the pages carry a spoken line. Every spoken line sits alone on its own line inside the narration, opened with a single em dash and a space ("— Você vem?"), with any attribution after a comma on the same line. Quotation marks, double dashes, hyphens, and speech buried mid-paragraph all fail this. The line breaks must be real newline characters in the narration text.',
   },
   {
     id: 'specificity',
