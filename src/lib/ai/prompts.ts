@@ -1,4 +1,5 @@
 import { readingBookRules } from './reading-book'
+import { twelvePageRules } from './twelve-pages'
 import { BOOK_PAGES, getAgeBand, getArtStyle, getBookLanguage, getOccasion, getStoryType, getTone } from '../catalog'
 import type { BookBrief, Character, StoryIdea } from '../types'
 
@@ -259,7 +260,12 @@ ECONOMY. One or two sentences a page, and not one word more than the page needs.
 
 A GENTLE WOBBLE. Somewhere in the middle, something small goes briefly wrong: something is lost, someone is left behind, it rains, one of them sulks, the plan fails. It must stay light — this book is a present made with affection, never a book about danger, illness, loss or fear. The wobble lasts a page or two and is put right with tenderness, usually by the other character doing exactly the thing they always do. Without it the ending has nothing to land against; with it, the last page lands twice as hard.
 
-THE SHAPE OF THE TWELVE PAGES. Roughly: pages 1-3 set up who these people are and start the guide object moving; 4-6 the world opens and the story goes somewhere; 7-9 the wobble, and the turn the idea promised; 10-12 the way back, and an ending that pays off the refrain and the guide object together.
+BUT, OR THEREFORE — NEVER AND THEN. Between every pair of consecutive pages there must be an unspoken "but" or "therefore". If the only word that fits between page 6 and page 7 is "and then", page 7 does not follow from page 6, and a book whose pages merely follow one another in time is the thing readers call confusing even when every sentence in it is clear. This is a test you can actually run: say the joins out loud, in order, before you hand the book over.
+
+Bad, and it is a list: "They went to the market. And then they walked by the river. And then it started to rain."
+Good, and it is a story: "They went to the market, but the stall they came for had closed. Therefore they walked down to the river instead, which is why they were standing in the open when it started to rain."
+
+WHERE THE READER IS, AT ALL TIMES. Withhold meaning; never withhold information. Name each person on the page they first act on, and name them again rather than saying "she" or "he" the first time they act after somebody else has. Say so in the words when time passes — "that winter", "the next morning" — because the picture cannot show it and a reader who thinks two pages are the same afternoon is reading nonsense. One new person, place or fact per page, never three.
 
 Rules:
 - Vary the framing across pages. Do not open every page with a wide shot.
@@ -282,6 +288,10 @@ Rules:
 export const REVISE_SYSTEM = `You are the editor of a personalized children's book. A storyboard has been drafted. Your job is to find what is wrong with it as a whole and return a fixed version.
 
 Read all the pages together before changing anything, then work through these checks in order:
+
+0. THE JOINS. Before anything else, read the pages in order and put a word between each consecutive pair: "but", "therefore", or "and then". Write down every join where "and then" is the only word that fits. Those are the breaks in the book, and they are the reason a reader calls it confusing while being unable to point at a bad sentence. Fix each one by making the later page caused by the earlier one, or by cutting the earlier page and giving its space to something that is caused. Do this before the checks below, because most of them get easier once the joins hold.
+
+0b. WHERE ARE WE. Read as somebody who has never met these people. Is there a page where you cannot tell who is speaking or acting, where they are, or how much time has passed since the last page? Name it and fix it: put the name back in place of the pronoun, say the season or the hour in the words, and make sure the first pages answer who and where before anything is allowed to change.
 
 1. THE SHUFFLE TEST. Could any two pages swap places without the book breaking? If yes, the book is a list rather than a story. Fix it by making pages depend on each other: something set up earlier pays off later, a state changes and stays changed, someone wants something and is closer or further from it than they were.
 
@@ -372,7 +382,9 @@ export function storyboardUser(
     '',
     // A reading book is a different object from the other two, so its rules
     // go in first and everything below is read in their light.
-    ...(brief.finish === 'reading' ? [readingBookRules(brief), ''] : []),
+    ...(brief.finish === 'reading'
+      ? [readingBookRules(brief), '']
+      : [twelvePageRules(brief), '']),
     // The other two books are children's books just as often, and until now
     // the age changed nothing about how they were written. The word counts
     // stay out of it — a colouring page carries a line, not a paragraph — but

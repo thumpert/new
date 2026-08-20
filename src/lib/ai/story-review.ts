@@ -1,5 +1,5 @@
 import * as z from 'zod'
-import { getAgeBand, getTone } from '../catalog'
+import { BOOK_PAGE_WORDS, getAgeBand, getTone } from '../catalog'
 import { askForJson } from './ask'
 import type { BookBrief, StoryIdea, Storyboard } from '../types'
 
@@ -27,6 +27,16 @@ const RULES = [
     id: 'chaining',
     title: 'Encadeamento',
     test: 'Every page depends on the one before it. Something set up earlier pays off later; a state changes and stays changed. Apply the shuffle test: if any two pages could trade places without the book breaking, this fails.',
+  },
+  {
+    id: 'joins',
+    title: 'Mas, ou portanto — nunca e-aí',
+    test: 'Go through the pages in order and put a word between each consecutive pair: "but", "therefore", or "and then". List every join where "and then" is the only word that fits — those pages follow one another in time without one causing the other. Any such join fails this rule, and you must name the page numbers. This is the mechanical version of "the book is confusing", and it is usually the true cause.',
+  },
+  {
+    id: 'orientation',
+    title: 'Dá para saber onde estamos',
+    test: 'Read as somebody who has never met these people. The opening pages establish who and where before anything changes. Every person is named on the page they first act, and named rather than pronouned the first time they act after somebody else has. Any passage of time is stated in the words, not left to the picture. Name any page where you could not say who is acting, where they are, or how long it has been.',
   },
   {
     id: 'voice',
@@ -172,16 +182,25 @@ function rubric(rules: readonly Rule[]): string {
  * right" for a four-year-old. The same split the page images get.
  */
 function measureLength(brief: BookBrief, storyboard: Storyboard): string[] {
-  if (brief.finish !== 'reading') return []
-  const band = getAgeBand(brief.ageBandId)
+  // The twelve-page books are held to the band under the drawing; the reading
+  // book to the age it was ordered for. Both are counting, so both are counted
+  // rather than judged.
+  const limit =
+    brief.finish === 'reading'
+      ? getAgeBand(brief.ageBandId).words
+      : BOOK_PAGE_WORDS
+  const who =
+    brief.finish === 'reading'
+      ? `a book for ${getAgeBand(brief.ageBandId).years}`
+      : 'a page of a twelve-page book, where the words sit in a narrow column under the drawing and only so many fit,'
 
   const wrong = storyboard.pages
     .map((p) => ({ index: p.index, words: p.narration.trim().split(/\s+/).filter(Boolean).length }))
-    .filter((p) => p.words < band.words.min || p.words > band.words.max)
+    .filter((p) => p.words < limit.min || p.words > limit.max)
 
   if (wrong.length === 0) return []
   return [
-    `Tamanho das páginas: a book for ${band.years} carries ${band.words.min}–${band.words.max} words a page. These are outside it — ${wrong
+    `Tamanho das páginas: ${who} carries ${limit.min}–${limit.max} words a page. These are outside it — ${wrong
       .map((p) => `page ${p.index} has ${p.words}`)
       .join(', ')}. Rewrite those pages to length without cutting anything the story needs; if a page cannot be said in that many words, the page is doing too much and should be split across the turn.`,
   ]

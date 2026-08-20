@@ -411,6 +411,19 @@ export const BOOK_LANGUAGES: BookLanguageDef[] = [
 export const BOOK_PAGES = 12
 
 /**
+ * Words on one page of a twelve-page book.
+ *
+ * Taken off the page rather than guessed. The narration sits in a 321pt
+ * column under the drawing, in 13pt italic, in a band that holds four lines —
+ * measured, that is 40 words of average Portuguese. Thirty-five is that
+ * ceiling with a line of margin, so a page carrying a spoken line (which
+ * takes a whole line however short it is) still sets at full size instead of
+ * shrinking. Fifteen at the bottom because below that a page stops being a
+ * sentence and becomes a caption.
+ */
+export const BOOK_PAGE_WORDS = { min: 15, max: 35 }
+
+/**
  * How many illustrated pages a book carries.
  *
  * A reading book is sixteen because that is its unit: sixteen spreads, each a

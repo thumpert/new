@@ -24,7 +24,9 @@ brief → entrevista → 4 ideias → roteiro → fichas + 2 capas → [escolha]
    construídas a partir dos detalhes reais que o cliente contou.
 4. **Roteiro** — a história escolhida vira um storyboard página a página. Cada
    página tem a narração (no idioma do livro) e uma descrição visual da cena em
-   inglês, escrita para o modelo de imagem.
+   inglês, escrita para o modelo de imagem. A forma que esse roteiro segue —
+   página a página, por formato e por faixa de idade — está em
+   [docs/guia-de-historias.md](docs/guia-de-historias.md).
 5. **Fichas e capas** — cada personagem é desenhado **uma vez** como ficha de
    personagem; depois as duas capas são geradas usando essas fichas. Aí o
    processo para e espera.

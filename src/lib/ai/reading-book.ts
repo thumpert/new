@@ -24,6 +24,8 @@ import type { AgeBandId, BookBrief } from '../types'
  * because a writer told to "write the Refusal of the Call" writes a beat, and
  * a writer told what happens on page four writes a page.
  *
+ * Written up for people, with the sources, in docs/guia-de-historias.md.
+ *
  * THE AGE. Every competitor personalises the name and the face and then hands
  * a four-year-old and a ten-year-old the same sentences. The age band decides
  * the word count, and the shape, and what the prose is allowed to do — three
