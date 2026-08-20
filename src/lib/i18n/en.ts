@@ -191,6 +191,8 @@ export const en: Dictionary = {
     chooseThis: 'Choose this one',
     choosingCover: 'Choosing…',
     coverFailed: 'This cover could not be drawn.',
+    failedPages: 'Could not draw:',
+    failedHint: 'Tap a page number to open it and try again.',
     coverKinds: {
       portrait: {
         label: 'Portrait',

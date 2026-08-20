@@ -191,6 +191,8 @@ export const pt = {
     chooseThis: 'Escolher esta',
     choosingCover: 'Escolhendo…',
     coverFailed: 'Esta capa não pôde ser desenhada.',
+    failedPages: 'Não deu para desenhar:',
+    failedHint: 'Toque no número da página para vê-la e tentar de novo.',
     coverKinds: {
       portrait: {
         label: 'Retrato',

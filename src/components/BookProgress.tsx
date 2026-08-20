@@ -125,7 +125,13 @@ export function BookProgress({
   const renders = order?.renders ?? []
   const selectedRender = renders.find((r) => r.index === selected)
   const done = renders.filter((r) => r.status === 'done').length
-  const failed = renders.filter((r) => r.status === 'failed').length
+  const failedRenders = renders.filter((r) => r.status === 'failed')
+  const failed = failedRenders.length
+  // The reason was already being captured, and then shown only in a `title`
+  // tooltip and behind a tap on an unlabelled square. Most of these books are
+  // ordered on a phone, where a tooltip does not exist at all — so the person
+  // who most needs the reason was the one who could not reach it.
+  const firstFailure = failedRenders.find((r) => r.error)?.error
   const total = renders.length
   const ready = order?.status === 'ready'
 
@@ -349,9 +355,18 @@ export function BookProgress({
         )}
 
         {failed > 0 && (
-          <p className="mt-4 text-sm text-ink-soft">
-            {failed} × {dict.common.error}
-          </p>
+          <div className="mt-4 rounded-xl border border-accent/30 bg-accent/5 p-3">
+            <p className="text-sm text-ink">
+              {dict.progress.failedPages}{' '}
+              {failedRenders.map((r) => r.index).join(', ')}
+            </p>
+            {firstFailure && (
+              <p className="mt-1 text-xs text-accent">{firstFailure}</p>
+            )}
+            <p className="mt-1 text-xs text-ink-soft">
+              {dict.progress.failedHint}
+            </p>
+          </div>
         )}
       </div>
 
