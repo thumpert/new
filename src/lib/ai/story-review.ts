@@ -141,6 +141,30 @@ const READING_RULES = [
   },
 ] as const
 
+/**
+ * What is additionally true of a twelve-page book, and only of one.
+ *
+ * The reading book's shape has been marked since it existed. The twelve-page
+ * book's shape was only ever *asked for* — written into the prompt and then
+ * never checked, which for a model is a suggestion. These are the two rules
+ * that turn the spine into something the book has to have passed.
+ *
+ * Both name page numbers on purpose. "The structure is weak" is not a repair
+ * instruction; "page 6 does not close any option that was open on page 5" is.
+ */
+const TWELVE_PAGE_RULES = [
+  {
+    id: 'spine',
+    title: 'A espinha das doze páginas',
+    test: 'Name the page each of these lands on, in order: the ordinary world with everyone named (1); the routine the book will depart from (2); the guide object already in ordinary use (3); the one thing that changes (4); three consequences, each caused by the page before it rather than merely following it (5, 6, 8); the turn, which re-frames what came before and is NOT a fight or a disaster (7); the small thing that goes wrong, caused by the consequence before it (9); it being put right by one of them doing the thing that is most characteristically them — never luck, never somebody arriving (10); arriving at what the book was walking towards, with the refrain changed (11). If a beat is missing, or landed more than one page from where it belongs, or the turn sits in the last two pages, this fails. Say which page is doing what instead.',
+  },
+  {
+    id: 'coda',
+    title: 'A última página é coda, não resumo',
+    test: 'Page 12 steps time forward, completes the guide object rather than merely stopping it, and speaks to the person the book was made for. It must not summarise what happened, state what it all meant, or end on a lesson. A last page that could be deleted without the book changing fails this, and so does one that explains the book.',
+  },
+] as const
+
 const VerdictSchema = z.object({
   verdicts: z
     .array(
@@ -166,7 +190,9 @@ export interface StoryReview {
 type Rule = { id: string; title: string; test: string }
 
 function rulesFor(brief: BookBrief): readonly Rule[] {
-  return brief.finish === 'reading' ? [...RULES, ...READING_RULES] : RULES
+  return brief.finish === 'reading'
+    ? [...RULES, ...READING_RULES]
+    : [...RULES, ...TWELVE_PAGE_RULES]
 }
 
 function rubric(rules: readonly Rule[]): string {

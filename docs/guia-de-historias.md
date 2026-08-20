@@ -171,10 +171,16 @@ Nem tudo aqui é opinião de um revisor. Estes rodam sozinhos:
 |---|---|
 | Palavras por página | Contando, contra o limite da faixa ou da coluna |
 | Travessão e quebras de linha | `scripts/test-dialogue.ts` |
-| Mas/portanto, orientação, desenvolvimento | Marcados como regras próprias no revisor, com as páginas nomeadas |
+| Mas/portanto, orientação, desenvolvimento | Regras próprias no revisor, com as páginas nomeadas |
+| A espinha das 12 páginas | O revisor diz em que página cai cada batida — e reprova se alguma sumiu, saiu do lugar, ou se a virada foi parar nas duas últimas |
+| A página 12 ser coda e não resumo | Regra própria: última página que explica o livro reprova |
 
 O revisor devolve só as regras que falharam, com número de página, e o texto
 volta para reparo. Passa, ou leva três tentativas.
+
+A espinha do livro de 12 páginas ficou um tempo só **pedida** no prompt e nunca
+conferida — que, para um modelo, é uma sugestão. Agora é marcada, do mesmo
+jeito que a forma do livro de leitura sempre foi.
 
 ---
 

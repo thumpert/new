@@ -1,4 +1,4 @@
-import { ProviderError } from '../errors'
+import { ProviderError, retryAfter } from '../errors'
 import { fetchBinary, putFile } from '../storage'
 import {
   backCoverPrompt,
@@ -74,25 +74,6 @@ function firstImage(body: unknown): ImageBlock | undefined {
     }
   }
   return undefined
-}
-
-/**
- * How long Google asked us to wait, in milliseconds.
- *
- * Sent as seconds on a 429, occasionally as an HTTP date. Capped at a minute:
- * a customer is watching this page, and a longer wait is better spent failing
- * the page so they can redraw it themselves.
- */
-function retryAfter(res: Response): number | undefined {
-  const header = res.headers.get('retry-after')
-  if (!header) return undefined
-
-  const seconds = Number(header)
-  const ms = Number.isFinite(seconds)
-    ? seconds * 1000
-    : Date.parse(header) - Date.now()
-
-  return ms > 0 ? Math.min(ms, 60_000) : undefined
 }
 
 export class GoogleProvider implements ImageProvider {
@@ -208,7 +189,7 @@ export class GoogleProvider implements ImageProvider {
       const detail = await res.text().catch(() => '')
       throw new ProviderError(
         `Gemini returned ${res.status} ${res.statusText}. ${detail.slice(0, 500)}`,
-        { status: res.status, retryAfterMs: retryAfter(res) },
+        { status: res.status, retryAfterMs: retryAfter(res.headers) },
       )
     }
 

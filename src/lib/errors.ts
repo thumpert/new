@@ -80,3 +80,26 @@ export function providerError(err: unknown): ProviderError | undefined {
   }
   return undefined
 }
+
+/**
+ * How long the provider asked us to wait, in milliseconds.
+ *
+ * Sent as seconds on a 429, occasionally as an HTTP date. Capped at a minute:
+ * a customer is watching this page, and a longer wait is better spent failing
+ * the step so they can ask for it again themselves.
+ *
+ * Takes the headers rather than the response because both providers answer
+ * this way and only one of them hands us a `Response` — the Anthropic SDK has
+ * already turned its own into an error object by the time we see it.
+ */
+export function retryAfter(headers: Headers | undefined): number | undefined {
+  const header = headers?.get('retry-after')
+  if (!header) return undefined
+
+  const seconds = Number(header)
+  const ms = Number.isFinite(seconds)
+    ? seconds * 1000
+    : Date.parse(header) - Date.now()
+
+  return ms > 0 ? Math.min(ms, 60_000) : undefined
+}

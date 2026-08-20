@@ -1,6 +1,6 @@
 import { readingBookRules } from './reading-book'
 import { twelvePageRules } from './twelve-pages'
-import { BOOK_PAGES, getAgeBand, getArtStyle, getBookLanguage, getOccasion, getStoryType, getTone } from '../catalog'
+import { BOOK_PAGES, getArtStyle, getBookLanguage, getOccasion, getStoryType, getTone } from '../catalog'
 import type { BookBrief, Character, StoryIdea } from '../types'
 
 /**
@@ -386,19 +386,6 @@ export function storyboardUser(
     ...(brief.finish === 'reading'
       ? [readingBookRules(brief), '']
       : [twelvePageRules(brief), '']),
-    // The other two books are children's books just as often, and until now
-    // the age changed nothing about how they were written. The word counts
-    // stay out of it — a colouring page carries a line, not a paragraph — but
-    // what the prose may do at three and at ten is the same craft either way.
-    // Only present when an age was actually asked for; a colouring book
-    // ordered for a couple has none.
-    ...(brief.finish !== 'reading' && brief.ageBandId
-      ? [
-          `WHO IS GOING TO BE READ THIS — ${getAgeBand(brief.ageBandId).years} years. ${getAgeBand(brief.ageBandId).prompt}`,
-          'Take the craft above and none of the page counts: this book carries one or two sentences a page, not a paragraph.',
-          '',
-        ]
-      : []),
     'CHOSEN STORY:',
     `Title: ${idea.title}`,
     `Logline: ${idea.logline}`,
