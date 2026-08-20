@@ -264,13 +264,24 @@ async function patchCover(
 async function settleStatus(orderId: string): Promise<void> {
   await updateOrder(orderId, (current) => {
     const failed = (current.renders ?? []).filter((r) => r.status === "failed");
+    if (failed.length === 0) {
+      return { ...current, status: "ready", error: undefined };
+    }
+
+    // This used to read "1 page(s) failed to render." — a count, which the
+    // customer could already see on the grid, in place of the one thing they
+    // could not: why. Each failed page stores its own reason, so carry it up
+    // rather than throwing it away and restating the count.
+    const pages = failed.map((r) => r.index).join(", ");
+    const label = failed.length === 1 ? `Page ${pages}` : `Pages ${pages}`;
+    const reason = failed.find((r) => r.error)?.error;
+
     return {
       ...current,
-      status: failed.length > 0 ? "failed" : "ready",
-      error:
-        failed.length > 0
-          ? `${failed.length} page(s) failed to render.`
-          : undefined,
+      status: "failed",
+      error: reason
+        ? `${label} could not be drawn: ${reason}`
+        : `${label} could not be drawn.`,
     };
   });
 }
