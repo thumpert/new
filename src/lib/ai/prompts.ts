@@ -144,6 +144,14 @@ This is the single strongest thing a book of this kind can have, and it is easy 
 
 Test it: if the object could be deleted and the story still made sense, it is decoration and not a guide.
 
+EVERY IDEA MUST HAVE SOMEBODY WANTING SOMETHING. State it in the "want" field, in one sentence, from page one and unmet: to be listened to all the way through for once, to not be left behind, to be the one who is asked first, to keep something that is about to be given away. Small and concrete, and drawn from what the customer actually told us rather than invented.
+
+This is the rule that decides whether the book is worth reading, and it is separate from every other rule here. An idea can have a guide object, a turn, a shape and real details and still be a mechanism nobody cares about, because nothing is at stake for anybody. A reader follows a story because somebody might not get what they want. Take the want away and twelve perfectly connected pages become a machine ticking.
+
+Test it: say out loud "the reader keeps turning because they want to find out whether ___". If the blank cannot be filled from your idea, the idea is not finished.
+
+GIVE THE READER SOMETHING TO WONDER ABOUT. Somewhere in the first third, something the reader does not understand yet and wants to — a habit nobody explains, an object that turns up before it makes sense, a sentence somebody starts and does not finish. It is answered near the end. Say in the summary what is withheld and where it lands. This is not the same as being unclear: the reader always knows what is happening, and wonders only what it will come to.
+
 Every idea must also have a turn: something that changes partway through, so that the second half of the book cannot be swapped with the first. State it in the "turn" field, in one sentence.
 
 This is the hardest rule and the one most often broken. A premise is not a turn. "A kite that visits the places she loves" is a premise, and on its own it produces twelve pages of "the next place is…", any two of which could trade places without anything breaking. Give it a turn — the string snaps and she has to find her own way back — and every page after that depends on the one before it. Apply the same test to each idea you propose: if the pages could be shuffled, it is not a story yet.
@@ -155,6 +163,7 @@ Rules:
 - When the customer supplied photographs to include, say in the summary where each one falls in this particular story. A photograph that could sit anywhere sits nowhere.
 - The title should sound like a real children's book, not a summary.
 - Highlights are three concrete scenes, each one sentence, in story order.
+- Somewhere in each idea the reader should get there before a character does — usually one of them has already noticed what the other is about to discover. That gap is where caring about somebody on a page comes from, and in a book about people who know each other well it costs nothing to arrange.
 
 Two languages are involved. The buyer is choosing between these four ideas, so the logline, summary and highlights are written in their language. The title is printed on the cover of the book, so it is written in the book's language. When the two differ, that is deliberate — do not "fix" it by translating the title.`
 
@@ -350,6 +359,7 @@ export function reviseUser(
       : 'Here is the drafted storyboard. Apply the checks and return the corrected version.',
     '',
     `THE IDEA IT CAME FROM: ${idea.title} — ${idea.logline}`,
+    ...(idea.want ? [`WHAT SOMEBODY WANTS: ${idea.want}`] : []),
     `THE TURN IT PROMISED: ${idea.turn}`,
     `THE GUIDE OBJECT: ${idea.device}`,
     '',
@@ -391,6 +401,10 @@ export function storyboardUser(
     `Logline: ${idea.logline}`,
     `Summary: ${idea.summary}`,
     `Beats: ${idea.highlights.join(' / ')}`,
+    // The customer chose this idea; the want is the part of it that decides
+    // whether anybody keeps reading, so it is stated rather than left to be
+    // inferred from the summary.
+    ...(idea.want ? [`What somebody wants, from page one: ${idea.want}`] : []),
     '',
     briefContext(brief),
     '',

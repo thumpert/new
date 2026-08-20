@@ -661,11 +661,22 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
                       <li key={i}>— {h}</li>
                     ))}
                   </ul>
-                  {/* The turn is shown because it is what separates a story
-                      from a list, and choosing without seeing it is how a
-                      list gets picked. */}
-                  {(idea.device || idea.turn) && (
+                  {/* The turn and the want are shown because they are what
+                      separate a story from a list, and choosing without
+                      seeing them is how a list gets picked. The want goes
+                      first: it is the one that decides whether anybody keeps
+                      reading, and it is the easiest of the three for a
+                      customer to judge against the people they know. */}
+                  {(idea.want || idea.device || idea.turn) && (
                     <div className="mt-4 space-y-1.5 border-t border-line pt-3 text-sm text-ink-soft">
+                      {idea.want && (
+                        <p>
+                          <span className="font-medium text-ink">
+                            {dict.wizard.ideas.want}
+                          </span>{' '}
+                          {idea.want}
+                        </p>
+                      )}
                       {idea.device && (
                         <p>
                           <span className="font-medium text-ink">

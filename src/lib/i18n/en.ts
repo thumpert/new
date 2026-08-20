@@ -153,6 +153,7 @@ export const en: Dictionary = {
       chosen: 'Chosen',
       regenerate: 'Generate other ideas',
       highlights: 'What happens',
+      want: 'What is at stake:',
       device: 'What runs through it:',
       turn: 'What changes partway:',
     },

@@ -210,6 +210,20 @@ export interface StoryIdea {
   /** Three concrete beats/scenes the book would contain. */
   highlights: string[]
   /**
+   * What somebody in this story wants, and does not have on page one.
+   *
+   * Asked for here and not left to the storyboard for the same reason the
+   * turn is: it decides the shape. A premise with a guide object, a turn and
+   * nobody wanting anything produces twelve pages that click together and
+   * grip no one — followable, and no reason to keep reading. The reader
+   * follows because somebody might not get what they want.
+   *
+   * Optional because orders written before this field existed are still on
+   * disk and still have to open. Everything that reads it guards for absence
+   * rather than assuming a backfill nobody ran.
+   */
+  want?: string
+  /**
    * What changes partway through — the reason the second half of the book is
    * not the first half again.
    *

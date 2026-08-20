@@ -64,6 +64,11 @@ const IdeasSchema = z.object({
         highlights: z
           .array(z.string())
           .describe('Exactly three concrete scenes, one sentence each, in order.'),
+        want: z
+          .string()
+          .describe(
+            'One sentence: what somebody wants and does not have at the start, small and concrete. This is what the reader follows.',
+          ),
         turn: z
           .string()
           .describe(
@@ -163,6 +168,7 @@ export async function generateIdeas(brief: BookBrief): Promise<StoryIdea[]> {
     logline: idea.logline,
     summary: idea.summary,
     highlights: idea.highlights,
+    want: idea.want,
     turn: idea.turn,
     device: idea.device,
   }))

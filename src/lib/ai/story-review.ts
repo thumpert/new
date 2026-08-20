@@ -74,6 +74,21 @@ const RULES = [
     test: 'Roughly a third of the pages carry a spoken line. Every spoken line sits alone on its own line inside the narration, opened with a single em dash and a space ("— Você vem?"), with any attribution following on the same line — a full stop becomes a comma ("— Já estou indo, disse a Lila."), while a question mark or exclamation stays and takes no comma ("— Que foi? perguntou o Rui."), because "?," is wrong in Portuguese. Quotation marks, double dashes, hyphens, "?,", "!,", and speech buried mid-paragraph all fail this. The line breaks must be real newline characters in the narration text.',
   },
   {
+    id: 'want',
+    title: 'Alguém quer alguma coisa',
+    test: 'Somebody wants something they do not have, it is established in the opening pages, and it is small and concrete. Every page after moves them nearer to it or further from it; the thing that goes wrong threatens it; the ending answers it — met, or exchanged for something better they could not have named at the start. Say what the want is and name the page it is established on. If you cannot finish the sentence "the reader keeps turning because they want to find out whether ___" from this storyboard, this fails, and it fails however well the pages are connected: causality without desire is a clock ticking.',
+  },
+  {
+    id: 'mystery',
+    title: 'Algo para o leitor querer saber',
+    test: 'Something is established in the first third that the reader does not understand yet and wants to — and it is answered near the end. Name the page it opens and the page it closes. This is not the same as being unclear: the reader must always know what is happening and wonder only what it will come to. If nothing is withheld, nobody has a reason to turn over.',
+  },
+  {
+    id: 'empathy',
+    title: 'O leitor chega antes',
+    test: 'At least once the reader understands something a character has not worked out yet, or wants something for them they have not asked for. Name the page. That gap is where feeling for somebody on a page comes from; without it the reader watches instead of caring.',
+  },
+  {
     id: 'specificity',
     title: 'Detalhe que só esta família teria',
     test: 'Each page carries at least one concrete, surprising, particular detail drawn from what this customer actually said. If the book could be re-titled and given to another family unchanged, this fails.',
@@ -123,16 +138,6 @@ const READING_RULES = [
     id: 'age-craft',
     title: 'Escrito para esta idade',
     test: 'The prose does what this age band asks and avoids what it forbids. For 3–5: short declarative sentences, physical verbs, concrete nouns, no abstract nouns at all, a pattern of three, a refrain that changes by one word, nothing left open across more than two pages. For 6–8: dialogue carrying real weight, one character holding a wrong idea for several pages while the reader sees it, small stakes treated as enormous, no joke explained. For 9–12: no stated feelings anywhere, a second thread planted early and paid late, the extraordinary described in plain measurable terms, and something genuinely given up. Quote the page and the phrase for any failure.',
-  },
-  {
-    id: 'mystery',
-    title: 'Mistério',
-    test: 'Something is established early that the reader does not understand yet and wants to, and it is answered before the end. Name the page it opens and the page it closes. If nothing is withheld, the reader has no reason to turn the page.',
-  },
-  {
-    id: 'empathy',
-    title: 'Empatia',
-    test: 'Somewhere the reader knows something the character does not, or wants something for them they have not asked for. That gap is where feeling for a character comes from, and without it the child watches rather than cares.',
   },
   {
     id: 'picture-alone',
@@ -265,6 +270,7 @@ export async function reviewStoryboard(
     system: systemFor(rules),
     user: [
       `THE TONE THIS BOOK WAS ORDERED IN: ${tone.prompt}`,
+      idea.want ? `WHAT SOMEBODY WANTS, PER THE CHOSEN IDEA: ${idea.want}` : '',
       `THE TURN THE IDEA PROMISED: ${idea.turn}`,
       idea.device ? `THE GUIDE OBJECT: ${idea.device}` : '',
       '',
