@@ -225,16 +225,36 @@ export async function generateStoryboard(
   // What this replaced was a single blind rewrite: hand the draft over, ask
   // for it to be better, keep whatever came back. Nothing said what was
   // wrong and nothing confirmed the rewrite had fixed it.
-  for (let attempt = 1; attempt <= MAX_STORY_ATTEMPTS; attempt++) {
-    const review = await reviewStoryboard(brief, idea, toStoryboard(parsed, brief, idea))
-      .catch(() => ({ failures: [] as string[], passed: true }))
+  // The best version is kept, not the last one. Reviewing and then repairing
+  // sends the final repair out unread, and a repair is a fresh draft: it fixes
+  // what it was told about and can quietly break something else. It did —
+  // a book came back with its four named faults mended and its opening pages
+  // at fifty-nine words in a format that holds thirty-five. This is the same
+  // rule the pages already follow, for the same reason.
+  let best = { board: parsed, failures: Number.POSITIVE_INFINITY }
+
+  const mark = async (board: z.infer<typeof StoryboardSchema>, round: string) => {
+    const review = await reviewStoryboard(
+      brief,
+      idea,
+      toStoryboard(board, brief, idea),
+    ).catch(() => ({ failures: [] as string[], passed: true }))
+
     if (process.env.STORY_REVIEW_LOG) {
       console.log(
         review.passed
-          ? `  revisao ${attempt}: passou em todas as regras`
-          : `  revisao ${attempt}: reprovou em ${review.failures.length} —\n    ${review.failures.join('\n    ')}`,
+          ? `  revisao ${round}: passou em todas as regras`
+          : `  revisao ${round}: reprovou em ${review.failures.length} —\n    ${review.failures.join('\n    ')}`,
       )
     }
+    if (review.failures.length < best.failures) {
+      best = { board, failures: review.failures.length }
+    }
+    return review
+  }
+
+  for (let attempt = 1; attempt <= MAX_STORY_ATTEMPTS; attempt++) {
+    const review = await mark(parsed, String(attempt))
     if (review.passed) break
 
     // A repair that comes back unusable leaves the previous draft standing.
@@ -257,8 +277,14 @@ export async function generateStoryboard(
           }`,
         )
       }
+      break
     }
+
+    // The last repair would otherwise go out unread.
+    if (attempt === MAX_STORY_ATTEMPTS) await mark(parsed, 'final')
   }
+
+  parsed = best.board
 
   return toStoryboard(parsed, brief, idea)
 }
