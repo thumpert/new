@@ -519,6 +519,10 @@ async function renderOnePage(
           sceneDescription: page.sceneDescription,
           finish,
           device: memory ? undefined : device,
+          // The written descriptions are the same on every page, so the
+          // checker can tell a changed outfit from the intended one — the
+          // one continuity fault that is visible from a single page.
+          cast: Object.fromEntries(onPage.map((c) => [c.name, c.appearance])),
         }).catch(() => ({ problems: [] as string[] }));
 
       // Everything from here on is an attempt to improve a page we already

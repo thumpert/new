@@ -77,7 +77,7 @@ const IdeasSchema = z.object({
         device: z
           .string()
           .describe(
-            'The guide object and its colour, e.g. "a blue woollen thread". One thing, present and acting on every page. Empty when no object genuinely belongs to this story — a forced one is worse than none.',
+            'One small thing already in these people\'s lives that turns up more than once, and its colour — "the blue biscuit tin". On a coloring page it becomes the only coloured object. A recurring detail, never the engine: the story must make complete sense without it. Empty when nothing like that is in what the customer told us.',
           ),
       }),
     )

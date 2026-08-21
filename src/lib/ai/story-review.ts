@@ -64,6 +64,11 @@ const RULES = [
     test: 'On each page, one thing is true at the start and a different thing is true at the end — somebody decides, finds, loses, admits, tries or arrives. Name what changes on each page. A page that is a lovely moment in which nothing moves is a caption, and fails. Then check inside the page: each sentence must follow from the one before it, with the joins visible ("so", "but", "until", "which is why"). Sentences that merely sit side by side describing one moment from two angles fail this — it is what makes a simple story read as confusing.',
   },
   {
+    id: 'plain',
+    title: 'Linguagem simples',
+    test: 'The prose is plain: ordinary words a child already uses, short sentences with one idea each, events told in the order they happened. Fails on any literary inversion, any metaphor a child would not use, any sentence whose subject only becomes clear at the end, and any line that reads as atmosphere rather than as a fact. Withholding the meaning is right; making the reader decode what physically happened is not. Quote the worst sentence in the book and say plainly how to say the same thing.',
+  },
+  {
     id: 'clarity',
     title: 'Dá para acompanhar em uma leitura',
     test: 'Every page can be followed on a single reading aloud. The reader always knows who is present, where they are and what just happened; only the meaning is withheld. Any page carrying an identity on "ela" or "ele" alone across a page turn fails, as does any page whose setting or event the reader has to reconstruct.',

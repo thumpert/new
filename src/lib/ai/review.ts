@@ -67,6 +67,14 @@ Report only defects that are actually visible. Look for these, in order:
 
 5. SCENE LOGIC. Does the picture hold together as a place? Someone standing on nothing, an object twice the size it could be, a figure behind a wall that is also in front of it, two light sources fighting, a body cut off by scenery that should be behind it. Also: anything the description clearly asked for that is missing.
 
+6. THE SAME PEOPLE AS EVERY OTHER PAGE. You will be given each character's written description, which is the same on every page of the book and is what makes twelve separately drawn pages look like one book.
+
+   Check each named character against their description, garment by garment: the clothes, their colours, the shoes, the hair. Report anything different — a coat that is not in the description, missing shoes, a changed colour. Do not accept a substitution because it suits the scene; the description is the authority and the weather is not.
+
+   Then check that nobody appears twice. The same person drawn side by side with themselves, at two ages, or as a portrait or reflection that reads as a second copy, is a defect however well it is drawn.
+
+   Finally, check the sizes against each other: a small child stays small beside an adult, and two children of the same age stay the same height as each other.
+
 Rules:
 - Report what you can see, not what you suspect. If you are unsure, leave it out.
 - One short phrase per problem, naming what it is and roughly where: "third arm on the left character's shoulder", "map drawn across the bottom".
@@ -96,7 +104,12 @@ export async function reviewPageImage(opts: {
  */
 export async function checkPage(
   bytes: Buffer,
-  opts: { sceneDescription: string; finish: BookFinish; device?: string },
+  opts: {
+    sceneDescription: string
+    finish: BookFinish
+    device?: string
+    cast?: Record<string, string>
+  },
 ): Promise<PageReview> {
   const [measured, seen] = await Promise.all([
     measurePage(bytes, opts.finish),
@@ -108,7 +121,13 @@ export async function checkPage(
 /** The same check against bytes already in hand, so it can be run offline. */
 export async function reviewImageBytes(
   bytes: Buffer,
-  opts: { sceneDescription: string; finish: BookFinish; device?: string },
+  opts: {
+    sceneDescription: string
+    finish: BookFinish
+    device?: string
+    /** name → the written appearance, so the outfit can be checked here. */
+    cast?: Record<string, string>
+  },
 ): Promise<PageReview> {
 
   // Colour is the one thing the vision model is still asked about, and only
@@ -141,7 +160,13 @@ export async function reviewImageBytes(
           },
           {
             type: 'text',
-            text: `This page was drawn to show: ${opts.sceneDescription}\n\nList the defects you can actually see.`,
+            text: [
+              `This page was drawn to show: ${opts.sceneDescription}`,
+              opts.cast && Object.keys(opts.cast).length
+                ? `\nThe people in this book always look like this:\n${Object.entries(opts.cast).map(([n, d]) => `- ${n}: ${d}`).join('\n')}`
+                : '',
+              '\nList the defects you can actually see.',
+            ].filter(Boolean).join('\n'),
           },
         ],
       },

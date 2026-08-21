@@ -115,6 +115,32 @@ function pageFraming(finish: BookFinish): string {
  * the title and the closing line are typeset over it by the PDF, and a model
  * that letters its own title produces a cover with two of everything.
  */
+/**
+ * The three ways a book stops looking like one book.
+ *
+ * Every page is drawn by a separate request that has never seen the others, so
+ * anything not written down is decided again from scratch each time. Left
+ * alone the model re-dresses people between pages, re-scales whoever was not
+ * described in detail, and — on a cover, where it is composing rather than
+ * illustrating — sometimes puts the same child in twice.
+ *
+ * All three were found in a real book. All three are invisible to the page
+ * checker, which reads one page at a time and cannot know what the last one
+ * looked like, so they have to be prevented in the prompt rather than caught
+ * afterwards.
+ */
+const CONTINUITY_RULES = [
+  'SAME CLOTHES ON EVERY PAGE: each character wears exactly the outfit given in their description, down to the colour and the shoes, and it never changes anywhere in the book. Do not add or remove a coat, hat, scarf or bag, do not swap shoes, and do not dress anyone for the weather or the occasion. If the description does not mention a garment, they are not wearing one.',
+  'SAME SIZE ON EVERY PAGE: keep every character the height they are in their description relative to the others — a small child stays small beside an adult, and two children the same age stay the same height as each other. Do not resize anyone to fit the composition, and do not let a background character be drawn smaller than they are just because they are further back in the story.',
+  'ONE OF EACH PERSON: every named character appears exactly once in the image. Never draw the same person twice, side by side, at two ages, or as a reflection, shadow or portrait that reads as a second copy of them.',
+] as const
+
+const SANITY_RULES = [
+  'ANATOMY: every person and animal has exactly one head, two arms and two legs, each attached to a body and belonging to someone visible. No spare limbs, no hand resting on a shoulder with nobody behind it, no duplicated face.',
+  'NOTHING FLOATS: every object is held, worn, or resting on a surface. Nothing hovers unattached in the air.',
+  'ONLY WHAT THE SCENE SAYS: draw the people and things the scene describes and nothing else. Do not add extra figures, extra animals, signs, maps, diagrams, screens or logos to fill space.',
+] as const
+
 const COVER_RULES = [
   'Full colour illustration, in the manner of a printed picture-book cover',
   'keep the line work, character design and proportions of the style above, but fill every shape with colour',
@@ -213,6 +239,10 @@ export function coverPrompt(
     `Drawing style: ${style.prompt}`,
     `Colour: ${style.palette}`,
     COVER_RULES.join(', ') + '.',
+    // The covers were the one place these never reached, which is how a
+    // cover came back with the same child standing beside herself.
+    SANITY_RULES.join(' '),
+    CONTINUITY_RULES.join(' '),
   ].join(' ')
 }
 
@@ -236,6 +266,10 @@ export function backCoverPrompt(opts: {
     `Drawing style: ${style.prompt}`,
     `Colour: ${style.palette}`,
     COVER_RULES.join(', ') + '.',
+    // The covers were the one place these never reached, which is how a
+    // cover came back with the same child standing beside herself.
+    SANITY_RULES.join(' '),
+    CONTINUITY_RULES.join(' '),
   ].join(' ')
 }
 
@@ -281,11 +315,6 @@ export function characterSheetPrompt(
  * model adding something the scene never asked for — so both are ruled out by
  * name rather than left to its judgement.
  */
-const SANITY_RULES = [
-  'ANATOMY: every person and animal has exactly one head, two arms and two legs, each attached to a body and belonging to someone visible. No spare limbs, no hand resting on a shoulder with nobody behind it, no duplicated face.',
-  'NOTHING FLOATS: every object is held, worn, or resting on a surface. Nothing hovers unattached in the air.',
-  'ONLY WHAT THE SCENE SAYS: draw the people and things the scene describes and nothing else. Do not add extra figures, extra animals, signs, maps, diagrams, screens or logos to fill space.',
-] as const
 
 export function pagePrompt(
   sceneDescription: string,
@@ -320,6 +349,7 @@ export function pagePrompt(
     consistency,
     `Drawing style: ${style.prompt}`,
     SANITY_RULES.join(' '),
+    CONTINUITY_RULES.join(' '),
     finishRules(finish, artStyleId, device),
   ]
     .filter(Boolean)
@@ -373,6 +403,7 @@ export function memoryPagePrompt(
     `It must look like it belongs in the same book as every other page: same drawing style, same line, same level of stylisation. A page that comes out more realistic than the rest has failed, however faithful it is to the photograph.`,
     `Drawing style: ${style.prompt}`,
     SANITY_RULES.join(' '),
+    CONTINUITY_RULES.join(' '),
     finishRules(finish, artStyleId),
   ]
     .filter(Boolean)
