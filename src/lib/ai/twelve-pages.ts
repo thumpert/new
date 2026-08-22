@@ -59,7 +59,7 @@ const SPINE = [
   '9   THE WOBBLE. The small thing that goes wrong, and it is caused by page 8 rather than dropped in. It must threaten the thing wanted on page 2 — a mishap that costs nobody anything is a page of weather. Light, though: this is a present, never a book about danger, illness or loss.',
   '10  PUT RIGHT. One of them fixes it by doing the thing that is most characteristically them, drawn from what the customer actually said about them. Not luck, not a coincidence, not somebody arriving.',
   '11  UNTIL FINALLY. They arrive, and the want from page 2 is answered — met, or exchanged for something better that they could not have named on page 2. The question the book opened is closed here or on 12, never later. The refrain returns, changed.',
-  '12  EVER SINCE THEN. The coda. Time steps forward, the guide object completes rather than merely stopping, and the page is addressed to the person this book was made for. No moral, no summary of what it all meant.',
+  '12  EVER SINCE THEN. The coda. Time steps forward, the refrain returns changed, and the page is addressed to the person this book was made for. No moral, no summary of what it all meant.',
 ] as const
 
 export function twelvePageRules(brief: BookBrief): string {

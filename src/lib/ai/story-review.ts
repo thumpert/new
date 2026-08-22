@@ -25,13 +25,8 @@ import type { BookBrief, StoryIdea, Storyboard } from '../types'
 const RULES = [
   {
     id: 'chaining',
-    title: 'Encadeamento',
-    test: 'Every page depends on the one before it. Something set up earlier pays off later; a state changes and stays changed. Apply the shuffle test: if any two pages could trade places without the book breaking, this fails.',
-  },
-  {
-    id: 'joins',
-    title: 'Mas, ou portanto — nunca e-aí',
-    test: 'Go through the pages in order and put a word between each consecutive pair: "but", "therefore", or "and then". List every join where "and then" is the only word that fits — those pages follow one another in time without one causing the other. Any such join fails this rule, and you must name the page numbers. This is the mechanical version of "the book is confusing", and it is usually the true cause.',
+    title: 'Encadeamento e movimento',
+    test: 'Three checks, reported together as one fault so the writer gets one repair rather than three that fight each other. FIRST, between pages: put "but", "therefore" or "and then" between each consecutive pair and name every join where only "and then" fits — those pages follow in time without one causing the other. SECOND, the shuffle test: if any two pages could trade places without the book breaking, say which. THIRD, inside each page: one thing is true at the start and a different thing at the end — somebody decides, finds, loses, admits, tries or arrives — and each sentence follows from the one before it with the join visible ("so", "but", "until", "which is why"). Sentences sitting side by side describing one moment from two angles fail this. Name the pages for each of the three.',
   },
   {
     id: 'orientation',
@@ -70,22 +65,12 @@ const RULES = [
     // patterns that survive translation into Portuguese children's narration
     // and dropping the ones aimed at English business prose. The em-dash rule
     // is inverted on purpose: here it is the correct mark for speech.
-    test: 'None of these appear anywhere in the book: the colon reveal (a noun phrase, a colon, a small unveiling); the binary contrast ("Não era X. Era Y."); negative listing; sentence fragments stacked for percussion; a closing aphorism or neat metaphor after the story has ended; a recap ending ("No fim das contas"); a line telling the reader what to notice or how much something mattered; scenery given human feelings to sound literary. Also fails on "tomou a decisão" where "decidiu" would do, and on empty intensifiers ("realmente", "simplesmente", "literalmente") outside dialogue. Quote each one and give the plain replacement. The em dash opening a spoken line is correct and is not a fault; only decorative em dashes inside narration are.',
-  },
-  {
-    id: 'no-formula',
-    title: 'Sem fórmula repetida',
-    test: 'No sentence shape is used twice in the book. Read the page openings as a column: if two pages begin with the same construction, this fails. The one to look hardest for is naming a character and then explaining what they are like — "A Lila é assim: …", "O Nuno é assim: …" — which reads as charm the first time and as a machine the second. Quote every repeat you find and name the pages.',
+    test: 'None of these appear anywhere in the book: the colon reveal (a noun phrase, a colon, a small unveiling); the binary contrast ("Não era X. Era Y."); negative listing; sentence fragments stacked for percussion; a closing aphorism or neat metaphor after the story has ended; a recap ending ("No fim das contas"); a line telling the reader what to notice; scenery given human feelings to sound literary; "tomou a decisão" where "decidiu" would do; empty intensifiers ("realmente", "simplesmente", "literalmente") outside dialogue. Also fails if any sentence shape is used twice: read the page openings as a column, and look hardest for naming a character and then explaining what they are like ("A Lila é assim: …"), which is charm once and a machine twice. Quote each instance with the page and the plain replacement. The em dash opening a spoken line is correct and is never a fault; only decorative em dashes inside narration are.',
   },
   {
     id: 'plain',
-    title: 'Linguagem simples',
-    test: 'The prose is plain: ordinary words a child already uses, short sentences with one idea each, events told in the order they happened. Fails on any literary inversion, any metaphor a child would not use, any sentence whose subject only becomes clear at the end, and any line that reads as atmosphere rather than as a fact. Withholding the meaning is right; making the reader decode what physically happened is not. Quote the worst sentence in the book and say plainly how to say the same thing.',
-  },
-  {
-    id: 'clarity',
-    title: 'Dá para acompanhar em uma leitura',
-    test: 'Every page can be followed on a single reading aloud. The reader always knows who is present, where they are and what just happened; only the meaning is withheld. Any page carrying an identity on "ela" or "ele" alone across a page turn fails, as does any page whose setting or event the reader has to reconstruct.',
+    title: 'Linguagem simples e clara',
+    test: 'Plain and followable on one reading aloud. Ordinary words a child already uses, short sentences with one idea each, events in the order they happened. The reader always knows who is present, where they are and what just happened; only the meaning is withheld. Fails on literary inversion, on a metaphor a child would not use, on a sentence whose subject only becomes clear at the end, on a line that reads as atmosphere rather than as fact, on an identity carried by "ela" or "ele" alone across a page turn, and on any page whose setting or event the reader has to reconstruct. Quote the worst sentence in the book and say plainly how to say the same thing.',
   },
   {
     id: 'dialogue',
@@ -135,7 +120,7 @@ const RULES = [
   {
     id: 'ending',
     title: 'O final aterrissa',
-    test: 'The last page closes what the first opened, pays off the refrain, and is warm towards the person receiving the book.',
+    test: 'The last page closes what the first opened, pays off the refrain changed, steps time forward, and speaks warmly to the person the book was made for. It is a coda, not a summary: it must not retell what happened, state what it all meant, or end on a lesson. A last page that could be deleted without the book changing fails this, and so does one that explains the book.',
   },
 ] as const
 
@@ -180,12 +165,7 @@ const TWELVE_PAGE_RULES = [
   {
     id: 'spine',
     title: 'A espinha das doze páginas',
-    test: 'Name the page each of these lands on, in order: the ordinary world with everyone named (1); the routine the book will depart from (2); the guide object already in ordinary use (3); the one thing that changes (4); three consequences, each caused by the page before it rather than merely following it (5, 6, 8); the turn, which re-frames what came before and is NOT a fight or a disaster (7); the small thing that goes wrong, caused by the consequence before it (9); it being put right by one of them doing the thing that is most characteristically them — never luck, never somebody arriving (10); arriving at what the book was walking towards, with the refrain changed (11). If a beat is missing, or landed more than one page from where it belongs, or the turn sits in the last two pages, this fails. Say which page is doing what instead.',
-  },
-  {
-    id: 'coda',
-    title: 'A última página é coda, não resumo',
-    test: 'Page 12 steps time forward, completes the guide object rather than merely stopping it, and speaks to the person the book was made for. It must not summarise what happened, state what it all meant, or end on a lesson. A last page that could be deleted without the book changing fails this, and so does one that explains the book.',
+    test: 'Name the page each of these lands on, in order: the ordinary world with everyone named (1); the routine the book will depart from (2); the habit or the place the reader will miss once it is gone (3); the one thing that changes (4); three consequences, each caused by the page before it rather than merely following it (5, 6, 8); the turn, which re-frames what came before and is NOT a fight or a disaster (7); the small thing that goes wrong, caused by the consequence before it (9); it being put right by one of them doing the thing that is most characteristically them — never luck, never somebody arriving (10); arriving at what the book was walking towards, with the refrain changed (11). If a beat is missing, or landed more than one page from where it belongs, or the turn sits in the last two pages, this fails. Say which page is doing what instead.',
   },
 ] as const
 

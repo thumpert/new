@@ -333,7 +333,7 @@ Read all the pages together before changing anything, then work through these ch
 
 5. THE CAST. Check that each character does what only that character would do. If two characters could be swapped in a page without it reading strangely, they are not yet people. Use what the customer said about how each of them is.
 
-6. THE GUIDE OBJECT. It must be in every page's scene description, and doing something rather than merely present. Find any page where it is missing or passive and put it back to work. Check that it completes on the last page rather than simply stopping. If the book was written without a guide object, do not invent one now — one bolted on afterwards reads worse than none.
+6. THE RECURRING THING, IF THERE IS ONE. Some books have one small object already in these people's lives that turns up more than once; on a coloring page it is the only coloured thing on the paper. It is a detail, not the engine — do not add it to pages where it has no reason to be, do not give it a job to keep it busy, and never invent one for a book written without it. The book must make complete sense with it deleted.
 
 7. CAPTIONS. Go through page by page and ask of each narration: does this only tell me what the picture already shows? If yes, it is a caption and it has to be rewritten to carry what the picture cannot — the thought, the thing unsaid, the moment before, the thing about to happen. This is the most common fault and the one that makes a book feel lifeless.
 
