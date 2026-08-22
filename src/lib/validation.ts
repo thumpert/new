@@ -6,7 +6,7 @@ import {
   STORY_TYPES,
   TONES,
 } from './catalog'
-import { BOOK_FINISHES, COVER_KINDS, LOCALES, MAX_MEMORIES } from './types'
+import { AGE_BANDS, BOOK_FINISHES, COVER_KINDS, LOCALES, MAX_MEMORIES } from './types'
 
 /** Runtime validation for everything that arrives from the browser. */
 
@@ -42,6 +42,10 @@ export const briefSchema = z.object({
   locale: z.enum(LOCALES as [string, ...string[]]),
   bookLanguage: z.enum(ids(BOOK_LANGUAGES)),
   finish: z.enum(BOOK_FINISHES as [string, ...string[]]),
+  // Missing from this list until now, so zod stripped it on the way in and
+  // every reading book silently fell back to the middle age band, whatever
+  // the customer had chosen. The wizard had been sending it all along.
+  ageBandId: z.enum(AGE_BANDS as [string, ...string[]]).optional(),
   occasionId: z.enum(ids(OCCASIONS)),
   storyTypeId: z.enum(ids(STORY_TYPES)),
   toneId: z.enum(ids(TONES)),
