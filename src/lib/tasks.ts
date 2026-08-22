@@ -18,13 +18,30 @@ import type { Order, OrderTask, TaskKind } from './types'
  */
 
 /**
- * Work abandoned by a restart would otherwise sit at 'running' forever, and
- * the browser would poll it forever. Fifteen minutes is comfortably longer
- * than the slowest thing here — a sixteen-spread storyboard through three
- * rounds of editing — and short enough that a customer is not left waiting on
- * a process that no longer exists.
+ * How long each kind of work may run before it is presumed dead.
+ *
+ * One number for all of them was wrong, and wrong in the direction that hurts:
+ * fifteen minutes, chosen because it sounded comfortably longer than anything
+ * here. A storyboard measured at sixteen minutes and was still going — draft,
+ * then up to three reviews and three repairs, each a full rewrite of the book
+ * at a thirty-four-thousand-token ceiling — and the customer was told it had
+ * stopped part-way through while it was in fact working.
+ *
+ * Declaring live work dead is worse than waiting: the money is already spent,
+ * and the book was minutes from arriving. These are set from what each step
+ * has actually been measured doing, with room on top.
  */
-const STALE_AFTER_MS = 15 * 60 * 1000
+const STALE_AFTER: Record<TaskKind, number> = {
+  interview: 10 * 60 * 1000,
+  gaps: 10 * 60 * 1000,
+  titles: 10 * 60 * 1000,
+  ideas: 20 * 60 * 1000,
+  // The slowest thing in the product by a wide margin.
+  storyboard: 45 * 60 * 1000,
+}
+
+/** For work whose kind is not known, and for the drawing stages. */
+const STALE_AFTER_MS = 20 * 60 * 1000
 
 export function startTask<T>(
   orderId: string,
@@ -82,7 +99,9 @@ export async function orderForPolling(id: string): Promise<Order | null> {
   const order = await getOrder(id)
   if (!order) return null
 
-  if (order.task?.status === 'running' && stale(order.task.startedAt)) {
+  const ceiling = order.task ? (STALE_AFTER[order.task.kind] ?? STALE_AFTER_MS) : STALE_AFTER_MS
+
+  if (order.task?.status === 'running' && stale(order.task.startedAt, ceiling)) {
     return { ...order, task: { ...order.task, status: 'failed', error: ABANDONED } }
   }
 
@@ -95,6 +114,6 @@ export async function orderForPolling(id: string): Promise<Order | null> {
   return order
 }
 
-function stale(iso: string): boolean {
-  return Date.now() - new Date(iso).getTime() > STALE_AFTER_MS
+function stale(iso: string, ms: number = STALE_AFTER_MS): boolean {
+  return Date.now() - new Date(iso).getTime() > ms
 }
