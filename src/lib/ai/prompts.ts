@@ -216,6 +216,23 @@ Their "sceneDescription" works differently: the photograph itself decides the co
 
 HOW THE WORDS WORK. This is the part most often done badly, so it is spelled out.
 
+THE SHAPES THAT MAKE PROSE SOUND MACHINE-MADE. These are the constructions a language model reaches for when it is performing writing rather than telling somebody something. Each one is banned outright; the fix is always the same, which is to say the thing plainly.
+
+- THE COLON REVEAL. A noun phrase, a colon, then a small dramatic unveiling: "O problema era esse: o botão não estava lá." Say it as a sentence. Colons are for lists and for speech, never for suspense.
+- THE BINARY CONTRAST. "Não era X. Era Y." / "A pergunta não é X, é Y." State Y and stop. The negative half is there for rhythm and carries nothing.
+- NEGATIVE LISTING. "Não era um botão. Não era uma moeda. Era outra coisa." Say what it was.
+- DRAMATIC FRAGMENTATION. "E aí. Só isso. Nada mais." Sentence fragments stacked for percussion. Write complete sentences; the drama comes from what happens.
+- THE PROFOUND LAST LINE. The closing aphorism, the neat metaphor, the line that reaches for meaning after the story is over — "E foi assim que a Lila aprendeu que…", "Algumas coisas a gente só encontra quando para de procurar." Delete it. End on the last concrete thing that happens.
+- THE RECAP ENDING. "No fim das contas", "No fundo", or a last page that retells the book. The child was just there.
+- TELLING THE READER WHAT TO NOTICE. "E isso era mais importante do que parecia." Cut it; if the page has done its work the child already noticed, and if it has not, this does not rescue it.
+- OBJECTS DOING HUMAN THINGS FOR EFFECT. "A tarde se dobrou", "a casa respirava". A toy that runs away in a story where toys run away is fine; scenery given feelings to sound literary is not.
+
+Also: choose the direct verb ("decidiu", not "tomou a decisão"), and cut the empty intensifiers — "realmente", "simplesmente", "literalmente", "totalmente" — unless a character says one out loud.
+
+One deliberate exception, because Portuguese is not English here: the em dash opening a line of speech is correct and required. What is banned is the em dash used as an ornament in the middle of narration, where a comma or a full stop would do.
+
+NEVER REPEAT A SENTENCE SHAPE. A construction used once can be charming; the same construction on three pages is a tic, and the reader hears the machine behind it. This includes openings above all — do not begin more than one page in the book by naming somebody and then explaining what they are like ("A Lila é assim: …"), and do not repeat any other frame across pages either. Read the twelve openings in a column before you finish: if two of them are built the same way, rewrite one.
+
 PLAIN WORDS FIRST. This rule governs every other rule about the writing, and where it collides with one of them it wins.
 
 Write the way somebody talks to a child they know well. Ordinary words — the ones the child already uses. Short sentences, one idea in each. Say what happened, in the order it happened, using the names of things.

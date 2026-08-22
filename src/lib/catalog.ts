@@ -135,7 +135,7 @@ export const TONES: ToneDef[] = [
       'Playful and colloquial, in the voice of a Brazilian narrator who knows this person well and is amused by them.',
       'SENTENCES: short and declarative, stacked one after another. The rhythm comes from accumulation, and the last sentence of a page is shorter than the ones before it, landing like a punchline.',
       'SUBJECT OF THE JOKE: who the character is, never what merely happens. The humour is affectionate exaggeration of a real habit — the way they always run ahead, the thing they always say.',
-      'CONSTRUCTION: reach for the shape "X is like this: ..." — defining a person by one habit, then topping it with a second character who is even more like that.',
+      'HOW A PERSON IS DRAWN: by one habit, shown in action rather than announced — and often topped by a second character who is even more that way. Do not use a fixed formula to do it, and above all do not open a page by naming somebody and then explaining what they are like; write them doing the thing.',
       'VOCABULARY: everyday and unpretentious, the way people actually speak. No invented words, no rhyme, no sound effects.',
       'AVOID: slapstick for its own sake, jokes only an adult would get, and any humour at the character’s expense — the reader must feel the narrator likes them.',
     ].join(' '),
