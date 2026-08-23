@@ -151,27 +151,61 @@ export async function generateInterviewQuestions(
     }))
 }
 
+/**
+ * How many times ideas are asked for before the customer is shown any.
+ *
+ * An idea with nobody wanting anything is not a weak idea, it is a different
+ * object: pages that click together and give the reader no reason to turn
+ * them. One reached a real customer — its turn was entirely about a paper bag
+ * blowing into the Seine, its want was empty, and the book that came out of
+ * it was a chase with nobody in it. The rule existed and only the writing
+ * prompt enforced it, which means it was a request rather than a gate.
+ */
+const MAX_IDEA_ATTEMPTS = 2
+
 export async function generateIdeas(brief: BookBrief): Promise<StoryIdea[]> {
-  // Four ideas each carrying a summary, three highlights, a turn and a guide
-  // object. At 8000 the reply came back cut off mid-string.
-  const parsed = await askForJson({
-    what: 'story ideas',
-    label: 'ideias de historia',
-    schema: IdeasSchema,
-    maxTokens: 24_000,
-    system: IDEAS_SYSTEM,
-    user: ideasUser(brief),
-  })
-  return parsed.ideas.slice(0, 4).map((idea, i) => ({
-    id: `idea${i + 1}`,
-    title: idea.title,
-    logline: idea.logline,
-    summary: idea.summary,
-    highlights: idea.highlights,
-    want: idea.want,
-    turn: idea.turn,
-    device: idea.device,
-  }))
+  let last: StoryIdea[] = []
+
+  for (let attempt = 1; attempt <= MAX_IDEA_ATTEMPTS; attempt++) {
+    // Four ideas each carrying a summary, three highlights, a want and a turn.
+    // At 8000 the reply came back cut off mid-string.
+    const parsed = await askForJson({
+      what: 'story ideas',
+      label: attempt === 1 ? 'ideias de historia' : `ideias de historia (${attempt})`,
+      schema: IdeasSchema,
+      maxTokens: 24_000,
+      system: IDEAS_SYSTEM,
+      user:
+        attempt === 1
+          ? ideasUser(brief)
+          : `${ideasUser(brief)}\n\nThe previous attempt came back with ideas that had nobody wanting anything. Every idea must name, in the "want" field, one small concrete thing somebody does not have on page one and spends the book trying to get. An idea whose turn is only about an object moving around is the failure this is guarding against.`,
+    })
+
+    const ideas = parsed.ideas.slice(0, 4).map((idea, i) => ({
+      id: `idea${i + 1}`,
+      title: idea.title,
+      logline: idea.logline,
+      summary: idea.summary,
+      highlights: idea.highlights,
+      want: idea.want,
+      turn: idea.turn,
+      device: idea.device,
+    }))
+
+    // Only ideas somebody wants something in reach the customer. Renumbered
+    // so the ids stay dense — the screen and the chosen id both assume it.
+    const wanted = ideas
+      .filter((idea) => idea.want?.trim())
+      .map((idea, i) => ({ ...idea, id: `idea${i + 1}` }))
+
+    if (wanted.length >= 2) return wanted
+    if (wanted.length > last.length) last = wanted
+  }
+
+  if (last.length > 0) return last
+  throw new Error(
+    'The ideas came back with nobody wanting anything in them. Try again.',
+  )
 }
 
 const TitlesSchema = z.object({
