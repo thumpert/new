@@ -277,6 +277,11 @@ export const en: Dictionary = {
       description:
         'Narration in English with the translation smaller underneath — for someone learning.',
     },
+    'pt-fr': {
+      label: 'Portuguese with French support',
+      description:
+        'Narration in Portuguese with the translation smaller underneath — for a child growing up between the two.',
+    },
   },
   occasions: {
     child: {

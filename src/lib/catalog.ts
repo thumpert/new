@@ -442,6 +442,7 @@ export const READING_PAGES = 16
  *
  * The word counts are the trade's own: a picture book for the youngest runs
  * to a few hundred words in total and one or two sentences a spread, while a
+  { id: 'pt-fr', primary: 'Brazilian Portuguese', secondary: 'French' },
  * book for a nine-year-old carries a paragraph and can hold a subplot. What
  * changes with them is not only length — it is how much is left unsaid, how
  * long a question may stay open, and whether a chapter may end unresolved.

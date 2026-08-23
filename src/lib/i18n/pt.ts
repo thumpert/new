@@ -277,6 +277,11 @@ export const pt = {
       description:
         'A narração em inglês e, embaixo e menor, a tradução — para quem está aprendendo.',
     },
+    'pt-fr': {
+      label: 'Português com apoio em francês',
+      description:
+        'A narração em português e, embaixo e menor, a tradução — para a criança que cresce entre as duas línguas.',
+    },
   },
   occasions: {
     child: {

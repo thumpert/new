@@ -41,7 +41,7 @@ export type CharacterKind = 'person' | 'pet'
  * site is shown in. A Brazilian buying a gift for someone learning English
  * browses in Portuguese and orders an English book.
  */
-export type BookLanguageId = 'pt' | 'en' | 'en-pt'
+export type BookLanguageId = 'pt' | 'en' | 'en-pt' | 'pt-fr'
 
 /**
  * What the customer actually receives, and the first thing they choose.
