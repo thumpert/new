@@ -46,12 +46,20 @@ export function BookProgress({
 
         // Stop polling once the book has settled, or once it is waiting on the
         // customer — nothing moves again until they pick a cover.
+        //
+        // A failed task counts as settled. Writing steps record their failure
+        // on the task and leave order.status untouched, so a storyboard that
+        // died left this loop polling a corpse every three seconds with the
+        // screen still saying the book was being written. Nothing was coming,
+        // and the error explaining why was sitting on the order the whole
+        // time.
         const settled =
           data.status === 'ready' ||
           data.status === 'failed' ||
           data.status === 'choosing-cover' ||
           // Waiting on the customer to read the story, so nothing will move.
-          data.status === 'storyboard-review'
+          data.status === 'storyboard-review' ||
+          data.task?.status === 'failed'
         if (!settled) timer = setTimeout(poll, 3000)
       } catch (err) {
         if (cancelled) return
@@ -174,6 +182,18 @@ export function BookProgress({
       {order?.status === 'failed' && order.error && (
         <div className="mt-6">
           <ErrorNote message={order.error} />
+        </div>
+      )}
+      {/*
+        The writing steps fail onto the task rather than onto the order, and
+        until this was here nothing rendered that error. The customer watched
+        a spinner until they gave up, which is the worst way to be told: the
+        money for the attempt is already spent and they cannot even see what
+        went wrong to decide whether trying again is worth it.
+      */}
+      {order?.task?.status === 'failed' && order.task.error && (
+        <div className="mt-6">
+          <ErrorNote message={order.task.error} />
         </div>
       )}
 
