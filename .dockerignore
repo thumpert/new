@@ -5,3 +5,7 @@ node_modules
 .env.local
 .env
 npm-debug.log*
+
+# The reference book copied in for a story brief — 52MB, and nothing at
+# runtime reads it.
+livro-referencia.pdf
