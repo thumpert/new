@@ -253,6 +253,15 @@ export interface StoryIdea {
    * than a book without one.
    */
   device?: string
+  /**
+   * Whether this is the shape the occasion always offers, rather than one the
+   * writer invented freely. See `anchorIdea` in src/lib/catalog.ts.
+   *
+   * Kept on the idea so the set can be checked before it reaches the
+   * customer, and so the anchored one can lead the four. Optional because
+   * orders written before it existed are still on disk.
+   */
+  anchored?: boolean
 }
 
 export interface StoryPage {

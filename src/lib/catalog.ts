@@ -22,6 +22,20 @@ export interface OccasionDef {
   interviewFocus: string
   /** Story types that make sense for this occasion, best first. */
   suggestedStoryTypes: StoryTypeId[]
+  /**
+   * A story shape this occasion always offers, alongside the freely invented
+   * ones.
+   *
+   * It is a mould, not a manuscript. The writer fills it with this family's
+   * names, this setting's landmarks and this household's animal, so two
+   * customers who both pick the occasion get the same skeleton and never the
+   * same book — which is the whole reason it is written as a shape here
+   * rather than kept as a finished story on disk.
+   *
+   * Enforced rather than requested: `generateIdeas` will not return a set
+   * without it. See the `anchor` field on the ideas schema.
+   */
+  anchorIdea?: string
 }
 
 export const OCCASIONS: OccasionDef[] = [
@@ -40,6 +54,40 @@ export const OCCASIONS: OccasionDef[] = [
     interviewFocus:
       'how the family found out, how siblings and pets reacted, what the family dreams for the baby, the meaning of the baby’s name',
     suggestedStoryTypes: ['everyday-magic', 'journey', 'fairy-tale'],
+    anchorIdea: [
+      'THE MIRROR ROUTE.',
+      '',
+      'A family builds a route of mirrors across the place they live, so that a beam of daylight travels the whole city and comes home into the room the baby will sleep in. What holds it together is the family placing the mirrors and the light bouncing from one to the next: every page happens because the page before it put a mirror somewhere.',
+      '',
+      'Two roles carry the shape, and both are cast from the characters the customer actually named. THE FINDER is whoever finds the first mirror and wants something. THE BLOCKER is what stands in front of the last one. Cast them before writing the beats — see CASTING below.',
+      '',
+      'The beats, in order:',
+      '1. The room meant for the baby is still full of boxes and bare walls. THE BLOCKER is already settled on one empty patch of floor, and stays there in the background of every page set at home.',
+      '2. THE FINDER opens a box looking for something else and finds a mirror.',
+      '3. Sunlight hits it and throws a beam across the bare wall. Everyone stops.',
+      '4. Turning the mirror moves the beam. There is a rule: the hand has to stay still or the light runs off.',
+      '5. The rest of the boxes give up more mirrors, and they are counted — few enough to run out. THE FINDER keeps the first one, the one she found, out of the pile and in her pocket. Nobody argues.',
+      '6. Somebody says the light is the baby on its way, and that whoever arrives somewhere new needs somebody to show them around.',
+      '7. The route is proposed: one mirror at a time, out across the place and back home, so the whole of it reaches the baby.',
+      '8. The first mirror goes up outside the house — one from the pile, not the one in her pocket — and the beam leaves home for the first time.',
+      '9-10. The beam crosses the real landmarks of the SETTING, one mirror and one page each, and they travel out to meet it where it lands.',
+      '11. THE TURN. They reach the last stop on the route and the bag is empty. Nobody asks. THE FINDER takes her own mirror out of her pocket and hands it over, and the book stops being about collecting and starts being about having given something away. Play it in silence: the empty bag, the hand coming out of the pocket.',
+      '12. The last landmark, carrying her mirror.',
+      '13. The route reaches home at last and nothing lights up.',
+      '14. The last mirror is found blocked by THE BLOCKER, in the exact patch of floor it has occupied since the first page.',
+      '15. THE BLOCKER is moved out of the way, and the whole house floods with light at once.',
+      '16. The light reaches the baby’s room, which by now has a cot and a finished wall — and it is arriving through the mirror she gave away, on the other side of the place, where she will never see it.',
+      '',
+      'CASTING. Use only the characters the customer named. Never add a sibling, a second parent or a pet to make the shape fit — the shape bends, the cast does not.',
+      '- THE FINDER is the youngest named character who is not the baby. Children are in this book only when the customer gave us children. When the cast is adults only, an adult finds the mirror and the want is unchanged: to be the one who knows this place well enough to show it to somebody arriving. When the customer named a single character, that person builds the route alone and the beats run exactly as written, in a quieter house.',
+      '- THE BLOCKER is the family’s own pet, by name, when they have one: asleep on that patch of floor from page one, asked to move on beat 15, taking its time about it. With no pet, it is a thing that stands in that home’s sunny spot — a drying rack, the stack of boxes nobody opened, a wardrobe door left open, a suitcase never put away — and beat 15 is somebody finally shifting it after two weeks of walking round it.',
+      '- Whichever it is, THE BLOCKER has to be visible on page one and in the background of every page at home, so the reader solves beat 14 before anybody in the book does.',
+      '',
+      'Fill the rest of the mould with what this family actually gave us:',
+      '- THE LANDMARKS COME FROM THE SETTING, ALWAYS. Use the real, nameable places of wherever this story is set. A capital city gives its monuments; a small town gives its church tower, its water tank, its bridge; a farm gives the silo, the gate, the big tree. Never carry over landmarks from another book — the setting is the point of this step.',
+      '- If the family has not just moved house, the boxes are whatever is being cleared out to make room for the baby.',
+      '- The device is the first mirror, with its colour. It is the one kept back in beat 5 and given away in beat 11.',
+    ].join('\n'),
   },
   {
     id: 'birthday',
@@ -394,6 +442,7 @@ export const BOOK_LANGUAGES: BookLanguageDef[] = [
   { id: 'pt', primary: 'Brazilian Portuguese' },
   { id: 'en', primary: 'English' },
   { id: 'en-pt', primary: 'English', secondary: 'Brazilian Portuguese' },
+  { id: 'pt-fr', primary: 'Brazilian Portuguese', secondary: 'French' },
 ]
 
 /**
@@ -442,7 +491,6 @@ export const READING_PAGES = 16
  *
  * The word counts are the trade's own: a picture book for the youngest runs
  * to a few hundred words in total and one or two sentences a spread, while a
-  { id: 'pt-fr', primary: 'Brazilian Portuguese', secondary: 'French' },
  * book for a nine-year-old carries a paragraph and can hold a subplot. What
  * changes with them is not only length — it is how much is left unsaid, how
  * long a question may stay open, and whether a chapter may end unresolved.

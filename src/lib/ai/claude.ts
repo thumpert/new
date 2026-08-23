@@ -1,5 +1,5 @@
 import * as z from 'zod'
-import { pagesFor } from '../catalog'
+import { getOccasion, pagesFor } from '../catalog'
 import { askForJson } from './ask'
 import { reviewStoryboard } from './story-review'
 import type {
@@ -78,6 +78,11 @@ const IdeasSchema = z.object({
           .string()
           .describe(
             'One small thing already in these people\'s lives that turns up more than once, and its colour — "the blue biscuit tin". On a coloring page it becomes the only coloured object. A recurring detail, never the engine: the story must make complete sense without it. Empty when nothing like that is in what the customer told us.',
+          ),
+        anchor: z
+          .boolean()
+          .describe(
+            'True only for the idea written to the required shape, when the prompt asked for one, and false on every other idea. False on all four when no shape was required.',
           ),
       }),
     )
@@ -164,7 +169,12 @@ export async function generateInterviewQuestions(
 const MAX_IDEA_ATTEMPTS = 2
 
 export async function generateIdeas(brief: BookBrief): Promise<StoryIdea[]> {
+  // Occasions that always offer a shape of their own — the customer should
+  // find it among the four however the writing model felt that day.
+  const wantsAnchor = Boolean(getOccasion(brief.occasionId).anchorIdea)
+
   let last: StoryIdea[] = []
+  let retryNote = ''
 
   for (let attempt = 1; attempt <= MAX_IDEA_ATTEMPTS; attempt++) {
     // Four ideas each carrying a summary, three highlights, a want and a turn.
@@ -175,14 +185,11 @@ export async function generateIdeas(brief: BookBrief): Promise<StoryIdea[]> {
       schema: IdeasSchema,
       maxTokens: 24_000,
       system: IDEAS_SYSTEM,
-      user:
-        attempt === 1
-          ? ideasUser(brief)
-          : `${ideasUser(brief)}\n\nThe previous attempt came back with ideas that had nobody wanting anything. Every idea must name, in the "want" field, one small concrete thing somebody does not have on page one and spends the book trying to get. An idea whose turn is only about an object moving around is the failure this is guarding against.`,
+      user: retryNote ? `${ideasUser(brief)}\n\n${retryNote}` : ideasUser(brief),
     })
 
-    const ideas = parsed.ideas.slice(0, 4).map((idea, i) => ({
-      id: `idea${i + 1}`,
+    const ideas = parsed.ideas.slice(0, 4).map((idea) => ({
+      id: '',
       title: idea.title,
       logline: idea.logline,
       summary: idea.summary,
@@ -190,22 +197,42 @@ export async function generateIdeas(brief: BookBrief): Promise<StoryIdea[]> {
       want: idea.want,
       turn: idea.turn,
       device: idea.device,
+      anchored: idea.anchor === true,
     }))
 
-    // Only ideas somebody wants something in reach the customer. Renumbered
-    // so the ids stay dense — the screen and the chosen id both assume it.
-    const wanted = ideas
-      .filter((idea) => idea.want?.trim())
-      .map((idea, i) => ({ ...idea, id: `idea${i + 1}` }))
+    // Only ideas somebody wants something in reach the customer, and the
+    // occasion's own shape leads when it came back. Renumbered last so the
+    // ids stay dense — the screen and the chosen id both assume it.
+    const wanted = ideas.filter((idea) => idea.want?.trim())
+    const kept = [
+      ...wanted.filter((idea) => idea.anchored),
+      ...wanted.filter((idea) => !idea.anchored),
+    ].map((idea, i) => ({ ...idea, id: `idea${i + 1}` }))
 
-    if (wanted.length >= 2) return wanted
-    if (wanted.length > last.length) last = wanted
+    const hasAnchor = !wantsAnchor || kept.some((idea) => idea.anchored)
+    if (kept.length >= 2 && hasAnchor) return kept
+
+    // Prefer whichever attempt got closer: carrying the shape beats carrying
+    // one more idea, because the missing shape is the thing being guarded.
+    if (score(kept, wantsAnchor) > score(last, wantsAnchor)) last = kept
+
+    retryNote =
+      kept.length < 2
+        ? 'The previous attempt came back with ideas that had nobody wanting anything. Every idea must name, in the "want" field, one small concrete thing somebody does not have on page one and spends the book trying to get. An idea whose turn is only about an object moving around is the failure this is guarding against.'
+        : 'The previous attempt came back without the required shape. One of the four must follow it and carry "anchor": true. Write that one first.'
   }
 
   if (last.length > 0) return last
   throw new Error(
     'The ideas came back with nobody wanting anything in them. Try again.',
   )
+}
+
+/** Ranks two attempts at the four ideas. Carrying the shape outweighs count. */
+function score(ideas: StoryIdea[], wantsAnchor: boolean): number {
+  if (ideas.length === 0) return 0
+  const anchored = wantsAnchor && ideas.some((idea) => idea.anchored)
+  return ideas.length + (anchored ? 10 : 0)
 }
 
 const TitlesSchema = z.object({

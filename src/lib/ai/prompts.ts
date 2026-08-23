@@ -159,10 +159,25 @@ Two languages are involved. The buyer is choosing between these four ideas, so t
 
 export function ideasUser(brief: BookBrief): string {
   const language = getBookLanguage(brief.bookLanguage)
+  const anchor = getOccasion(brief.occasionId).anchorIdea
+
   return [
     `Propose four story ideas. Write the logline, summary and highlights in ${uiLanguage(brief)}. Write the title in ${language.primary}.`,
     '',
     briefContext(brief),
+    // One of the four is a shape this occasion always offers. It goes after
+    // the brief rather than before it, so the family's own details are
+    // already read by the time the mould asks to be filled with them.
+    ...(anchor
+      ? [
+          '',
+          'ONE OF THE FOUR IS WRITTEN TO A REQUIRED SHAPE.',
+          '',
+          'Write it first, set its "anchor" field to true, and set "anchor" to false on the other three. It is judged as an idea like any other: it still needs its want, its turn and this family’s real details, and it still has to read like a story somebody wrote for them rather than a form that was filled in. The remaining three are yours to invent freely, and must not reuse this shape.',
+          '',
+          anchor,
+        ]
+      : []),
   ].join('\n')
 }
 
