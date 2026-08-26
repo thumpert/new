@@ -16,7 +16,7 @@ import type { ArtStyleId, BookFinish, Character } from '../src/lib/types'
 const STYLE = (process.argv[3] ?? 'cartoon') as ArtStyleId
 /** npx tsx scripts/test-covers.ts coloured superhero-comic */
 const FINISH: BookFinish =
-  process.argv[2] === 'coloured' ? 'coloured' : 'coloring'
+  process.argv[2] === 'reading' ? 'reading' : 'coloring'
 
 const CAST: Character[] = [
   {

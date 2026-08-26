@@ -16,6 +16,15 @@ export interface Charge {
   input: number
   output: number
   usd: number
+  /**
+   * How long the call took, in milliseconds.
+   *
+   * Added because the ledger could say what a book cost and not what it cost
+   * the customer in waiting, and those turned out to be different questions
+   * with different answers: the most expensive call and the slowest one were
+   * the same call, but nothing in here proved it until it was measured.
+   */
+  ms?: number
 }
 
 /** US$ per million tokens, input and output. */
@@ -40,6 +49,7 @@ export function record(
   what: string,
   model: string,
   usage: { input_tokens?: number; output_tokens?: number } | null | undefined,
+  ms?: number,
 ): void {
   if (!usage) return
   const rate = RATES[model]
@@ -54,6 +64,7 @@ export function record(
     input,
     output,
     usd: (input * rate.in + output * rate.out) / 1_000_000,
+    ms,
   })
 }
 

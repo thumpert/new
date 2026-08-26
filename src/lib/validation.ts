@@ -6,7 +6,7 @@ import {
   STORY_TYPES,
   TONES,
 } from './catalog'
-import { AGE_BANDS, BOOK_FINISHES, COVER_KINDS, LOCALES, MAX_MEMORIES } from './types'
+import { AGE_BANDS, BOOK_FINISHES, COVER_KINDS, GENDERS, LOCALES } from './types'
 
 /** Runtime validation for everything that arrives from the browser. */
 
@@ -17,6 +17,7 @@ export const characterSchema = z.object({
   id: z.string().min(1).max(64),
   name: z.string().min(1).max(60),
   kind: z.enum(['person', 'pet']),
+  gender: z.enum(GENDERS).optional(),
   role: z.string().max(120).optional(),
   age: z.string().max(60).optional(),
   appearance: z.string().max(1200).default(''),
@@ -47,6 +48,7 @@ export const briefSchema = z.object({
   // the customer had chosen. The wizard had been sending it all along.
   ageBandId: z.enum(AGE_BANDS as [string, ...string[]]).optional(),
   occasionId: z.enum(ids(OCCASIONS)),
+  chosenStoryId: z.string().max(40).optional(),
   storyTypeId: z.enum(ids(STORY_TYPES)),
   toneId: z.enum(ids(TONES)),
   artStyleId: z.enum(ids(ART_STYLES)),
@@ -54,7 +56,6 @@ export const briefSchema = z.object({
   place: z.string().max(600).default(''),
   dedication: z.string().max(600).optional(),
   characters: z.array(characterSchema).min(1).max(6),
-  memories: z.array(memoryPhotoSchema).max(MAX_MEMORIES).optional(),
   interview: z.array(interviewAnswerSchema).max(20).default([]),
 })
 

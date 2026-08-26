@@ -43,6 +43,7 @@ export async function askForJson<T extends z.ZodType>(opts: {
   system: string
   user: string
 }): Promise<z.infer<T>> {
+  const startedAt = Date.now()
   let text = ''
   let stopReason: string | null = null
   let inputTokens = 0
@@ -78,10 +79,12 @@ export async function askForJson<T extends z.ZodType>(opts: {
     // In `finally` because a call that failed still cost money, and a ledger
     // that only counts successes understates what a book costs. A request
     // refused before it began records two zeroes, which is the truth.
-    record(opts.label, MODEL, {
-      input_tokens: inputTokens,
-      output_tokens: outputTokens,
-    })
+    record(
+      opts.label,
+      MODEL,
+      { input_tokens: inputTokens, output_tokens: outputTokens },
+      Date.now() - startedAt,
+    )
   }
 
   if (stopReason === 'max_tokens') {

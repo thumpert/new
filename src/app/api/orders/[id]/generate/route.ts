@@ -1,4 +1,5 @@
 import { generateStoryboard } from '@/lib/ai/claude'
+import { babyStoryIdea, getBabyStory } from '@/lib/baby-stories'
 import { getOrder, updateOrder } from '@/lib/store'
 import { startTask } from '@/lib/tasks'
 import { chooseIdeaSchema } from '@/lib/validation'
@@ -33,7 +34,17 @@ export async function POST(request: Request, { params }: Context) {
     const order = await getOrder(id)
     if (!order) return notFound('Order not found.')
 
-    const idea = order.ideas?.find((i) => i.id === parsed.data.ideaId)
+    // A pre-written story is not in `order.ideas` — it was never proposed by
+    // a model, so nothing ever wrote it there. It is rebuilt from the id on
+    // the brief instead, which is also the only copy that matters: the beats
+    // live in this repository, not in the order.
+    const story = order.brief.chosenStoryId
+      ? getBabyStory(order.brief.chosenStoryId)
+      : undefined
+
+    const idea = story
+      ? babyStoryIdea(story, order.brief)
+      : order.ideas?.find((i) => i.id === parsed.data.ideaId)
     if (!idea) return badRequest('That story idea does not belong to this order.')
 
     const brief = parsed.data.title

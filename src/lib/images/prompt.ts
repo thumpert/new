@@ -1,4 +1,5 @@
 import { getArtStyle } from '../catalog'
+import { isLineArt } from '../types'
 import type { ArtStyleId, BookFinish, Character } from '../types'
 
 /**
@@ -297,9 +298,9 @@ export function characterSheetPrompt(
     'All three views must be unmistakably the same character, with identical clothing and proportions.',
     // The colour book's sheet is the palette every later page copies, so the
     // three views have to agree on colour as much as on shape.
-    finish === 'coloured'
-      ? 'All three views must also be coloured identically — the same hue on the same garment in each view. Keep the sheet itself on a plain white background.'
-      : '',
+    isLineArt(finish)
+      ? ''
+      : 'All three views must also be coloured identically — the same hue on the same garment in each view. Keep the sheet itself on a plain white background.',
     finishRules(finish, artStyleId),
   ]
     .filter(Boolean)
@@ -335,9 +336,9 @@ export function pagePrompt(
           // alongside it is what holds a character still, and it is the same
           // pairing that made the covers come back faithful.
           `In words, so nothing drifts: ${castDescription(characters)}`,
-          finish === 'coloured'
-            ? 'The sheets are coloured: take every colour from them exactly, without reinterpreting.'
-            : '',
+          isLineArt(finish)
+            ? ''
+            : 'The sheets are coloured: take every colour from them exactly, without reinterpreting.',
         ]
           .filter(Boolean)
           .join(' ')

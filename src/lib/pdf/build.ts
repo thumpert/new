@@ -9,6 +9,7 @@ import {
 import { getAgeBand } from '../catalog'
 import { fit, sanitize, wrap } from './text'
 import { fetchBinary, putFile } from '../storage'
+import { isLineArt } from '../types'
 import type { BookBrief, Locale, Order, StoryPage } from '../types'
 
 /**
@@ -110,7 +111,7 @@ export async function buildBookPdf(order: Order): Promise<Uint8Array> {
   // the edge. A coloring page stays inside the margin, which costs nothing
   // visually — its background is the same white as the paper — and leaves the
   // printer somewhere to trim and bind.
-  const bleed = order.brief.finish === 'coloured'
+  const bleed = !isLineArt(order.brief.finish)
 
   for (const page of order.storyboard.pages) {
     const render = rendersByIndex.get(page.index)
@@ -141,24 +142,14 @@ export async function buildBookPdf(order: Order): Promise<Uint8Array> {
 
     const sheet = pdf.addPage([A4.width, A4.height])
 
-    // A page redrawn from a photograph is laid out like a photograph: mounted
-    // inside the page with the words underneath, never bled to the edge.
-    //
-    // Not decoration. An ordinary page can be composed to leave its foot
-    // empty for the narration, but a photograph's composition is already
-    // fixed — a selfie has no spare sky at the bottom — so words printed onto
-    // it land on faces and dark ground. Mounting it also says something true:
-    // this page is a real moment, and it should not pretend to be drawn like
-    // the rest.
-    const isMemory = Boolean(page.memoryId)
-    const mounted = isMemory || !bleed
+    const mounted = !bleed
 
     const box = mounted
       ? {
           x: MARGIN,
           y: MARGIN,
           width: A4.width - MARGIN * 2,
-          height: A4.height - MARGIN * 2 - (isMemory ? narrationBlock : 0),
+          height: A4.height - MARGIN * 2,
         }
       : { x: 0, y: 0, width: A4.width, height: A4.height }
 
@@ -175,9 +166,9 @@ export async function buildBookPdf(order: Order): Promise<Uint8Array> {
         fonts,
         {
           x: box.x + (mounted ? 0 : MARGIN),
-          y: box.y + (isMemory ? 0 : narrationBlock),
+          y: box.y + narrationBlock,
           width: box.width - (mounted ? 0 : MARGIN * 2),
-          height: box.height - (isMemory ? 0 : narrationBlock),
+          height: box.height - narrationBlock,
         },
         {
           label: render?.status === 'failed' ? t.failed : t.placeholder,

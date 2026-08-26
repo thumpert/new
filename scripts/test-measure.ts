@@ -21,7 +21,7 @@ const CASES: Array<{ file: string; finish: BookFinish; note: string }> = [
   },
   {
     file: '.data/crua-mem-10.png',
-    finish: 'coloured',
+    finish: 'reading',
     note: 'pagina de foto do livro real (braco extra, mapa)',
   },
   {
@@ -31,7 +31,7 @@ const CASES: Array<{ file: string; finish: BookFinish; note: string }> = [
   },
   {
     file: 'public/styles/cartoon-colour.png',
-    finish: 'coloured',
+    finish: 'reading',
     note: 'amostra de estilo pintada',
   },
 ]

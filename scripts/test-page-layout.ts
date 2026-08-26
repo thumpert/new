@@ -17,7 +17,7 @@ import { newOrderId } from '../src/lib/store'
 import type { BookFinish, Order } from '../src/lib/types'
 
 const FINISH: BookFinish =
-  process.argv[2] === 'coloring' ? 'coloring' : 'coloured'
+  process.argv[2] === 'coloring' ? 'coloring' : 'reading'
 
 const SCENE =
   'A red woollen thread runs across the grass and loops once around the frog on its lily pad. Lila kneels at the edge of the garden pond following the thread with her eyes, while her scruffy dog Zeca leans over her shoulder. Late afternoon, mango trees behind them.'

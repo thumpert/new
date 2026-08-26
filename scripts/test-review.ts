@@ -36,13 +36,13 @@ const CASES: Case[] = [
     file: '.data/crua-mem-10.png',
     scene:
       'Two men on a hiking trail, arms around each other, mountains behind them.',
-    finish: 'coloured',
+    finish: 'reading',
     expect: 'BRACO A MAIS (o principal), mapa inventado, tenis flutuando',
   },
   {
     file: '.data/crua-mem-11.png',
     scene: 'Two men smiling side by side in front of a yellow doorway.',
-    finish: 'coloured',
+    finish: 'reading',
     expect: 'mapa inventado, tênis flutuando',
   },
   {
@@ -65,7 +65,7 @@ async function main() {
         {
           file: fileArg,
           scene: sceneArg ?? 'a page of a children’s book',
-          finish: finishArg === 'coloring' ? 'coloring' : 'coloured',
+          finish: finishArg === 'coloring' ? 'coloring' : 'reading',
           device: deviceArg,
           expect: '(informado na linha de comando)',
         },

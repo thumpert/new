@@ -22,9 +22,10 @@ import type { BookBrief, StoryIdea, Storyboard } from '../types'
  * "like" someone produces pastiche of that person's protected work, and
  * describing what the technique actually does produces the technique.
  */
-const RULES = [
+const RULES: Rule[] = [
   {
     id: 'chaining',
+    structural: true,
     title: 'Encadeamento e movimento',
     test: 'Three checks, reported together as one fault so the writer gets one repair rather than three that fight each other. FIRST, between pages: put "but", "therefore" or "and then" between each consecutive pair and name every join where only "and then" fits — those pages follow in time without one causing the other. SECOND, the shuffle test: if any two pages could trade places without the book breaking, say which. THIRD, inside each page: one thing is true at the start and a different thing at the end — somebody decides, finds, loses, admits, tries or arrives — and each sentence follows from the one before it with the join visible ("so", "but", "until", "which is why"). Sentences sitting side by side describing one moment from two angles fail this. Name the pages for each of the three.',
   },
@@ -74,18 +75,31 @@ const RULES = [
   },
   {
     id: 'want',
+    structural: true,
     title: 'Alguém quer alguma coisa',
     test: 'Somebody wants something they do not have, it is established in the opening pages, and it is small and concrete. Every page after moves them nearer to it or further from it; the thing that goes wrong threatens it; the ending answers it — met, or exchanged for something better they could not have named at the start. Say what the want is and name the page it is established on. If you cannot finish the sentence "the reader keeps turning because they want to find out whether ___" from this storyboard, this fails, and it fails however well the pages are connected: causality without desire is a clock ticking.',
   },
   {
     id: 'mystery',
+    structural: true,
     title: 'Algo para o leitor querer saber',
     test: 'Something is established in the first third that the reader does not understand yet and wants to — and it is answered near the end. Name the page it opens and the page it closes. This is not the same as being unclear: the reader must always know what is happening and wonder only what it will come to. If nothing is withheld, nobody has a reason to turn over.',
   },
   {
     id: 'empathy',
+    structural: true,
     title: 'O leitor chega antes',
     test: 'At least once the reader understands something a character has not worked out yet, or wants something for them they have not asked for. Name the page. That gap is where feeling for somebody on a page comes from; without it the reader watches instead of caring.',
+  },
+  {
+    id: 'invented-cast',
+    title: 'Ninguém foi inventado',
+    test: 'List every person and animal who appears in the thirteen pages, then check each one against the characters the customer named. Report as a fault anybody who is named, anybody who speaks, and anybody who appears on more than one page without being in that list — a grandmother, an aunt, a neighbour, a second parent, an older sibling, a friend, a pet. Unnamed scenery is allowed and is not a fault: a baker, a stranger in a queue, people on a platform, so long as they have no name, no line of dialogue and no second appearance. There is no judgement to exercise here and no benefit of the doubt to give: a family reading about a grandmother they do not have is reading a book about somebody else. Name the page and the invented person.',
+  },
+  {
+    id: 'continuity',
+    title: 'As contas fecham',
+    test: 'Track every countable and every object across the thirteen pages and name any page where the arithmetic or the whereabouts stop agreeing. FIRST, counts: anything the book counts out loud — mirrors in a bag, items on a list, days remaining, how many are left — must still add up on the last page it is mentioned. Add them up yourself, page by page, and say the running total where it breaks. SECOND, objects: anything given away, put down, wedged somewhere, broken or pocketed stays where it was put, and cannot be used again afterwards without somebody fetching it. THIRD, people and animals: whoever is established somewhere on an early page is still there when a later page depends on it, and nobody acts in a scene they were not brought into. This is not a matter of taste and there is no arguing with it: report a fault whenever the numbers or the positions contradict each other, however well the page reads.',
   },
   {
     id: 'specificity',
@@ -94,11 +108,13 @@ const RULES = [
   },
   {
     id: 'refrain',
+    structural: true,
     title: 'Refrão',
     test: 'One short phrase or gesture returns three or four times, changed a little each time, and pays off on the last page.',
   },
   {
     id: 'turn',
+    structural: true,
     title: 'A virada prometida acontece',
     test: 'The turn the chosen idea promised happens on an identifiable page, before the last two, and the pages after it read differently because of it.',
   },
@@ -114,6 +130,7 @@ const RULES = [
   },
   {
     id: 'ending',
+    structural: true,
     title: 'O final aterrissa',
     test: 'The last page closes what the first opened, pays off the refrain changed, steps time forward, and speaks warmly to the person the book was made for. It is a coda, not a summary: it must not retell what happened, state what it all meant, or end on a lesson. A last page that could be deleted without the book changing fails this, and so does one that explains the book.',
   },
@@ -127,9 +144,10 @@ const RULES = [
  * and they are the four that separate a book a child asks for again from a
  * book that is merely personalized.
  */
-const READING_RULES = [
+const READING_RULES: Rule[] = [
   {
     id: 'shape',
+    structural: true,
     title: 'A forma da idade acontece',
     test: 'The sixteen spreads carry the shape given for THIS age band, and mark it against that shape only — a three-year-old\'s book is a pattern of three broken once and returning home, a six-year-old\'s is a misunderstanding found out, a nine-year-old\'s is a secret kept and what it cost. None of them is a hero\'s journey, and marking them against one fails books that are right. Name the page each turn happens on. Whatever the age, a book that is sixteen nice moments in a row fails this.',
   },
@@ -156,9 +174,10 @@ const READING_RULES = [
  * Both name page numbers on purpose. "The structure is weak" is not a repair
  * instruction; "page 6 does not close any option that was open on page 5" is.
  */
-const TWELVE_PAGE_RULES = [
+const TWELVE_PAGE_RULES: Rule[] = [
   {
     id: 'spine',
+    structural: true,
     title: 'A espinha das doze páginas',
     test: 'Name the page each of these lands on, in order: the ordinary world with everyone named (1); the routine the book will depart from (2); the habit or the place the reader will miss once it is gone (3); the one thing that changes (4); three consequences, each caused by the page before it rather than merely following it (5, 6, 8); the turn, which re-frames what came before and is NOT a fight or a disaster (7); the small thing that goes wrong, caused by the consequence before it (9); it being put right by one of them doing the thing that is most characteristically them — never luck, never somebody arriving (10); arriving at what the book was walking towards, with the refrain changed (11). If a beat is missing, or landed more than one page from where it belongs, or the turn sits in the last two pages, this fails. Say which page is doing what instead.',
   },
@@ -186,12 +205,37 @@ export interface StoryReview {
   passed: boolean
 }
 
-type Rule = { id: string; title: string; test: string }
+type Rule = {
+  id: string
+  title: string
+  test: string
+  /**
+   * Whether this rule audits the SHAPE of the book rather than its sentences.
+   *
+   * The distinction only started to matter when stories stopped being
+   * invented. A rule asking "could any two pages trade places?" or "does the
+   * promised turn happen?" is asking whether the model built a good story —
+   * which is the right question for a story it made up five minutes ago, and
+   * a wasted one for a story whose page order is fixed in this repository.
+   * The answer is yes, by construction, and it was being paid for at US$25
+   * per million tokens to be told so.
+   */
+  structural?: boolean
+}
 
 function rulesFor(brief: BookBrief): readonly Rule[] {
-  return brief.finish === 'reading'
-    ? [...RULES, ...READING_RULES]
-    : [...RULES, ...TWELVE_PAGE_RULES]
+  const all =
+    brief.finish === 'reading'
+      ? [...RULES, ...READING_RULES]
+      : [...RULES, ...TWELVE_PAGE_RULES]
+
+  // A pre-written story is marked on its prose only. Its shape was decided
+  // before the customer arrived, and the beats it was written to are handed
+  // to the writer as the page order — so the structural half of the rubric
+  // can only ever come back passing, at the cost of the largest call in the
+  // product. Measured on one book: the review emitted more tokens than the
+  // book itself and was the biggest single item on the bill.
+  return brief.chosenStoryId ? all.filter((r) => !r.structural) : all
 }
 
 function rubric(rules: readonly Rule[]): string {

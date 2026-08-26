@@ -38,7 +38,6 @@ async function main() {
       { questionId: 'q1', question: 'O que a Lila faz ao chegar na casa da avó?', answer: 'Tira um tênis só e sai andando assim até alguém reclamar.' },
       { questionId: 'q2', question: 'O que tem no quintal?', answer: 'Um formigueiro que ela visita todo dia e um pé de manga alto demais.' },
     ],
-    memories: [],
   }
 
   resetSpend()

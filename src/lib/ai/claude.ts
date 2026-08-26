@@ -1,5 +1,5 @@
 import * as z from 'zod'
-import { getOccasion, pagesFor } from '../catalog'
+import { getBookLanguage, getOccasion, pagesFor } from '../catalog'
 import { askForJson } from './ask'
 import { reviewStoryboard } from './story-review'
 import type {
@@ -30,6 +30,16 @@ import {
  * of drawings.
  */
 const MAX_STORY_ATTEMPTS = 3
+
+/**
+ * What claude-opus-5 will emit in one answer.
+ *
+ * Named so the ceilings below are visibly derived from the model's own limit
+ * rather than from a number somebody liked. Every call here streams, which is
+ * what makes budgets this size safe: the SDK refuses a non-streaming request
+ * whose max_tokens could outrun the ten-minute HTTP timeout.
+ */
+const MAX_OUTPUT_TOKENS = 128_000
 
 /* ------------------------------------------------------------------ *
  * Schemas — these double as the structured-output contract and as the
@@ -262,12 +272,26 @@ export async function generateStoryboard(
   brief: BookBrief,
   idea: StoryIdea,
 ): Promise<Storyboard> {
-  const pageCount = pagesFor(brief.finish)
+  const pageCount = pagesFor()
 
   // The largest answer by far: every page carries narration, an optional
   // translation and an English scene description. The ceiling scales with the
   // book so a long one cannot quietly hit a limit a short one never reached.
-  const storyboardTokens = 16_000 + pageCount * 1_500
+  //
+  // The translation is its own term rather than a fatter per-page number,
+  // because it was the two together that overran: the old ceiling was a flat
+  // 16k + 1.5k a page, tuned when every book was twelve pages in one
+  // language. A sixteen-page reading book with a second language underneath
+  // is twice that book, and it hit the 40k ceiling mid-repair — the repair
+  // came back truncated and was thrown away, so the customer got the
+  // unrepaired draft after paying for both.
+  const bilingual = Boolean(getBookLanguage(brief.bookLanguage).secondary)
+  const storyboardTokens = 16_000 + pageCount * (bilingual ? 2_500 : 1_500)
+
+  // A repair is the draft plus the reading of a review, and it re-emits the
+  // whole book either way, so it cannot live inside the draft's budget. The
+  // draft has never overrun; the repair is what did.
+  const repairTokens = Math.min(Math.round(storyboardTokens * 1.5), MAX_OUTPUT_TOKENS)
 
   let parsed = await askForJson({
     what: 'storyboard',
@@ -326,7 +350,7 @@ export async function generateStoryboard(
         what: 'storyboard repair',
         label: `roteiro (conserto ${attempt})`,
         schema: StoryboardSchema,
-        maxTokens: storyboardTokens,
+        maxTokens: repairTokens,
         system: REVISE_SYSTEM,
         user: reviseUser(idea, JSON.stringify(parsed, null, 2), review.failures),
       })
@@ -362,13 +386,12 @@ function toStoryboard(
   idea: StoryIdea,
 ): Storyboard {
   const knownIds = new Set(brief.characters.map((c) => c.id))
-  const knownMemoryIds = new Set((brief.memories ?? []).map((m) => m.id))
 
   return {
     title: brief.title.trim() || parsed.title,
     device: idea.device,
     dedication: brief.dedication,
-    pages: parsed.pages.slice(0, pagesFor(brief.finish)).map((page, i) => ({
+    pages: parsed.pages.slice(0, pagesFor()).map((page, i) => ({
       index: i + 1,
       narration: page.narration,
       narrationSecondary: page.narrationSecondary?.trim() || undefined,
@@ -376,11 +399,6 @@ function toStoryboard(
       // The model occasionally answers with names instead of ids; drop
       // anything we cannot resolve rather than passing it downstream.
       charactersOnPage: page.charactersOnPage.filter((id) => knownIds.has(id)),
-      // Same guard: an unknown id would send the renderer looking for a photo
-      // that does not exist, so only ids we actually hold survive.
-      memoryId: knownMemoryIds.has(page.memoryId?.trim() ?? '')
-        ? page.memoryId.trim()
-        : undefined,
     })),
   }
 }

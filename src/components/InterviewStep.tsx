@@ -128,7 +128,14 @@ function QuestionField({
 
   return (
     <div>
-      <h3 className="font-medium text-ink">{question.question}</h3>
+      <h3 className="font-medium text-ink">
+        {question.question}
+        {question.required && (
+          <span className="ml-1 text-accent" title="Obrigatória">
+            ★
+          </span>
+        )}
+      </h3>
       {question.hint && (
         <p className="mt-1 text-sm text-ink-soft">{question.hint}</p>
       )}

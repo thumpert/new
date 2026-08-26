@@ -1,6 +1,5 @@
 import type {
   AgeBandId,
-  BookFinish,
   ArtStyleId,
   BookLanguageId,
   OccasionId,
@@ -457,10 +456,24 @@ export const BOOK_LANGUAGES: BookLanguageDef[] = [
  *
  * A multiple of four, which is what a printer wants for a folded signature.
  */
-export const BOOK_PAGES = 12
+/**
+ * How many illustrated pages every book carries.
+ *
+ * One number for the whole product. It used to be two — twelve for a book to
+ * colour and sixteen for a book to read — which made the length an accident
+ * of the format rather than a decision about the story. Thirteen is the
+ * length the stories are actually written to: enough for a beginning, a turn
+ * and an ending that is not rushed, and short enough to be read in one
+ * sitting by somebody tired.
+ *
+ * It is not a multiple of four, so a printer folding signatures will need
+ * either an imposition of its own or a blank leaf. That is a production
+ * detail, and the story is not going to be cut by one page to save it.
+ */
+export const BOOK_PAGES = 13
 
 /**
- * Words on one page of a twelve-page book.
+ * Words on one page.
  *
  * Taken off the page rather than guessed. The narration sits in a 321pt
  * column under the drawing, in 13pt italic, in a band that holds four lines —
@@ -473,17 +486,16 @@ export const BOOK_PAGES = 12
 export const BOOK_PAGE_WORDS = { min: 15, max: 35 }
 
 /**
- * How many illustrated pages a book carries.
- *
- * A reading book is sixteen because that is its unit: sixteen spreads, each a
- * picture facing its words. The other two are twelve, which is a multiple of
- * four — what a printer wants for a folded signature.
+ * Kept as a function, though it no longer branches, because every caller
+ * passes the finish and the two formats sharing a length is a decision rather
+ * than a coincidence. If a format ever earns its own length again, it changes
+ * here and nowhere else.
  */
-export function pagesFor(finish: BookFinish): number {
-  return finish === 'reading' ? READING_PAGES : BOOK_PAGES
+export function pagesFor(): number {
+  return BOOK_PAGES
 }
 
-export const READING_PAGES = 16
+export const READING_PAGES = BOOK_PAGES
 
 /**
  * What a page of a reading book holds, and what the story has to be, for each

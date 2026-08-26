@@ -37,6 +37,28 @@ export type ArtStyleId =
 export type CharacterKind = 'person' | 'pet'
 
 /**
+ * How this character is spoken about.
+ *
+ * Portuguese marks gender on almost every word that touches a person — the
+ * article, the adjective, the noun for what they are to the baby — so a book
+ * that guesses wrong does not get one word wrong, it gets a hundred wrong,
+ * and the customer notices on page one.
+ *
+ * 'neutral' is not a third grammatical gender, because Portuguese does not
+ * have one. It is an instruction to write around the marking: use the name in
+ * place of the pronoun, choose nouns that do not inflect, and rebuild the
+ * sentence when an adjective would force a choice. Neopronouns are not
+ * invented here.
+ *
+ * Optional, and absent on every order placed before it existed. Absent means
+ * "not told", and the writer is instructed to avoid the marking rather than
+ * pick for itself.
+ */
+export type GenderId = 'male' | 'female' | 'neutral'
+
+export const GENDERS: GenderId[] = ['male', 'female', 'neutral']
+
+/**
  * The language the *book* is written in — independent of the language the
  * site is shown in. A Brazilian buying a gift for someone learning English
  * browses in Portuguese and orders an English book.
@@ -46,18 +68,39 @@ export type BookLanguageId = 'pt' | 'en' | 'en-pt' | 'pt-fr'
 /**
  * What the customer actually receives, and the first thing they choose.
  *
- * 'coloring'  — black line art on white, for the child to fill in.
- * 'coloured'  — a finished picture book, printed in colour.
- * 'reading'   — a story to be read aloud: sixteen spreads, a full-page
- *               picture on the left and the words alone on the right.
+ * 'coloring'  — thirteen pages of black line art on white, each with its
+ *               text, for the child to fill in.
+ * 'reading'   — the same thirteen pages, printed in colour, to be read aloud.
+ *
+ * There used to be a third, 'coloured', a finished picture book sitting
+ * between the two. It was removed because it was not a third thing: once the
+ * reading book became thirteen pages of picture and text, the only difference
+ * left was a name, and the customer was being asked to choose between two
+ * descriptions of the same object.
  *
  * It reaches all the way down: it decides whether the model sheets and pages
- * are drawn in line or in colour, how many are drawn, and how the sheet is
- * laid out. The covers ignore it — they are always in colour, in all three.
+ * are drawn in line or in colour. The covers ignore it — they are always in
+ * colour, in both.
+ *
+ * Orders placed before the change still carry 'coloured' on disk. Everything
+ * that reads a finish treats an unknown value as 'reading', so an old book
+ * still opens and still prints; see `isLineArt`.
  */
-export type BookFinish = 'coloring' | 'coloured' | 'reading'
+export type BookFinish = 'coloring' | 'reading'
 
-export const BOOK_FINISHES: BookFinish[] = ['coloring', 'coloured', 'reading']
+export const BOOK_FINISHES: BookFinish[] = ['coloring', 'reading']
+
+/**
+ * Whether this book is drawn in black line for colouring in.
+ *
+ * The one question the rest of the code actually asks about a finish, and the
+ * safe place to answer it: anything that is not the colouring book is drawn
+ * in colour, which is what makes a stored 'coloured' order keep working
+ * instead of falling down the line-art branch by accident.
+ */
+export function isLineArt(finish: BookFinish | string): boolean {
+  return finish === 'coloring'
+}
 
 /**
  * Who the reading book is for, which decides how much text a page carries.
@@ -80,6 +123,11 @@ export interface Character {
   role?: string
   /** Free text so "6 anos", "recém-nascido" and "3 (em anos de cachorro)" all work. */
   age?: string
+  /**
+   * How the book should speak about them. Absent means we were not told, and
+   * the writer avoids the marking rather than guessing. See `GenderId`.
+   */
+  gender?: GenderId
   /**
    * What the character looks like. Goes to the image model and to nothing
    * else.
@@ -115,26 +163,6 @@ export interface Character {
   referenceSheetUrl?: string
 }
 
-/**
- * A photograph the customer wants to appear *in* the book.
- *
- * Not to be confused with `Character.photoUrls`, which are reference shots:
- * those teach the model a face, are used once to draw the model sheet, and
- * never become a page. A memory is the opposite — the photograph itself is the
- * page, redrawn in the chosen style with its moment and staging intact.
- */
-export interface MemoryPhoto {
-  id: string
-  /** Stored URL of the uploaded photograph. */
-  url: string
-  /**
-   * How this moment fits the story, in the customer's own words. Goes to the
-   * writer, which is what lets the page be part of the plot rather than an
-   * insert: "this is the day we brought Zeca home, he hid under the sofa".
-   */
-  note: string
-}
-
 export interface InterviewQuestion {
   id: string
   question: string
@@ -151,6 +179,15 @@ export interface InterviewQuestion {
    * starting points, not the model's guesses about the truth.
    */
   suggestions: string[]
+  /**
+   * Whether the book cannot be written without an answer.
+   *
+   * Only ever set by a pre-written story, where some questions are not extra
+   * colour but the slot the story reads from: with no landmarks, the book
+   * about crossing a city has no city. Every question of a freely invented
+   * book stays optional, which is what it always was.
+   */
+  required?: boolean
 }
 
 export interface InterviewAnswer {
@@ -169,6 +206,15 @@ export interface BookBrief {
   /** Who it is for. Only asked, and only used, for a reading book. */
   ageBandId?: AgeBandId
   occasionId: OccasionId
+  /**
+   * Which of the pre-written stories this book is, for occasions that offer
+   * them. Set on `new-baby` and absent everywhere else.
+   *
+   * Its presence is what switches the whole flow: the story is chosen before
+   * the questions rather than after, the questions are the ones that story
+   * actually needs, and nothing is invented. See src/lib/baby-stories.ts.
+   */
+  chosenStoryId?: string
   storyTypeId: StoryTypeId
   toneId: ToneId
   artStyleId: ArtStyleId
@@ -178,27 +224,9 @@ export interface BookBrief {
   place: string
   characters: Character[]
   interview: InterviewAnswer[]
-  /**
-   * Real photographs to weave into the story, at most MAX_MEMORIES. Each one
-   * becomes a page whose composition comes from the photo itself.
-   */
-  memories?: MemoryPhoto[]
   /** Optional dedication printed on the first page. */
   dedication?: string
 }
-
-/**
- * One photograph, not three.
- *
- * Each one is a fixed point the story is obliged to pass through, at a moment
- * the writer did not choose. Three fixed points inside twelve pages leaves
- * almost no room for an arc: the book becomes a route between photographs
- * rather than a story that happens to contain one. It showed in a real book —
- * the two photo pages sat where the plot was not, and read as inserts.
- *
- * One is a gift. Three is a constraint disguised as generosity.
- */
-export const MAX_MEMORIES = 1
 
 export interface StoryIdea {
   id: string
@@ -282,12 +310,6 @@ export interface StoryPage {
   sceneDescription: string
   /** Ids of the characters that appear on this page. */
   charactersOnPage: string[]
-  /**
-   * Set when this page recreates one of the customer's photographs. The photo
-   * then owns the composition and the scene description only says what the
-   * page is about.
-   */
-  memoryId?: string
 }
 
 export interface Storyboard {

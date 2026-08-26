@@ -12,7 +12,6 @@ import {
   type CoverKind,
   type CoverRender,
   type CoverVariant,
-  type MemoryPhoto,
   type Order,
   type PageRender,
   type StoryPage,
@@ -416,7 +415,7 @@ async function renderPages(
 
   const byId = new Map(characters.map((c) => [c.id, c]));
   const pages = order.storyboard.pages;
-  const { artStyleId, finish, memories } = order.brief;
+  const { artStyleId, finish } = order.brief;
   const device = order.storyboard.device;
 
   // A simple worker pool: each worker pulls the next index off a shared cursor.
@@ -434,7 +433,6 @@ async function renderPages(
           provider,
           artStyleId,
           finish,
-          memories,
           device,
         );
       }
@@ -458,7 +456,6 @@ async function renderOnePage(
   provider: ImageProvider,
   artStyleId: ArtStyleId,
   finish: BookFinish,
-  memories: MemoryPhoto[] | undefined,
   device: string | undefined,
 ): Promise<void> {
   await patchRender(orderId, page.index, {
@@ -469,12 +466,6 @@ async function renderOnePage(
   const onPage = page.charactersOnPage
     .map((id) => byId.get(id))
     .filter((c): c is Character => Boolean(c));
-
-  // A page can name a photograph that has since been removed from the brief;
-  // it then falls back to an ordinary illustrated page rather than failing.
-  const memory = page.memoryId
-    ? (memories ?? []).find((m) => m.id === page.memoryId)
-    : undefined;
 
   const draw = (avoid?: string[]) =>
     drawingWithRetry(`page ${page.index}`, () =>
@@ -487,12 +478,7 @@ async function renderOnePage(
           : page.sceneDescription,
         artStyleId,
         finish,
-        // Not passed on a memory page: that page draws only what the photograph
-        // contains, and slipping the guide object into it would be exactly the
-        // invention the photo rules exist to stop.
-        device: memory ? undefined : device,
-        memoryPhotoUrl: memory?.url,
-        memoryNote: memory?.note,
+        device,
         characters: onPage,
         referenceUrls: onPage
           .map((c) => c.referenceSheetUrl)
@@ -518,7 +504,7 @@ async function renderOnePage(
         checkPage(await fetchBinary(url), {
           sceneDescription: page.sceneDescription,
           finish,
-          device: memory ? undefined : device,
+          device,
           // The written descriptions are the same on every page, so the
           // checker can tell a changed outfit from the intended one — the
           // one continuity fault that is visible from a single page.
@@ -603,7 +589,6 @@ export async function regeneratePage(
     getImageProvider(),
     order.brief.artStyleId,
     order.brief.finish,
-    order.brief.memories,
     order.storyboard.device,
   );
   await settleStatus(orderId);

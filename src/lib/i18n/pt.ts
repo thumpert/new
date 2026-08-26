@@ -34,7 +34,7 @@ export const pt = {
       },
       {
         title: 'Você lê antes de desenhar',
-        body: 'Escrevemos quatro histórias possíveis; você escolhe uma e lê inteira. Se não for aquilo, a gente escreve outra — texto é barato, desenho não.',
+        body: 'Para um bebê a caminho, você escolhe entre histórias que já escrevemos. Para o resto, escrevemos quatro possíveis e você fica com uma. Nos dois casos você lê o livro inteiro antes de qualquer desenho — texto é barato, desenho não.',
       },
       {
         title: 'Escolhe a capa, e o livro é desenhado',
@@ -56,6 +56,11 @@ export const pt = {
       title: 'Qual é a ocasião?',
       subtitle: 'Isso define o tom e o coração da história.',
     },
+    babyStory: {
+      title: 'Qual história vai ser?',
+      subtitle:
+        'Estas histórias já estão escritas. Você escolhe uma, e nas próximas telas a gente pergunta só o que ela precisa para virar a história de vocês — os nomes, a cidade, o bicho, as coisas favoritas.',
+    },
     storyType: {
       title: 'Que tipo de história você quer?',
       subtitle: 'Escolha o formato da aventura.',
@@ -73,7 +78,9 @@ export const pt = {
     characters: {
       title: 'Quem são os personagens?',
       subtitle:
-        'Adicione pessoas e pets. A foto ajuda a manter o personagem parecido em todas as páginas.',
+        'Adicione pessoas e pets. A foto ensina o rosto ao desenhista: com ela, o personagem sai parecido com a pessoa de verdade e continua o mesmo nas treze páginas. Sem ela, sai uma pessoa qualquer.',
+      babyIntro:
+        'Se você incluir uma criança, aparecem histórias novas para escolher — três das cinco só existem quando há uma criança no livro. Costuma ser um irmão ou irmã mais velha, mas serve igual um primo, uma prima ou um amiguinho do bebê. Quem você incluir vai ter o que fazer na história, seja qual for a que você escolher.',
       add: 'Adicionar personagem',
       addPet: 'Adicionar pet',
       remove: 'Remover',
@@ -86,6 +93,10 @@ export const pt = {
       rolePlaceholder: 'Ex.: aniversariante, mãe, melhor amigo',
       age: 'Idade',
       agePlaceholder: 'Ex.: 6 anos, recém-nascido',
+      gender: 'Como falar dessa pessoa',
+      genderHint:
+        'Opcional. Em português quase toda palavra que encosta numa pessoa tem gênero, então isso muda o livro inteiro. Sem marcar, a gente escreve desviando da marca em vez de chutar.',
+      genders: { male: 'Menino / homem', female: 'Menina / mulher', neutral: 'Neutro' },
       appearance: 'Como ele(a) é fisicamente?',
       appearanceHint:
         'Só o que se vê. É a única parte que vai para quem desenha.',
@@ -107,17 +118,6 @@ export const pt = {
       addPhoto: 'Mais uma foto',
       removePhoto: 'Remover foto',
     },
-    memories: {
-      title: 'Fotos para entrar no livro',
-      subtitle:
-        'Diferente das fotos acima. Estas viram páginas: a foto é redesenhada no estilo que você escolheu, com o momento inteiro — quem está, fazendo o quê.',
-      notePlaceholder:
-        'O que é esse momento? Ex.: o dia em que o Zeca chegou em casa e se escondeu embaixo do sofá a tarde toda.',
-      add: 'Escolher a foto',
-      addAnother: 'Mais uma foto',
-      remove: 'Remover esta foto',
-      hint: 'Uma foto. Escreva o que aconteceu — é isso que faz a página virar parte da história em vez de um encarte. Uma só porque a história tem que passar por ela: com várias, o livro vira um trajeto entre fotos.',
-    },
     place: {
       title: 'Onde a história acontece?',
       subtitle: 'Um lugar que signifique alguma coisa para vocês.',
@@ -128,6 +128,7 @@ export const pt = {
       subtitle:
         'Quanto mais detalhes reais, mais o livro parece de vocês. Pode pular o que não fizer sentido.',
       answerPlaceholder: 'Escreva o que vier à cabeça…',
+      subtitleStory: 'Estas são as coisas que a história escolhida precisa saber. As marcadas com ★ são as que ela não consegue escrever sem.',
       allQuestions: 'Todas as perguntas',
       current: 'Atual',
       close: 'Fechar',
@@ -233,15 +234,10 @@ export const pt = {
       description:
         'Desenhos em traço preto sobre branco, para colorir com lápis e giz. A capa vem colorida.',
     },
-    coloured: {
-      label: 'Livro ilustrado colorido',
-      description:
-        'As páginas já vêm pintadas, prontas para ler. Cada estilo tem sua paleta — o de quadrinhos sai vibrante, o kawaii sai em pastel.',
-    },
     reading: {
       label: 'Livro de histórias para ler',
       description:
-        'Dezesseis páginas duplas: o desenho ocupa a página da esquerda inteira e a história fica sozinha na direita. Feito para ler junto, na hora de dormir.',
+        'Treze páginas com o desenho colorido e a história embaixo. Feito para ler junto, na hora de dormir.',
     },
   },
   ageBands: {

@@ -10,6 +10,14 @@ import {
   TONES,
   getOccasion,
 } from '@/lib/catalog'
+import {
+  babyStoryIdea,
+  getBabyStory,
+  questionsFor,
+  requiredQuestionIds,
+  say,
+  storiesFor,
+} from '@/lib/baby-stories'
 import type { Dictionary } from '@/lib/i18n'
 import { AGE_BANDS, BOOK_FINISHES } from '@/lib/types'
 import type {
@@ -22,7 +30,6 @@ import type {
   BookLanguageId,
   Character,
   InterviewQuestion,
-  MemoryPhoto,
   Locale,
   OccasionId,
   StoryIdea,
@@ -51,10 +58,21 @@ const STEPS = [
   'age',
   'bookLanguage',
   'occasion',
+  // Both are skipped once a pre-written story is chosen — it already is a
+  // shape and a voice, and asking again only offers the customer a chance to
+  // contradict the book they just picked.
   'storyType',
   'tone',
   'artStyle',
   'characters',
+  // Which pre-written story this is. It comes before every question, because
+  // it is what decides which questions there are — but after the cast, and
+  // that order is not a preference. The menu is filtered by who is actually
+  // in this family: a story that needs a child is not offered to a couple
+  // with no child in it. Put this screen before the characters step and there
+  // is no cast to filter by, and it renders empty — which is exactly what it
+  // did the first time it was tried in a browser.
+  'babyStory',
   'place',
   'interview',
   // The title comes after the story is chosen, so the suggestions can be
@@ -80,13 +98,13 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
   const [storyTypeId, setStoryTypeId] = useState<StoryTypeId>('adventure')
   const [toneId, setToneId] = useState<ToneId>('warm')
   const [artStyleId, setArtStyleId] = useState<ArtStyleId>('chibi')
+  const [chosenStoryId, setChosenStoryId] = useState<string | null>(null)
   const [place, setPlace] = useState('')
   const [title, setTitle] = useState('')
   const [dedication, setDedication] = useState('')
   const [characters, setCharacters] = useState<Character[]>([
     { id: 'c1', name: '', kind: 'person', appearance: '' },
   ])
-  const [memories, setMemories] = useState<MemoryPhoto[]>([])
 
   const [questions, setQuestions] = useState<InterviewQuestion[]>([])
   const [answers, setAnswers] = useState<Record<string, string>>({})
@@ -113,6 +131,7 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
     finish,
     ageBandId: finish === 'reading' ? ageBandId : undefined,
     occasionId,
+    chosenStoryId: chosenStoryId ?? undefined,
     storyTypeId,
     toneId,
     artStyleId,
@@ -120,9 +139,6 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
     place,
     dedication: dedication.trim() || undefined,
     characters: characters.map((c) => ({ ...c, name: c.name.trim() })),
-    // Only photographs the customer actually described: without a note the
-    // writer has nothing to weave the page into the story with.
-    memories: memories.filter((m) => m.note.trim()),
     interview: questions
       .filter((q) => answers[q.id]?.trim())
       .map((q) => ({
@@ -160,8 +176,25 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
     }
   }
 
-  /** The age step exists only for a reading book; the rest walk past it. */
-  const shown = (s: Step) => s !== 'age' || finish === 'reading'
+  /** True once this order is one of the pre-written new-baby stories. */
+  const preWritten = occasionId === 'new-baby'
+
+  /**
+   * Which steps this particular order actually walks through.
+   *
+   * Three of them are conditional now, and they are conditional for the same
+   * reason: a step that cannot change the book should not be on the way to
+   * it. The age band only reaches a reading book. Story type and tone are
+   * already decided the moment a pre-written story is picked. And the ideas
+   * screen — four stories to choose between — has nothing to show when the
+   * story was chosen six screens ago.
+   */
+  const shown = (s: Step) => {
+    if (s === 'age') return finish === 'reading'
+    if (s === 'babyStory') return preWritten
+    if (s === 'storyType' || s === 'tone' || s === 'ideas') return !preWritten
+    return true
+  }
 
   const next = () =>
     setStep((s) => {
@@ -208,7 +241,16 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
     }
   }
 
-  /** Creates the order, then asks for interview questions written for it. */
+  /**
+   * Creates the order and gets the questions.
+   *
+   * Two different things depending on the order. A freely invented book still
+   * has its questions written for it by a model that has just read the brief.
+   * A pre-written story does not: its questions are the slots of a story that
+   * already exists, they are the same every time, and they are already on
+   * this machine — so there is no request, no wait, and nothing that can come
+   * back wrong.
+   */
   const startInterview = () =>
     run(async () => {
       const created = await call<{ id: string }>('/api/orders', {
@@ -216,6 +258,13 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
         json: brief(),
       })
       setOrderId(created.id)
+
+      const story = chosenStoryId ? getBabyStory(chosenStoryId) : undefined
+      if (story) {
+        setQuestions(questionsFor(story, brief()))
+        next()
+        return
+      }
 
       const result = await runTask<{ questions: InterviewQuestion[] }>(
         created.id,
@@ -237,6 +286,20 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
     run(async () => {
       if (!orderId) throw new Error(dict.common.error)
       await call(`/api/orders/${orderId}`, { method: 'PATCH', json: brief() })
+
+      // A pre-written story skips the gap check and the ideas screen alike.
+      // There is nothing to check the brief for — the questions it just
+      // answered are exactly the ones this story needs — and nothing to
+      // choose between, because the choice was made before the questions.
+      const story = chosenStoryId ? getBabyStory(chosenStoryId) : undefined
+      if (story) {
+        const idea = babyStoryIdea(story, brief())
+        setIdeas([idea])
+        setChosenIdeaId(idea.id)
+        if (!title.trim()) setTitle(idea.title)
+        next()
+        return
+      }
 
       if (!askedForMore) {
         setAskedForMore(true)
@@ -294,6 +357,24 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
     (c) => c.name.trim() && c.appearance.trim(),
   )
 
+  /**
+   * Whether the interview can be left.
+   *
+   * Free interviews stay optional: every question there is a nice-to-have,
+   * and a customer is allowed a thin book. A pre-written story is different —
+   * some of its questions are slots the story cannot be written without, and
+   * an unanswered one does not make the book thinner, it makes the model
+   * invent the city or the list of favourite things. Those are marked
+   * required, and this is what holds the door shut.
+   */
+  const questionsAnswered = (() => {
+    const story = chosenStoryId ? getBabyStory(chosenStoryId) : undefined
+    if (!story) return true
+    return requiredQuestionIds(story, brief()).every((id) =>
+      answers[id]?.trim(),
+    )
+  })()
+
   const footer = (
     onNext: () => void,
     canAdvance = true,
@@ -314,8 +395,8 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col px-5 py-10 sm:py-14">
       <Progress
-        current={step + 1}
-        total={STEPS.length}
+        current={STEPS.slice(0, step + 1).filter(shown).length}
+        total={STEPS.filter(shown).length}
         stepLabel={dict.common.step}
         ofLabel={dict.common.of}
       />
@@ -402,6 +483,51 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
                 onSelect={() => setOccasionId(o.id)}
               />
             ))}
+          </div>
+        </StepShell>
+      )}
+
+      {current === 'babyStory' && (
+        <StepShell
+          title={dict.wizard.babyStory.title}
+          subtitle={dict.wizard.babyStory.subtitle}
+          footer={footer(next, Boolean(chosenStoryId))}
+        >
+          <div className="grid gap-4">
+            {/* Only the stories this family can actually be given. A story
+                needing a child nobody named is not shown at all, which is
+                what stops a book from inventing a sibling. */}
+            {storiesFor(brief()).map((story) => {
+              const selected = chosenStoryId === story.id
+              return (
+                <button
+                  key={story.id}
+                  type="button"
+                  onClick={() => setChosenStoryId(story.id)}
+                  aria-pressed={selected}
+                  className={`rounded-2xl border p-5 text-left transition ${
+                    selected
+                      ? 'border-accent bg-accent-soft'
+                      : 'border-line bg-paper-raised hover:border-accent/50'
+                  }`}
+                >
+                  <h2 className="font-serif text-xl text-ink">
+                    {say(story.title, brief())}
+                  </h2>
+                  <p className="mt-1 text-sm italic text-ink-soft">
+                    {say(story.logline, brief())}
+                  </p>
+                  <p className="mt-3 text-sm leading-relaxed text-ink">
+                    {say(story.summary, brief())}
+                  </p>
+                  <ul className="mt-3 space-y-1 text-sm text-ink-soft">
+                    {story.highlights.map((h, i) => (
+                      <li key={i}>— {say(h, brief())}</li>
+                    ))}
+                  </ul>
+                </button>
+              )
+            })}
           </div>
         </StepShell>
       )}
@@ -493,12 +619,18 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
           subtitle={dict.wizard.characters.subtitle}
           footer={footer(next, charactersReady)}
         >
+          {/* Only for the occasion whose menu of stories actually depends on
+              who is added — telling anybody else that a child unlocks
+              stories would be describing a door that is not there. */}
+          {preWritten && (
+            <p className="mb-5 rounded-2xl border border-line bg-accent-soft/40 p-4 text-sm leading-relaxed text-ink">
+              {dict.wizard.characters.babyIntro}
+            </p>
+          )}
           <CharactersStep
             dict={dict}
             characters={characters}
             onChange={setCharacters}
-            memories={memories}
-            onMemoriesChange={setMemories}
           />
         </StepShell>
       )}
@@ -522,8 +654,15 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
       {current === 'interview' && (
         <StepShell
           title={dict.wizard.interview.title}
-          subtitle={dict.wizard.interview.subtitle}
-          footer={footer(loadIdeas)}
+          subtitle={
+            // A pre-written story asks for things it cannot do without, so
+            // the screen must not keep telling the customer to skip whatever
+            // does not appeal — the button will not let them.
+            chosenStoryId
+              ? dict.wizard.interview.subtitleStory
+              : dict.wizard.interview.subtitle
+          }
+          footer={footer(loadIdeas, questionsAnswered)}
         >
           <InterviewStep
             dict={dict}

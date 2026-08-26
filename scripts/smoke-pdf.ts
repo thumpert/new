@@ -22,7 +22,7 @@ process.env.IMAGE_PROVIDER ??= 'mock'
 /** npx tsx scripts/smoke-pdf.ts coloured|reading — o padrao e o livro de colorir. */
 const arg = process.argv[2]
 const FINISH: BookFinish =
-  arg === 'coloured' ? 'coloured' : arg === 'reading' ? 'reading' : 'coloring'
+  arg === 'reading' ? 'reading' : arg === 'reading' ? 'reading' : 'coloring'
 
 const now = new Date().toISOString()
 
@@ -66,13 +66,6 @@ const order: Order = {
     interview: [],
     // Exercises the memory path: page 4 is redrawn from a photograph rather
     // than from an invented scene.
-    memories: [
-      {
-        id: 'm1',
-        url: '/api/files/nao-existe.jpg',
-        note: 'O dia em que o Biscoito chegou em casa e se escondeu embaixo do sofá a tarde toda.',
-      },
-    ],
   },
   storyboard: {
     title: 'As Grandes Aventuras da Lila',

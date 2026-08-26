@@ -9,7 +9,7 @@
  * public/styles, so the two sets are comparable and a customer switching
  * between the two flows sees the same picture drawn two ways.
  *
- * It goes through the real pagePrompt with finish='coloured', so what the
+ * It goes through the real pagePrompt with finish='reading', so what the
  * picker promises is what the pipeline actually produces. Writes straight into
  * public/styles/<id>-colour.png; they are checked into git and never generated
  * at runtime.
@@ -57,7 +57,7 @@ async function main() {
       index: 0,
       sceneDescription: SCENE,
       artStyleId: style.id,
-      finish: 'coloured',
+      finish: 'reading',
       characters: [],
       referenceUrls: [],
     })

@@ -36,7 +36,7 @@ export const en: Dictionary = {
       },
       {
         title: 'You read it before anything is drawn',
-        body: 'We write four possible stories; you pick one and read it whole. If it is not right, we write another — words are cheap, drawings are not.',
+        body: 'For a baby on the way, you choose from stories we have already written. For everything else we write four and you keep one. Either way you read the whole book before a single drawing is made — words are cheap, drawings are not.',
       },
       {
         title: 'You choose the cover, then it is drawn',
@@ -57,6 +57,11 @@ export const en: Dictionary = {
       title: 'What is the occasion?',
       subtitle: 'This sets the tone and the heart of the story.',
     },
+    babyStory: {
+      title: 'Which story will it be?',
+      subtitle:
+        'These stories are already written. Pick one, and on the next screens we ask only what it needs to become yours — the names, the city, the animal, the favourite things.',
+    },
     storyType: {
       title: 'What kind of story do you want?',
       subtitle: 'Choose the shape of the adventure.',
@@ -74,7 +79,9 @@ export const en: Dictionary = {
     characters: {
       title: 'Who are the characters?',
       subtitle:
-        'Add people and pets. A photo helps keep each character consistent across every page.',
+        'Add people and pets. A photo teaches the illustrator the face: with one, the character comes out looking like the real person and stays the same across all thirteen pages. Without one, it comes out looking like somebody else.',
+      babyIntro:
+        'Add a child and new stories appear to choose from — three of the five only exist when there is a child in the book. Usually that is an older brother or sister, but a cousin or a small friend of the baby works just as well. Whoever you add will have something to do in the story, whichever one you pick.',
       add: 'Add character',
       addPet: 'Add pet',
       remove: 'Remove',
@@ -87,6 +94,10 @@ export const en: Dictionary = {
       rolePlaceholder: 'e.g. birthday kid, mum, best friend',
       age: 'Age',
       agePlaceholder: 'e.g. 6 years old, newborn',
+      gender: 'How to speak about them',
+      genderHint:
+        'Optional. Leave it blank and the book writes around the marking rather than guessing.',
+      genders: { male: 'Boy / man', female: 'Girl / woman', neutral: 'Neutral' },
       appearance: 'What do they look like?',
       appearanceHint:
         'Only what can be seen. This is the one part the illustrator gets.',
@@ -107,17 +118,6 @@ export const en: Dictionary = {
       addPhoto: 'Add another photo',
       removePhoto: 'Remove photo',
     },
-    memories: {
-      title: 'Photos to go in the book',
-      subtitle:
-        'Different from the photos above. These become pages: the photo is redrawn in the style you picked, keeping the whole moment — who is there, doing what.',
-      notePlaceholder:
-        'What is this moment? e.g. the day Zeca came home and hid under the sofa all afternoon.',
-      add: 'Choose the photo',
-      addAnother: 'Add another photo',
-      remove: 'Remove this photo',
-      hint: 'One photo. Write what happened — that is what turns the page into part of the story rather than an insert. One, because the story has to pass through it: with several, the book becomes a route between photographs.',
-    },
     place: {
       title: 'Where does the story happen?',
       subtitle: 'A place that means something to you.',
@@ -128,6 +128,7 @@ export const en: Dictionary = {
       subtitle:
         'The more real detail, the more the book feels like yours. Skip anything that does not fit.',
       answerPlaceholder: 'Write whatever comes to mind…',
+      subtitleStory: 'These are the things the story you chose needs to know. The ones marked ★ are what it cannot be written without.',
       allQuestions: 'All questions',
       current: 'Current',
       close: 'Close',
@@ -233,15 +234,10 @@ export const en: Dictionary = {
       description:
         'Black line art on white, to fill in with pencils and crayons. The cover comes in colour.',
     },
-    coloured: {
-      label: 'Illustrated colour book',
-      description:
-        'The pages arrive already painted, ready to read. Each style has its own palette — the comic one is vivid, the kawaii one is pastel.',
-    },
     reading: {
       label: 'A story book to read',
       description:
-        'Sixteen spreads: the picture fills the left-hand page and the words sit alone on the right. Made to be read together, at bedtime.',
+        'Thirteen pages, the picture in colour with the story underneath. Made to be read together at bedtime.',
     },
   },
   ageBands: {

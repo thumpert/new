@@ -1,3 +1,4 @@
+import { isLineArt } from './types'
 import type { AgeBandId, Order } from './types'
 
 /**
@@ -50,7 +51,7 @@ export function bookSheets(order: Order): BookSheet[] {
   const sheets: BookSheet[] = []
   const covers = order.covers ?? []
   // The same rule the PDF applies: only a colour page bleeds to the edge.
-  const bleed = order.brief.finish === 'coloured'
+  const bleed = !isLineArt(order.brief.finish)
 
   const front = covers.find(
     (c) => c.kind === order.chosenCoverKind && c.status === 'done' && c.imageUrl,
@@ -85,7 +86,7 @@ export function bookSheets(order: Order): BookSheet[] {
       narration: page.narration,
       narrationSecondary: page.narrationSecondary,
       number: page.index,
-      mounted: Boolean(page.memoryId) || !bleed,
+      mounted: !bleed,
     })
   }
 

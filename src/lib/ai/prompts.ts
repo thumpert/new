@@ -1,3 +1,4 @@
+import { babyStoryPrompt, getBabyStory } from '../baby-stories'
 import { readingBookRules } from './reading-book'
 import { twelvePageRules } from './twelve-pages'
 import { BOOK_PAGES, getArtStyle, getBookLanguage, getOccasion, getStoryType, getTone } from '../catalog'
@@ -38,6 +39,15 @@ function describeCharacter(c: Character): string {
   const parts = [`${c.name} (${c.kind === 'pet' ? 'a pet' : 'a person'}`]
   if (c.age) parts.push(`, age: ${c.age}`)
   if (c.role) parts.push(`, role: ${c.role}`)
+  // Absent is not the same as male. It means nobody told us, and the
+  // instruction is the same one 'neutral' gets: write around the marking.
+  parts.push(
+    c.gender === 'male'
+      ? ', speak about them in the masculine'
+      : c.gender === 'female'
+        ? ', speak about them in the feminine'
+        : ', gender not given — write around the grammatical marking: use the name instead of the pronoun, prefer nouns that do not inflect, and rebuild the sentence rather than choosing an ending. Never invent a pronoun',
+  )
   parts.push(')')
 
   const lines = [`${parts.join('')}`]
@@ -72,16 +82,6 @@ export function briefContext(brief: BookBrief): string {
       ...brief.interview
         .filter((a) => a.answer.trim())
         .map((a) => `- ${a.question}\n  ${a.answer}`),
-    )
-  }
-
-  const memories = (brief.memories ?? []).filter((m) => m.note.trim())
-  if (memories.length > 0) {
-    lines.push(
-      '',
-      'REAL PHOTOGRAPHS THE CUSTOMER WANTS IN THE BOOK:',
-      'Each of these is a real moment that already happened, and it will be redrawn as a page from the photograph itself. Treat them as fixed events the story has to pass through.',
-      ...memories.map((m) => `- [${m.id}] ${m.note.trim()}`),
     )
   }
 
@@ -421,6 +421,17 @@ export function storyboardUser(
     ? `Narration must be in ${language.primary}, with "narrationSecondary" carrying the same sentence in ${language.secondary}.`
     : `Narration must be in ${language.primary}. Leave "narrationSecondary" empty.`
 
+  const anchor = getOccasion(brief.occasionId).anchorIdea
+
+  // A pre-written story, when the customer picked one. It replaces the
+  // anchor's "here is a shape, fill it" with something stronger: the beats
+  // are not a suggestion of what could happen, they are what happens, and the
+  // cast has already been decided from the characters the customer named
+  // rather than inferred here for the second time.
+  const preWritten = brief.chosenStoryId
+    ? getBabyStory(brief.chosenStoryId)
+    : undefined
+
   return [
     `Write the full ${pageCount}-page storyboard for the chosen story.`,
     `${narrationRule} Scene descriptions must always be in English — they are read by the image model, not by a person.`,
@@ -440,19 +451,30 @@ export function storyboardUser(
     // whether anybody keeps reading, so it is stated rather than left to be
     // inferred from the summary.
     ...(idea.want ? [`What somebody wants, from page one: ${idea.want}`] : []),
+    // The occasion's own shape, when the customer picked it.
+    //
+    // Without this the writer got a logline, three highlights and a want, and
+    // had to invent the other thirteen pages — for a story whose page order
+    // was already decided and shown to the customer on the screen where they
+    // chose it. It invented differently every time: one run replaced the red
+    // round mirror named in the idea with a brass one the size of a plate,
+    // and dropped the refrain everywhere between the second page and the
+    // thirteenth. Both are review failures, and every review failure buys
+    // another full rewrite of the book.
+    ...(preWritten ? ['', babyStoryPrompt(preWritten, brief)] : []),
+    ...(!preWritten && idea.anchored && anchor
+      ? [
+          '',
+          'THE PAGE ORDER IS ALREADY DECIDED. This is the shape the customer chose, and the summary and highlights above are that shape filled with their details. Write the pages to it: each numbered beat is one page, in this order, carrying the names, the setting and the recurring object named in the idea rather than anything invented here. You are writing the prose and the pictures, not choosing what happens.',
+          '',
+          anchor,
+        ]
+      : []),
     '',
     briefContext(brief),
     '',
     `Character ids you must use in "charactersOnPage": ${brief.characters
       .map((c) => `${c.id} = ${c.name}`)
       .join(', ')}`,
-    ...((brief.memories ?? []).filter((m) => m.note.trim()).length > 0
-      ? [
-          `Photograph ids you must use in "memoryId", one page each: ${(brief.memories ?? [])
-            .filter((m) => m.note.trim())
-            .map((m) => m.id)
-            .join(', ')}`,
-        ]
-      : []),
   ].join('\n')
 }
