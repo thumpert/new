@@ -8,8 +8,25 @@ export const MODEL = 'claude-opus-5'
 
 let client: Anthropic | null = null
 
+/**
+ * Twenty minutes, because a repair takes longer than the default allows.
+ *
+ * The SDK's own ceiling is generous; the one that kept firing was underneath
+ * it, in the HTTP body: a stream with no chunk for five minutes is dropped as
+ * dead, and `UND_ERR_BODY_TIMEOUT` is what arrived. A storyboard repair is not
+ * dead at five minutes, it is thinking — it re-emits the whole book, twenty
+ * thousand tokens of it, and it was measured still going at nine.
+ *
+ * It failed silently, which is what made it expensive. The input was billed,
+ * nothing came back, the loop kept the unrepaired draft, and the customer got
+ * a book with the faults a review had already found and been paid for. It
+ * happened on both books ever measured, which means no book this product has
+ * made was ever actually repaired.
+ */
+const REQUEST_TIMEOUT_MS = 20 * 60 * 1000
+
 function getClient(): Anthropic {
-  if (!client) client = new Anthropic()
+  if (!client) client = new Anthropic({ timeout: REQUEST_TIMEOUT_MS })
   return client
 }
 

@@ -250,6 +250,12 @@ NEVER REPEAT A SENTENCE SHAPE. A construction used once can be charming; the sam
 
 PLAIN WORDS FIRST. This rule governs every other rule about the writing, and where it collides with one of them it wins.
 
+Three tests before a sentence is kept, and they are the three that caught real faults in real books:
+
+- ONE ACTION PER SENTENCE, IN THE ORDER IT HAPPENED. If somebody carries a thing from one room to another and it does something there, that is two sentences, and the carrying is the first one. A reader should never have to reconstruct a step that was skipped.
+- EVERY "ele", "ela", "isso" MUST HAVE ONE POSSIBLE OWNER on its own page, and the owner must be the nearest thing it could refer to. "Na sala ele jogou uma moeda de luz" fails, because a man was named on the page before and the mirror is what is meant. When in doubt, name the thing again — repeating a noun is never the mistake.
+- NO INVENTED IMAGE WHERE A PLAIN NOUN EXISTS. "Uma moeda de luz" is a writer's phrase, not a child's; "uma bolinha de luz" is a child's. And every verb needs its object: "no quarto não pegou nada" leaves the reader asking what did not catch what.
+
 Write the way somebody talks to a child they know well. Ordinary words — the ones the child already uses. Short sentences, one idea in each. Say what happened, in the order it happened, using the names of things.
 
 What is held back is the MEANING, never the EVENTS. The reader should finish a page knowing exactly who was there, what they did and what happened as a result, and wondering only what it will come to. A sentence the reader has to solve is a mistake, not a style. If a line could be read as atmosphere instead of as a fact, rewrite it as the fact.

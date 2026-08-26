@@ -1,5 +1,5 @@
 import * as z from 'zod'
-import { BOOK_PAGE_WORDS, getAgeBand, getTone } from '../catalog'
+import { getAgeBand, getTone } from '../catalog'
 import { askForJson } from './ask'
 import type { BookBrief, StoryIdea, Storyboard } from '../types'
 
@@ -94,12 +94,12 @@ const RULES: Rule[] = [
   {
     id: 'invented-cast',
     title: 'Ninguém foi inventado',
-    test: 'List every person and animal who appears in the thirteen pages, then check each one against the characters the customer named. Report as a fault anybody who is named, anybody who speaks, and anybody who appears on more than one page without being in that list — a grandmother, an aunt, a neighbour, a second parent, an older sibling, a friend, a pet. Unnamed scenery is allowed and is not a fault: a baker, a stranger in a queue, people on a platform, so long as they have no name, no line of dialogue and no second appearance. There is no judgement to exercise here and no benefit of the doubt to give: a family reading about a grandmother they do not have is reading a book about somebody else. Name the page and the invented person.',
+    test: 'List every person and animal who appears in the thirteen pages and check each against the characters the customer named. REPORT A FAULT ONLY FOR SOMEBODY YOU CAN POINT AT: they are given a name that is not in the cast, or they speak a line, or they appear on more than one page — a grandmother, an aunt, a neighbour, a second parent, an older sibling, a friend, an animal. Say which page and which person. Unnamed scenery is not a fault and never has been: a baker who lifts a cloth, a stranger in a queue, people waiting on a platform, so long as they stay unnamed, never speak and do not come back. This matters because a family reading about a grandmother they do not have is reading a book about somebody else — but it only catches somebody actually on the page, so if every figure in the book is either in the cast or is unnamed scenery, this rule passes.',
   },
   {
     id: 'continuity',
     title: 'As contas fecham',
-    test: 'Track every countable and every object across the thirteen pages and name any page where the arithmetic or the whereabouts stop agreeing. FIRST, counts: anything the book counts out loud — mirrors in a bag, items on a list, days remaining, how many are left — must still add up on the last page it is mentioned. Add them up yourself, page by page, and say the running total where it breaks. SECOND, objects: anything given away, put down, wedged somewhere, broken or pocketed stays where it was put, and cannot be used again afterwards without somebody fetching it. THIRD, people and animals: whoever is established somewhere on an early page is still there when a later page depends on it, and nobody acts in a scene they were not brought into. This is not a matter of taste and there is no arguing with it: report a fault whenever the numbers or the positions contradict each other, however well the page reads.',
+    test: 'Track every countable and every object across the thirteen pages. FIRST, counts: anything the book counts out loud — mirrors in a bag, items on a list, how many are left — must still add up the last time it is mentioned. Add them yourself, page by page. SECOND, objects: anything given away, put down, wedged somewhere or broken stays where it was put and is not used again without somebody fetching it. THIRD, people and animals: nobody acts in a scene they were not brought into. REPORT A FAULT ONLY WHEN YOU CAN STATE THE CONTRADICTION IN NUMBERS OR IN PLACES — "page 4 counts four mirrors, pages 5 to 7 use five", "the mirror given away on page 9 is back in her hand on page 11". If you cannot write the contradiction down that plainly, there is not one, and this rule passes. A page that merely leaves something vague, or that you would have written differently, is not a fault here: vagueness is another rule\'s business and this one is about arithmetic that does not work.',
   },
   {
     id: 'specificity',
@@ -154,7 +154,7 @@ const READING_RULES: Rule[] = [
   {
     id: 'age-craft',
     title: 'Escrito para esta idade',
-    test: 'The prose does what this age band asks and avoids what it forbids. For 3–5: short declarative sentences, physical verbs, concrete nouns, no abstract nouns at all, a pattern of three, a refrain that changes by one word, nothing left open across more than two pages. For 6–8: dialogue carrying real weight, one character holding a wrong idea for several pages while the reader sees it, small stakes treated as enormous, no joke explained. For 9–12: no stated feelings anywhere, a second thread planted early and paid late, the extraordinary described in plain measurable terms, and something genuinely given up. Quote the page and the phrase for any failure.',
+    test: 'Judge the language against the age this book was ordered for, and judge it on how it is written rather than on how long it is. FOR 3–5: one clause a sentence, present or simple past, concrete nouns a child can point at, and every abstract idea shown as an action instead of named. Repetition is a feature at this age, not a fault. FOR 6–8: two clauses joined by a visible connective are welcome, a subordinate clause now and then, and a word the child may not know is fine when the sentence around it makes it obvious. FOR 9+: full paragraphs, a question left open across a page, irony the reader is trusted to catch, and no explaining of what a scene already showed. Report a fault when a page is written for a different age than the one ordered — a nine-year-old given nursery repetition, a four-year-old given a subordinate clause they have to hold in their head — and name the page and which way it missed. Length is somebody else\'s rule; this one is about the sentences.',
   },
   {
     id: 'picture-alone',
@@ -254,24 +254,35 @@ function measureLength(brief: BookBrief, storyboard: Storyboard): string[] {
   // The twelve-page books are held to the band under the drawing; the reading
   // book to the age it was ordered for. Both are counting, so both are counted
   // rather than judged.
-  const limit =
-    brief.finish === 'reading'
-      ? getAgeBand(brief.ageBandId).words
-      : BOOK_PAGE_WORDS
-  const who =
-    brief.finish === 'reading'
-      ? `a book for ${getAgeBand(brief.ageBandId).years}`
-      : 'a page of a twelve-page book, where the words sit in a narrow column under the drawing and only so many fit,'
+  // A RANGE, NOT A RULER.
+  //
+  // The counts per age are real and worth writing to — a page for a
+  // four-year-old and a page for a nine-year-old are different objects, and
+  // most of that difference is length. What they are not is a boundary a book
+  // fails at. Six pages of a good book were sent back for having 36 and 37
+  // words against a 35 ceiling, and the repair cost more than the draft.
+  //
+  // So the band is guidance, given to the writer, and only a page that has
+  // plainly missed the age is a fault here: less than half the floor, or more
+  // than double the ceiling. That catches a page written for the wrong child
+  // and lets a page that runs two words over be a page that runs two words
+  // over.
+  const band =
+    brief.finish === 'reading' ? getAgeBand(brief.ageBandId).words : null
+  if (!band) return []
+
+  const floor = Math.floor(band.min / 2)
+  const ceiling = band.max * 2
 
   const wrong = storyboard.pages
     .map((p) => ({ index: p.index, words: p.narration.trim().split(/\s+/).filter(Boolean).length }))
-    .filter((p) => p.words < limit.min || p.words > limit.max)
+    .filter((p) => p.words < floor || p.words > ceiling)
 
   if (wrong.length === 0) return []
   return [
-    `Tamanho das páginas: ${who} carries ${limit.min}–${limit.max} words a page. These are outside it — ${wrong
+    `Tamanho das páginas: a book for ${getAgeBand(brief.ageBandId).years} sits around ${band.min}–${band.max} words a page. These are not near it — ${wrong
       .map((p) => `page ${p.index} has ${p.words}`)
-      .join(', ')}. Rewrite those pages to length without cutting anything the story needs; if a page cannot be said in that many words, the page is doing too much and should be split across the turn.`,
+      .join(', ')}. A page that far out is written for a different child, not merely long: rewrite it at the length this age reads.`,
   ]
 }
 

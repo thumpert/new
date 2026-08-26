@@ -338,9 +338,49 @@ export async function generateStoryboard(
     return review
   }
 
-  for (let attempt = 1; attempt <= MAX_STORY_ATTEMPTS; attempt++) {
+  // How many faults the round before this one left standing. A repair that
+  // does not reduce it is the signal to stop.
+  let previousFailures = Number.POSITIVE_INFINITY
+
+  // A PRE-WRITTEN STORY IS MARKED ONCE, NOT ROUND AFTER ROUND.
+  //
+  // The loop was built for a story the model invented, where a bad draft can
+  // be structurally bad and a second and third look are worth buying. Here
+  // the structure is not in question — the page order came from this
+  // repository — so what is left to find is prose, one review finds it, and
+  // one repair is the whole of what a second round would have asked for.
+  // Measured: eight calls and US$3.03 the round-after-round way, against
+  // US$0.91 for the same book stopping early, and the customer waiting
+  // twenty-one minutes instead of fifteen for the privilege.
+  const rounds = brief.chosenStoryId ? 1 : MAX_STORY_ATTEMPTS
+
+  for (let attempt = 1; attempt <= rounds; attempt++) {
     const review = await mark(parsed, String(attempt))
     if (review.passed) break
+
+    // STOP WHEN THE REPAIRS STOP HELPING.
+    //
+    // The loop used to run its three rounds whatever happened, on the
+    // assumption that a book failing review is a book a repair can mend. A
+    // rule that cannot be satisfied breaks that assumption, and the loop then
+    // pays full price to be told the same thing three times: measured on one
+    // book, eight calls and US$3.03 against US$0.91 for the same book when
+    // the first repair worked. The unsatisfiable rule was one somebody had
+    // just added, which is the point — this guard is not about that rule, it
+    // is about the next one.
+    //
+    // Fewer faults than last round means the repairs are working and another
+    // is worth buying. The same number or more means they are not.
+    if (review.failures.length >= previousFailures) {
+      if (process.env.STORY_REVIEW_LOG) {
+        console.log(
+          `  parando: o conserto ${attempt - 1} nao reduziu as falhas ` +
+            `(${previousFailures} -> ${review.failures.length})`,
+        )
+      }
+      break
+    }
+    previousFailures = review.failures.length
 
     // A repair that comes back unusable leaves the previous draft standing.
     // Losing a revision is worth less than losing the order. The rewrite is
@@ -366,7 +406,7 @@ export async function generateStoryboard(
     }
 
     // The last repair would otherwise go out unread.
-    if (attempt === MAX_STORY_ATTEMPTS) await mark(parsed, 'final')
+    if (attempt === rounds && !brief.chosenStoryId) await mark(parsed, 'final')
   }
 
   parsed = best.board
