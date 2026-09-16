@@ -1,4 +1,5 @@
 import { checkPage } from "./ai/review";
+import { isWordless } from "./stories";
 import { describeError, providerError } from "./errors";
 import { getImageProvider, type ImageProvider } from "./images";
 import { fetchBinary, putFile } from "./storage";
@@ -417,6 +418,10 @@ async function renderPages(
   const pages = order.storyboard.pages;
   const { artStyleId, finish } = order.brief;
   const device = order.storyboard.device;
+  // A colouring book off the shelf has no words anywhere in it, so its pages
+  // must not compose a blank band along the bottom for narration that is
+  // never printed. See `pageFraming`.
+  const wordless = isWordless(order.brief);
 
   // A simple worker pool: each worker pulls the next index off a shared cursor.
   let cursor = 0;
@@ -433,6 +438,7 @@ async function renderPages(
           provider,
           artStyleId,
           finish,
+          wordless,
           device,
         );
       }
@@ -456,6 +462,7 @@ async function renderOnePage(
   provider: ImageProvider,
   artStyleId: ArtStyleId,
   finish: BookFinish,
+  wordless: boolean,
   device: string | undefined,
 ): Promise<void> {
   await patchRender(orderId, page.index, {
@@ -478,6 +485,7 @@ async function renderOnePage(
           : page.sceneDescription,
         artStyleId,
         finish,
+        wordless,
         device,
         characters: onPage,
         referenceUrls: onPage
@@ -589,6 +597,7 @@ export async function regeneratePage(
     getImageProvider(),
     order.brief.artStyleId,
     order.brief.finish,
+    isWordless(order.brief),
     order.storyboard.device,
   );
   await settleStatus(orderId);

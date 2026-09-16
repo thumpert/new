@@ -1,3 +1,4 @@
+import { isWordless } from './stories'
 import { isLineArt } from './types'
 import type { AgeBandId, Order } from './types'
 
@@ -63,10 +64,26 @@ export function bookSheets(order: Order): BookSheet[] {
 
   const renders = new Map((order.renders ?? []).map((r) => [r.index, r]))
   const reading = order.brief.finish === 'reading'
+  // A colouring book off the shelf is twenty-four drawings and nothing else.
+  // It takes the reading book's 'picture' sheet rather than the colouring
+  // book's 'page' — same thing minus the words — because a 'page' carries a
+  // narration slot, and a slot that is always empty is how a stray space or
+  // a leftover title ends up printed under a drawing.
+  const wordless = isWordless(order.brief)
 
   for (const page of order.storyboard?.pages ?? []) {
     const render = renders.get(page.index)
     if (!render || render.status !== 'done' || !render.imageUrl) continue
+
+    if (wordless) {
+      sheets.push({
+        kind: 'picture',
+        imageUrl: render.imageUrl,
+        number: page.index,
+        mounted: true,
+      })
+      continue
+    }
 
     if (reading) {
       sheets.push({ kind: 'picture', imageUrl: render.imageUrl })

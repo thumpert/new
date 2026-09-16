@@ -60,6 +60,7 @@ export class MockProvider implements ImageProvider {
             req.referenceUrls.length > 0,
             req.finish,
             req.device,
+            req.wordless,
           ),
     }
   }

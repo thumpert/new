@@ -21,6 +21,18 @@ export interface PageRequest {
   artStyleId: ArtStyleId
   finish: BookFinish
   /**
+   * True when nothing is printed on this page — the twenty-four panel
+   * colouring book, which carries no narration at all.
+   *
+   * It changes the composition rather than the content: an ordinary colouring
+   * page leaves its bottom fifth as open paper for the words, and a page with
+   * no words has no reason to give a fifth of itself away.
+   *
+   * Optional, and absent on every request built before it existed; absent
+   * means "there are words", which is what every book used to be.
+   */
+  wordless?: boolean
+  /**
    * Absolute URLs of the model sheets for the characters on this page, in the
    * same order as `characterNames`. Line art or coloured, matching `finish`.
    */

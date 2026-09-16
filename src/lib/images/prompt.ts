@@ -91,7 +91,7 @@ function finishRules(
  * words then land on top of. So the band is always described as scenery that
  * happens to be empty, and never as a place for words.
  */
-function pageFraming(finish: BookFinish): string {
+function pageFraming(finish: BookFinish, wordless = false): string {
   // A reading book prints its words on the facing page, so this picture needs
   // no calm band at all — and must not be given one, or it comes back with a
   // fifth of the frame wasted on empty sky for text that is printed elsewhere.
@@ -99,6 +99,15 @@ function pageFraming(finish: BookFinish): string {
   // page, and a child who cannot read yet follows the book through it.
   if (finish === 'reading') {
     return 'Single full-page children’s picture-book illustration, vertical portrait orientation, composed to fill the frame edge to edge with no border and no white margin. No words are printed on this picture, so use the whole frame: no calm band, no empty strip, no reserved space anywhere. It must tell its moment on its own — clear enough that a child who cannot yet read could follow the story from the pictures alone — so make the action, the faces and what everyone wants unmistakable. Absolutely no lettering: no signs, no labels, no numbers, no writing of any kind.'
+  }
+
+  // A colouring book off the shelf prints no words on any page, so the band
+  // has nothing to hold and giving it one would cost a fifth of all
+  // twenty-four pages. What replaces it is the harder requirement the reading
+  // book already carries: the page has to be followable on its own, because
+  // there is no sentence underneath to explain it.
+  if (finish === 'coloring' && wordless) {
+    return 'Single full-page children’s coloring book illustration, vertical portrait orientation, the whole scene comfortably inside the frame with clear white space at the edges. No words are printed on this page, so use the whole of it: no calm band, no empty strip along the bottom, no reserved space anywhere. It has to tell its moment on its own — a child who cannot read yet will follow this book from the pictures and nothing else — so make the action, the faces and what everyone wants unmistakable. Absolutely no lettering: no signs, no labels, no numbers, no writing of any kind.'
   }
 
   return finish === 'coloring'
@@ -324,6 +333,7 @@ export function pagePrompt(
   hasReferences: boolean,
   finish: BookFinish,
   device?: string,
+  wordless = false,
 ): string {
   const style = getArtStyle(artStyleId)
   const names = characters.map((c) => c.name)
@@ -345,7 +355,7 @@ export function pagePrompt(
       : ''
 
   return [
-    pageFraming(finish),
+    pageFraming(finish, wordless),
     `Scene: ${terminated(sceneDescription)}`,
     consistency,
     `Drawing style: ${style.prompt}`,

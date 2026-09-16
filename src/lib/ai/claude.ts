@@ -1,5 +1,6 @@
 import * as z from 'zod'
 import { getBookLanguage, getOccasion, pagesFor } from '../catalog'
+import { getStory, panelCount } from '../stories'
 import { askForJson } from './ask'
 import { reviewStoryboard } from './story-review'
 import type {
@@ -272,7 +273,14 @@ export async function generateStoryboard(
   brief: BookBrief,
   idea: StoryIdea,
 ): Promise<Storyboard> {
-  const pageCount = pagesFor()
+  // Thirteen, unless this is a colouring book of a story whose beats have
+  // been cut into two frames each — then the book is twice its beats and has
+  // no words in it. Read once here and carried down, so the prompt, the token
+  // ceiling and the slice that trims the model's answer cannot disagree about
+  // how long the book is; they did once, and the extra pages were silently
+  // dropped after being paid for.
+  const story = brief.chosenStoryId ? getStory(brief.chosenStoryId) : undefined
+  const pageCount = panelCount(story, brief) ?? pagesFor()
 
   // The largest answer by far: every page carries narration, an optional
   // translation and an English scene description. The ceiling scales with the
@@ -322,7 +330,7 @@ export async function generateStoryboard(
     const review = await reviewStoryboard(
       brief,
       idea,
-      toStoryboard(board, brief, idea),
+      toStoryboard(board, brief, idea, pageCount),
     ).catch(() => ({ failures: [] as string[], passed: true }))
 
     if (process.env.STORY_REVIEW_LOG) {
@@ -411,7 +419,7 @@ export async function generateStoryboard(
 
   parsed = best.board
 
-  return toStoryboard(parsed, brief, idea)
+  return toStoryboard(parsed, brief, idea, pageCount)
 }
 
 /**
@@ -424,6 +432,7 @@ function toStoryboard(
   parsed: z.infer<typeof StoryboardSchema>,
   brief: BookBrief,
   idea: StoryIdea,
+  pageCount: number,
 ): Storyboard {
   const knownIds = new Set(brief.characters.map((c) => c.id))
 
@@ -431,7 +440,7 @@ function toStoryboard(
     title: brief.title.trim() || parsed.title,
     device: idea.device,
     dedication: brief.dedication,
-    pages: parsed.pages.slice(0, pagesFor()).map((page, i) => ({
+    pages: parsed.pages.slice(0, pageCount).map((page, i) => ({
       index: i + 1,
       narration: page.narration,
       narrationSecondary: page.narrationSecondary?.trim() || undefined,

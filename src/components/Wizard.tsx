@@ -11,13 +11,14 @@ import {
   getOccasion,
 } from '@/lib/catalog'
 import {
-  babyStoryIdea,
-  getBabyStory,
+  getStory,
+  occasionHasShelf,
   questionsFor,
   requiredQuestionIds,
   say,
   storiesFor,
-} from '@/lib/baby-stories'
+  storyIdea,
+} from '@/lib/stories'
 import type { Dictionary } from '@/lib/i18n'
 import { AGE_BANDS, BOOK_FINISHES } from '@/lib/types'
 import type {
@@ -72,7 +73,7 @@ const STEPS = [
   // with no child in it. Put this screen before the characters step and there
   // is no cast to filter by, and it renders empty — which is exactly what it
   // did the first time it was tried in a browser.
-  'babyStory',
+  'shelf',
   'place',
   'interview',
   // The title comes after the story is chosen, so the suggestions can be
@@ -206,8 +207,20 @@ export function Wizard({
     }
   }
 
-  /** True once this order is one of the pre-written new-baby stories. */
-  const preWritten = occasionId === 'new-baby'
+  /**
+   * Whether this order picks a book off a shelf instead of inventing one.
+   *
+   * Asked of the OCCASION and not of the cast, which matters: this decides
+   * which screens exist, and it is read while the customer is still three
+   * screens away from naming anybody. Using `storiesFor` here instead would
+   * make the step list flicker as characters are typed in — the shelf would
+   * appear the moment a name was entered and vanish when it was cleared.
+   *
+   * Which of the shelf's books this particular family can be given is the
+   * narrower question, and it is asked on the shelf screen itself, where
+   * there is a cast to ask it about.
+   */
+  const preWritten = occasionHasShelf(occasionId)
 
   /**
    * Which steps this particular order actually walks through.
@@ -221,7 +234,7 @@ export function Wizard({
    */
   const shown = (s: Step) => {
     if (s === 'age') return finish === 'reading'
-    if (s === 'babyStory') return preWritten
+    if (s === 'shelf') return preWritten
     if (s === 'storyType' || s === 'tone' || s === 'ideas') return !preWritten
     return true
   }
@@ -289,7 +302,7 @@ export function Wizard({
       })
       setOrderId(created.id)
 
-      const story = chosenStoryId ? getBabyStory(chosenStoryId) : undefined
+      const story = chosenStoryId ? getStory(chosenStoryId) : undefined
       if (story) {
         setQuestions(questionsFor(story, brief()))
         next()
@@ -321,9 +334,9 @@ export function Wizard({
       // There is nothing to check the brief for — the questions it just
       // answered are exactly the ones this story needs — and nothing to
       // choose between, because the choice was made before the questions.
-      const story = chosenStoryId ? getBabyStory(chosenStoryId) : undefined
+      const story = chosenStoryId ? getStory(chosenStoryId) : undefined
       if (story) {
-        const idea = babyStoryIdea(story, brief())
+        const idea = storyIdea(story, brief())
         setIdeas([idea])
         setChosenIdeaId(idea.id)
         if (!title.trim()) setTitle(idea.title)
@@ -398,7 +411,7 @@ export function Wizard({
    * required, and this is what holds the door shut.
    */
   const questionsAnswered = (() => {
-    const story = chosenStoryId ? getBabyStory(chosenStoryId) : undefined
+    const story = chosenStoryId ? getStory(chosenStoryId) : undefined
     if (!story) return true
     return requiredQuestionIds(story, brief()).every((id) =>
       answers[id]?.trim(),
@@ -517,13 +530,24 @@ export function Wizard({
         </StepShell>
       )}
 
-      {current === 'babyStory' && (
+      {current === 'shelf' && (
         <StepShell
-          title={dict.wizard.babyStory.title}
-          subtitle={dict.wizard.babyStory.subtitle}
+          title={dict.wizard.shelf.title}
+          subtitle={dict.wizard.shelf.subtitle}
           footer={footer(next, Boolean(chosenStoryId))}
         >
           <div className="grid gap-4">
+            {/* An occasion whose every book needs somebody this family did not
+                name. It cannot happen today — the shelf always has one book
+                castable from a single named person — but it is one story away
+                from happening, and a screen that renders as blank space with
+                a dead Next button is the worst way to find out. */}
+            {storiesFor(brief()).length === 0 && (
+              <p className="rounded-2xl border border-line bg-paper-raised p-5 text-sm leading-relaxed text-ink-soft">
+                {dict.wizard.shelf.empty}
+              </p>
+            )}
+
             {/* Only the stories this family can actually be given. A story
                 needing a child nobody named is not shown at all, which is
                 what stops a book from inventing a sibling. */}
@@ -649,12 +673,13 @@ export function Wizard({
           subtitle={dict.wizard.characters.subtitle}
           footer={footer(next, charactersReady)}
         >
-          {/* Only for the occasion whose menu of stories actually depends on
-              who is added — telling anybody else that a child unlocks
-              stories would be describing a door that is not there. */}
+          {/* Only for occasions with a shelf, where the menu of stories
+              actually depends on who is added — telling anybody else that a
+              child unlocks stories would be describing a door that is not
+              there. */}
           {preWritten && (
             <p className="mb-5 rounded-2xl border border-line bg-accent-soft/40 p-4 text-sm leading-relaxed text-ink">
-              {dict.wizard.characters.babyIntro}
+              {dict.wizard.characters.shelfIntro}
             </p>
           )}
           <CharactersStep

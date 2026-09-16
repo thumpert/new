@@ -179,8 +179,13 @@ function Sheet({ sheet, title }: { sheet: BookSheet; title: string }) {
     )
   }
 
-  // A reading book's picture page: the whole sheet, and nothing written on
-  // it. The words are on the sheet facing it, which is the format's point.
+  // A sheet with a drawing on it and nothing written. Two books land here:
+  // the reading book, whose words are on the facing sheet, and the colouring
+  // book off the shelf, which has no words anywhere.
+  //
+  // They differ only in how far the art reaches, and `mounted` is what says
+  // which — a colour page bleeds to the edge, a page of line art sits inside
+  // its margin on white, the same rule the PDF applies.
   if (sheet.kind === 'picture') {
     return (
       <div className={base}>
@@ -188,8 +193,13 @@ function Sheet({ sheet, title }: { sheet: BookSheet; title: string }) {
         <img
           src={sheet.imageUrl}
           alt={title}
-          className="h-full w-full object-cover"
+          className={
+            sheet.mounted
+              ? 'h-full w-full object-contain p-[6%]'
+              : 'h-full w-full object-cover'
+          }
         />
+        {sheet.mounted && <PageNumber n={sheet.number} />}
       </div>
     )
   }

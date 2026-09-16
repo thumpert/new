@@ -47,11 +47,18 @@ export const OCCASIONS: OccasionDef[] = [
     suggestedStoryTypes: ['adventure', 'everyday-magic', 'fairy-tale', 'funny'],
   },
   {
+    // One shelf, not two. This used to be the baby's book, and the book for
+    // the child who was there first was going to be a second occasion beside
+    // it — until it turned out that three of the five stories already here
+    // are the older child's book, and the line between "a new baby" and "a
+    // new brother or sister" is one only we could see. So the angle below
+    // says both, and says which one the writer is in from the cast rather
+    // than from the occasion.
     id: 'new-baby',
     storyAngle:
-      'Welcoming a newborn into the family. Gentle, full of anticipation and tenderness, often narrated as the family waiting for and meeting the baby.',
+      'A baby is arriving, or has just arrived, and this book is for somebody in that house. Most often it is for the child who was there first, and then it is about what changes for them rather than about the baby: what they hand over, what they are asked for, what they are the only one who can do. When there is no older child, it is the family waiting for and meeting the baby. Gentle either way, and never a book that tells anybody how to feel about it.',
     interviewFocus:
-      'how the family found out, how siblings and pets reacted, what the family dreams for the baby, the meaning of the baby’s name',
+      'how the family found out, what the older child has been told and what they have asked, what is being handed over or moved to make room, how siblings and pets reacted, the meaning of the baby’s name',
     suggestedStoryTypes: ['everyday-magic', 'journey', 'fairy-tale'],
     anchorIdea: [
       'THE MIRROR ROUTE.',
@@ -96,21 +103,33 @@ export const OCCASIONS: OccasionDef[] = [
       'the best thing that happened this year, what they are obsessed with right now, who would be at the party, a running joke among friends',
     suggestedStoryTypes: ['adventure', 'funny', 'superhero', 'everyday-magic'],
   },
+  // The two halves of what was nearly a single occasion called adventure.
+  // They are here as two because they share only their size: a customer
+  // browsing a shelf recognises a dinosaur and recognises a rocket, and
+  // recognises nothing at all in a card that says "adventure".
   {
-    id: 'relationship',
+    id: 'dinosaur',
     storyAngle:
-      'A gift between partners. Retells the story of the couple: how they met, what they build together, the private jokes only they understand.',
+      'The child’s own neighbourhood turns out to have something enormous underneath it. The register is matter-of-fact rather than thrilling: the impossible thing is described by its weight, its temperature and what it did to the ground, and the child treats digging it up as work rather than as a quest. Never a book about danger — nothing hunts anybody.',
     interviewFocus:
-      'how they met, the first date, pet names and inside jokes, the biggest differences between them, a favourite shared memory, what they love doing together',
-    suggestedStoryTypes: ['journey', 'everyday-magic', 'funny', 'adventure'],
+      'where the child digs or plays in the dirt, which places in the neighbourhood could be drawn, the dinosaur they can already name, who does not believe their stories',
+    suggestedStoryTypes: ['adventure', 'everyday-magic'],
   },
   {
-    id: 'pet',
+    id: 'space',
     storyAngle:
-      'A tribute to a beloved pet. The pet is the hero, seen with affection and humour, with the humans as supporting cast.',
+      'The family goes up after something they look at together from the ground. Wonder, and a rope: the scale is enormous and the stakes are domestic, which is what keeps it from becoming a tour of the solar system.',
     interviewFocus:
-      'how the pet joined the family, their worst mischief, favourite spot in the house, how they greet people, their nemesis (the vacuum, the mailman, a cat next door)',
-    suggestedStoryTypes: ['funny', 'adventure', 'everyday-magic', 'superhero'],
+      'what the family looks at in the sky together and where they look at it from, what the child is afraid of in the dark, what they carry everywhere',
+    suggestedStoryTypes: ['adventure', 'journey', 'everyday-magic'],
+  },
+  {
+    id: 'holiday',
+    storyAngle:
+      'A trip the family actually took or is about to take, told from the height of a child. The famous places are the background; what moves the book is who is allowed to point at the way, or who is allowed to be first. Never a tour of monuments — that is a list, and a list fails the but/therefore test on every page.',
+    interviewFocus:
+      'where the family went or is going, three or four places from that trip, something the child noticed that nobody else did, the silly place that turned out to be the best bit, how the journey itself goes',
+    suggestedStoryTypes: ['journey', 'adventure', 'everyday-magic'],
   },
 ]
 
@@ -653,10 +672,25 @@ export function getAgeBand(id: AgeBandId | undefined): AgeBandDef {
   return found ?? AGE_BANDS_CATALOG[1]
 }
 
-export function getOccasion(id: OccasionId): OccasionDef {
+/**
+ * The occasion this order was placed under.
+ *
+ * Takes a string rather than an `OccasionId`, and answers instead of
+ * throwing, because the list has retired members and the orders that carry
+ * them are still on disk. A customer opening the book they bought under
+ * 'relationship' last month is not a programming error, and the old
+ * behaviour — throw on anything not in the list — turned it into a page
+ * that would not load at all.
+ *
+ * 'child' is the fallback because it is the only occasion with no shape of
+ * its own: its angle is "a present for somebody, about who they are", which
+ * is the least wrong thing to say about a book whose real occasion no longer
+ * exists. It is used to READ an old order, never to write a new one — the
+ * wizard can only send an id from OCCASIONS.
+ */
+export function getOccasion(id: OccasionId | string): OccasionDef {
   const found = OCCASIONS.find((o) => o.id === id)
-  if (!found) throw new Error(`Unknown occasion: ${id}`)
-  return found
+  return found ?? OCCASIONS[0]
 }
 
 export function getStoryType(id: StoryTypeId): StoryTypeDef {

@@ -12,7 +12,7 @@ export const pt = {
     seoTitle: 'Livro infantil personalizado, para colorir ou para ler | Por Tintim',
     /* A descrição do resultado de busca. Cabe em ~155 caracteres. */
     tagline:
-      'Um livro infantil personalizado feito das histórias reais da sua família. Escolha entre livro de colorir ou livro para ler, com 13 páginas ilustradas.',
+      'Um livro infantil personalizado feito das histórias reais da sua família. Escolha entre livro de colorir ou livro para ler, ilustrado página por página.',
   },
   common: {
     next: 'Continuar',
@@ -37,17 +37,17 @@ export const pt = {
     heroLines: ['O HERÓI', 'DA HISTÓRIA', 'MORA COM VOCÊ'],
     lineBookAlt: 'Uma página em traço preto, para colorir',
     colourBookAlt: 'A mesma página já pintada, para ler',
-    sticker: '13 páginas',
+    sticker: 'Página por página',
     kinds: {
       heading: 'Dois livros, a mesma história',
       body: 'Você escolhe na primeira tela, e a escolha desce até o fundo: muda o traço, a paleta e como a página é diagramada.',
       colouring: {
         label: 'Para colorir',
-        body: 'Treze páginas em traço preto sobre branco. A capa já vem colorida — o resto é trabalho de quem ganhar.',
+        body: 'Traço preto sobre branco, sem uma palavra dentro: a história se conta de desenho em desenho, e são 24 deles nas histórias de prateleira. A capa já vem colorida — o resto é trabalho de quem ganhar.',
       },
       reading: {
         label: 'Para ler',
-        body: 'As mesmas treze páginas, já pintadas no estilo que você escolheu, com a história embaixo. Para ler junto na hora de dormir.',
+        body: 'Treze páginas já pintadas no estilo que você escolheu, com a história embaixo. Para ler junto na hora de dormir.',
       },
     },
     reassurance: 'Você lê a história inteira antes de a gente desenhar qualquer página.',
@@ -63,7 +63,7 @@ export const pt = {
       },
       {
         title: 'Você lê antes de desenhar',
-        body: 'Para um bebê a caminho, você escolhe entre histórias que já escrevemos. Para o resto, escrevemos quatro possíveis e você fica com uma. Nos dois casos você lê o livro inteiro antes de qualquer desenho — texto é barato, desenho não.',
+        body: 'Em algumas ocasiões você escolhe entre histórias que já escrevemos. Nas outras, escrevemos quatro possíveis e você fica com uma. Nos dois casos você lê o livro inteiro antes de qualquer desenho — texto é barato, desenho não.',
       },
       {
         title: 'Escolhe a capa, e o livro é desenhado',
@@ -85,10 +85,12 @@ export const pt = {
       title: 'Qual é a ocasião?',
       subtitle: 'Isso define o tom e o coração da história.',
     },
-    babyStory: {
+    shelf: {
       title: 'Qual história vai ser?',
       subtitle:
         'Estas histórias já estão escritas. Você escolhe uma, e nas próximas telas a gente pergunta só o que ela precisa para virar a história de vocês — os nomes, a cidade, o bicho, as coisas favoritas.',
+      empty:
+        'Nenhuma das histórias dessa ocasião funciona com os personagens que você incluiu. Volte uma tela e adicione quem falta — ou troque a ocasião.',
     },
     storyType: {
       title: 'Que tipo de história você quer?',
@@ -107,9 +109,12 @@ export const pt = {
     characters: {
       title: 'Quem são os personagens?',
       subtitle:
-        'Adicione pessoas e pets. A foto ensina o rosto ao desenhista: com ela, o personagem sai parecido com a pessoa de verdade e continua o mesmo nas treze páginas. Sem ela, sai uma pessoa qualquer.',
-      babyIntro:
-        'Se você incluir uma criança, aparecem histórias novas para escolher — três das cinco só existem quando há uma criança no livro. Costuma ser um irmão ou irmã mais velha, mas serve igual um primo, uma prima ou um amiguinho do bebê. Quem você incluir vai ter o que fazer na história, seja qual for a que você escolher.',
+        'Adicione pessoas e pets. A foto ensina o rosto ao desenhista: com ela, o personagem sai parecido com a pessoa de verdade e continua o mesmo da primeira à última página. Sem ela, sai uma pessoa qualquer.',
+      // Vale para qualquer prateleira, não só a do bebê: quem entra aqui é
+      // quem pode ser escalado, e algumas histórias só aparecem quando existe
+      // uma criança na lista.
+      shelfIntro:
+        'Quem você incluir aqui decide quais histórias aparecem na próxima tela — algumas só existem quando há uma criança no livro. Vale um irmão, uma irmã, um primo, uma prima ou um amiguinho. E quem você incluir vai ter o que fazer na história, seja qual for a que você escolher.',
       add: 'Adicionar personagem',
       addPet: 'Adicionar pet',
       remove: 'Remover',
@@ -315,21 +320,30 @@ export const pt = {
       label: 'Presente para o filho(a)',
       description: 'Uma história sobre quem essa criança é.',
     },
+    // Uma prateleira só. O livro do bebê e o livro de quem já estava em casa
+    // viraram a mesma ocasião, então o rótulo precisa dizer os dois sem
+    // obrigar ninguém a escolher entre "bebê" e "irmão" antes de ver as
+    // histórias.
     'new-baby': {
-      label: 'Novo bebê',
-      description: 'A chegada de quem a família estava esperando.',
+      label: 'Vem um bebê aí',
+      description:
+        'Para o bebê que está chegando — ou para quem já estava em casa e vai ter que dividir o quarto.',
     },
     birthday: {
       label: 'Aniversário',
       description: 'Uma celebração do ano que passou.',
     },
-    relationship: {
-      label: 'Relacionamento',
-      description: 'A história de vocês dois, do começo até aqui.',
+    dinosaur: {
+      label: 'Dinossauro',
+      description: 'Tem uma coisa enorme embaixo do bairro, e ela cava até achar.',
     },
-    pet: {
-      label: 'Pet',
-      description: 'Uma homenagem ao maior bagunceiro da casa.',
+    space: {
+      label: 'Espaço',
+      description: 'Subir atrás do que a família olha no céu toda noite.',
+    },
+    holiday: {
+      label: 'Viagem',
+      description: 'A viagem da família, contada da altura de quem é baixinho.',
     },
   },
   storyTypes: {

@@ -1,7 +1,13 @@
-import type { BookBrief, Character, InterviewQuestion, StoryIdea } from './types'
+import type {
+  BookBrief,
+  Character,
+  InterviewQuestion,
+  OccasionId,
+  StoryIdea,
+} from './types'
 
 /**
- * The five stories a new-baby book can be.
+ * The shelf: every book this product can be, written in advance.
  *
  * This is the change that separates this occasion from every other one. The
  * rest of the product invents a story per order: four ideas written from
@@ -17,6 +23,13 @@ import type { BookBrief, Character, InterviewQuestion, StoryIdea } from './types
  * purpose and read back. What the model does is cast it and fill it, not
  * invent it.
  *
+ * IT STARTED AS ONE OCCASION AND IS NOW THE PRODUCT. These were the five
+ * new-baby stories, and everything else invented a book per order. The shelf
+ * is the other way round: an occasion either has books on it, and then the
+ * customer picks one off it, or it has none and falls back to invention. So a
+ * story carries the occasion it belongs to, and `storiesFor` answers with the
+ * ones that are both on this shelf and tellable about this family.
+ *
  * WHY THE TEXT LIVES HERE AND NOT IN src/lib/i18n. The convention in this
  * codebase is that the catalog holds the machine-facing half and the locale
  * dictionaries hold what the customer reads. These stories break it, on
@@ -27,12 +40,13 @@ import type { BookBrief, Character, InterviewQuestion, StoryIdea } from './types
  * are kept whole and localised in place.
  */
 
-export type BabyStoryId =
+export type StoryId =
   | 'sunbeam'
   | 'best-things'
   | 'on-the-way'
   | 'training'
   | 'waiting'
+  | 'the-thing-under-the-house'
 
 export interface Localized {
   pt: string
@@ -77,14 +91,29 @@ export function say(text: Localized, _brief: BookBrief): string {
  * exist — so the roles are declared, checked before the story is offered, and
  * filled from named characters only.
  */
-export type BabyRoleId = 'older-child' | 'companion' | 'grown-up'
+export type StoryRoleId = 'hero' | 'older-child' | 'companion' | 'grown-up'
 
-export interface BabyRole {
-  id: BabyRoleId
+export interface StoryRole {
+  id: StoryRoleId
   /** Named in the prompt, in caps, exactly as the beats refer to it. */
   slot: string
-  /** What kind of character can be cast. */
-  cast: 'person-not-baby' | 'pet' | 'adult'
+  /**
+   * What kind of character can be cast.
+   *
+   * 'child'  — the child this book is about. Named 'person-not-baby' while
+   *            this file was only the baby shelf, which described what it
+   *            ruled out rather than what it picked. It is the same rule: the
+   *            youngest named person who is not the newborn, and on a shelf
+   *            with no newborn on it, simply the youngest.
+   * 'adult'  — the grown-ups of the house, at most two.
+   * 'pet'    — the family's own animal.
+   * 'anyone-else' — one named person who is not already the child. An adult
+   *            or another child, whichever the family has; the part is
+   *            written so either can play it. This is the part for the one
+   *            who does not believe her, and the reason it is its own kind
+   *            is that 'adult' casts a couple and this wants one person.
+   */
+  cast: 'child' | 'adult' | 'pet' | 'anyone-else'
   /**
    * Whether the story can be written at all without somebody in this part.
    *
@@ -145,8 +174,75 @@ export interface StoryQuestionDef {
   showIf?: QuestionCondition
 }
 
-export interface BabyStoryDef {
-  id: BabyStoryId
+/**
+ * One beat of the story, and — once it has been cut — the two drawings it
+ * becomes in a colouring book.
+ *
+ * THE RULE THE WHOLE COLOURING BOOK RESTS ON. A reading book wants one
+ * picture a beat, because the words carry the time. A colouring book has no
+ * words at all, so the only way a child can tell that time has passed
+ * between two pages is to see it: A is the gesture, B is the consequence.
+ * The hand closed becomes the hand open. The packet becomes the empty packet.
+ *
+ * AND B IS A DIFFERENT DRAWING, NOT A SECOND TAKE OF THE SAME ONE. This is
+ * the part that decides whether the format is worth buying. A child who
+ * turns the page and finds the same composition with one arm moved has been
+ * given the same page twice and will colour one of them. So B moves the
+ * camera: a wide shot becomes a close one, a back becomes a face, a standing
+ * figure becomes a figure seen from above, and the faces are doing something
+ * they were not doing in A. Same moment, same place, genuinely different
+ * picture — with something in it that has visibly changed.
+ *
+ * Two things must NOT change inside a pair: where they are, and who is
+ * there. Moving the story somewhere else happens between beats, never inside
+ * one, or the child loses the thread with nothing written down to catch it.
+ *
+ * A bare string is a beat that has not been cut yet. The five stories of the
+ * new-baby shelf are all bare strings: they were written as thirteen pages
+ * with words under them, before frames existed, and wrapping them in an
+ * object with two empty halves would only be a way of pretending otherwise.
+ * A story is offered as a twenty-four page colouring book when every one of
+ * its beats has been cut, and not before — see `isFramed`.
+ */
+export type StoryBeat = string | FramedBeat
+
+export interface FramedBeat {
+  /** What happens. One page of a reading book, exactly as before. */
+  text: string
+  /** The gesture. English, machine-facing, written for the image model. */
+  frameA: string
+  /** The consequence — a new drawing of the same moment. See `StoryBeat`. */
+  frameB: string
+}
+
+export const beatText = (beat: StoryBeat): string =>
+  typeof beat === 'string' ? beat : beat.text
+
+export const beatFrames = (beat: StoryBeat): [string, string] | undefined =>
+  typeof beat === 'string' ? undefined : [beat.frameA, beat.frameB]
+
+/**
+ * Whether this story can be printed as a twenty-four page colouring book.
+ *
+ * All or nothing on purpose. A book that is paired for nine beats and single
+ * for four is not a format, it is a bug the customer pays for — so a story
+ * with one uncut beat is still thirteen captioned pages, the way it always
+ * was.
+ */
+export const isFramed = (story: StoryDef): boolean =>
+  story.beats.length > 0 && story.beats.every((b) => typeof b !== 'string')
+
+export interface StoryDef {
+  id: StoryId
+  /**
+   * Which shelf this book sits on.
+   *
+   * The field that turned five new-baby stories into a product. An occasion
+   * with stories offers them instead of inventing; an occasion with none
+   * still invents. Nothing else decides it — there is no list of "occasions
+   * that have a shelf" to keep in step with this one.
+   */
+  occasionId: OccasionId
   /** The working title. The customer can still rename the book afterwards. */
   title: Localized
   /** One line on the chooser card. */
@@ -155,14 +251,21 @@ export interface BabyStoryDef {
   summary: Localized
   /** Three concrete scenes, shown on the card so the shape is visible. */
   highlights: Localized[]
-  roles: BabyRole[]
+  roles: StoryRole[]
   questions: StoryQuestionDef[]
   /** English, machine-facing. What somebody wants and does not have. */
   want: string
   /** English, machine-facing. What changes half way. */
   turn: string
-  /** English, machine-facing. The thirteen beats, in order. */
-  beats: string[]
+  /**
+   * English, machine-facing. The beats, in order, one page each.
+   *
+   * Thirteen on the stories written before the shelf, twelve on the ones
+   * written after — twelve because twelve doubles into twenty-four, and
+   * twenty-four is the colouring book. Nothing enforces a number here: the
+   * page count of a given order is read off this array.
+   */
+  beats: StoryBeat[]
   /** English, machine-facing. Rules for filling the mould with real details. */
   filling: string[]
   /**
@@ -248,10 +351,11 @@ const NO_PET_QUESTION: StoryQuestionDef = {
   showIf: 'no-pet',
 }
 
-export const BABY_STORIES: BabyStoryDef[] = [
+export const STORIES: StoryDef[] = [
   /* ---------------------------------------------------------------- */
   {
     id: 'sunbeam',
+    occasionId: 'new-baby',
     title: t('Um Raio de Sol Atravessa a Cidade', 'A Sunbeam Crosses the City'),
     logline: t(
       'O quarto do bebê não pega sol, então a família vai buscar sol do outro lado da cidade.',
@@ -270,7 +374,7 @@ export const BABY_STORIES: BabyStoryDef[] = [
       {
         id: 'older-child',
         slot: 'THE FINDER',
-        cast: 'person-not-baby',
+        cast: 'child',
         required: true,
       },
       {
@@ -359,6 +463,7 @@ export const BABY_STORIES: BabyStoryDef[] = [
   /* ---------------------------------------------------------------- */
   {
     id: 'best-things',
+    occasionId: 'new-baby',
     title: t('As Coisas Mais Belas', 'The Most Beautiful Things'),
     logline: t(
       'A criança mais velha faz a lista das melhores coisas do mundo, para o bebê saber o que o espera.',
@@ -374,7 +479,7 @@ export const BABY_STORIES: BabyStoryDef[] = [
       t('A lista fica dobrada dentro do berço, com uma linha em branco no fim', 'The list ends up folded in the cot, one line left blank'),
     ],
     roles: [
-      { id: 'older-child', slot: 'THE LISTER', cast: 'person-not-baby', required: true },
+      { id: 'older-child', slot: 'THE LISTER', cast: 'child', required: true },
       { id: 'grown-up', slot: 'THE GROWN-UP', cast: 'adult', required: true },
       {
         id: 'companion',
@@ -480,6 +585,7 @@ export const BABY_STORIES: BabyStoryDef[] = [
   /* ---------------------------------------------------------------- */
   {
     id: 'on-the-way',
+    occasionId: 'new-baby',
     title: t('O Bebê Já Saiu de Casa', 'The Baby Has Already Left'),
     logline: t(
       'A criança quer saber onde o bebê está neste exato minuto, e sai pela cidade procurar.',
@@ -495,7 +601,7 @@ export const BABY_STORIES: BabyStoryDef[] = [
       t('A cidade inteira fica parada por um segundo', 'The whole city stops for one second'),
     ],
     roles: [
-      { id: 'older-child', slot: 'THE SEEKER', cast: 'person-not-baby', required: true },
+      { id: 'older-child', slot: 'THE SEEKER', cast: 'child', required: true },
       { id: 'grown-up', slot: 'THE ONE EXPECTING', cast: 'adult', required: true },
     ],
     questions: [
@@ -573,6 +679,7 @@ export const BABY_STORIES: BabyStoryDef[] = [
   /* ---------------------------------------------------------------- */
   {
     id: 'training',
+    occasionId: 'new-baby',
     title: t('O Bebê Está Treinando', 'The Baby Is In Training'),
     logline: t(
       'Do lado de dentro, o bebê treina para a estreia. Do lado de fora, os pais também.',
@@ -693,6 +800,7 @@ export const BABY_STORIES: BabyStoryDef[] = [
   /* ---------------------------------------------------------------- */
   {
     id: 'waiting',
+    occasionId: 'new-baby',
     title: t('Tudo Que Também Está Esperando', 'Everything Else That Is Waiting'),
     logline: t(
       'No mundo inteiro, neste minuto, um monte de coisa está esperando. O berço é só mais uma delas.',
@@ -809,14 +917,257 @@ export const BABY_STORIES: BabyStoryDef[] = [
       'The device is the cot, with its colour: on page 1 empty with the sheet pulled tight, on page 13 not empty.',
     ],
   },
+  /* ---------------------------------------------------------------- */
+  /*
+   * The first book written for the shelf rather than for the new-baby
+   * occasion, and the one the twenty-four frame format was proved on.
+   *
+   * It was chosen to go first because it is the story that leans hardest on
+   * the pairs: the whole book is one framing held and the ground under it
+   * changed, so if two drawings a beat could not carry a story without words,
+   * this is where it would show up immediately rather than after eight books.
+   *
+   * WHY THE B FRAMES LOOK NOTHING LIKE THE A FRAMES. A colouring book is
+   * bought by the page — a child sits down with one and fills it in, and a
+   * page that is the previous page with an arm moved gets skipped. So every B
+   * below changes the camera: distance, height, or what the faces are doing,
+   * and usually two of the three. What it never changes is where they are and
+   * who is there, because that is the only thing holding the sequence
+   * together once the words are gone.
+   */
+  {
+    id: 'the-thing-under-the-house',
+    occasionId: 'dinosaur',
+    title: t('O Bicho Embaixo de Casa', 'The Thing Under the House'),
+    logline: t(
+      'A pá bate em coisa dura, e o bairro inteiro começa a virar o que era antes.',
+      'The spade hits something hard, and the whole neighbourhood starts turning back into what it used to be.',
+    ),
+    summary: t(
+      'Ela cava no lugar de sempre e desenterra um osso grande demais para qualquer bicho dali. Quanto mais fundo vai, mais o bairro vira o que era antes: a praça é um brejo com o mesmo formato, a ponte é um tronco caído no mesmo lugar. Ela sobe no ponto mais alto para achar o caminho de casa — e vê que a colina onde a casa dela fica não é colina, é costela.',
+      'She digs where she always digs and turns up a bone too big for any animal from around there. The deeper she goes, the more the neighbourhood becomes what it used to be: the square is a swamp with the same outline, the bridge is a fallen trunk in the same place. She climbs the highest point to find her way home — and sees that the hill her house stands on is not a hill. It is a rib.',
+    ),
+    highlights: [
+      t('A pá para em cima de uma coisa dura que não devia estar ali', 'The spade stops on something hard that has no business being there'),
+      t('A praça de hoje e o brejo de antes, no mesmo enquadramento', 'Today’s square and the old swamp, in the same framing'),
+      t('A colina da casa dela vista de longe, com a forma do osso por baixo', 'The hill her house sits on, seen from far off, with the shape of the bone under it'),
+    ],
+    roles: [
+      {
+        id: 'hero',
+        slot: 'THE DIGGER',
+        cast: 'child',
+        required: true,
+      },
+      {
+        id: 'grown-up',
+        slot: 'THE ONE WHO DOES NOT BELIEVE HER',
+        cast: 'anyone-else',
+        required: false,
+        fallback:
+          'Nobody doubts her out loud, so the doubt is her own: on beat 3 she holds the bone up against her own arm and decides for herself that it is probably nothing, and puts it in her pocket anyway. Beat 12 then becomes her deciding whether this is worth telling anybody at all — which is a quieter book and a slightly better one.',
+      },
+      {
+        id: 'companion',
+        slot: 'THE ONE WHO DIGS TOO',
+        cast: 'pet',
+        required: false,
+        fallback:
+          'A borrowed spade she has not given back, named by the customer’s answer about where she digs. It leans in the corner of the first frame, it is in her hand all the way through, and on beat 11 she leaves it stuck upright in the filled-in hole instead of taking it home. Do not invent an animal.',
+      },
+    ],
+    questions: [
+      {
+        id: 'digging-spot',
+        group: t('O chão', 'The ground'),
+        question: t(
+          'Onde ela cava, mexe na terra ou brinca no chão?',
+          'Where does she dig, poke at the dirt or play on the ground?',
+        ),
+        hint: t(
+          'O livro inteiro começa e termina nesse lugar, então quanto mais real melhor — o canteiro morto, a beira do muro, a areia da praia.',
+          'The whole book opens and closes there, so the more real the better — the dead flowerbed, the strip by the wall, the sand at the beach.',
+        ),
+        placeholder: t(
+          'No canteiro atrás do tanque, onde a mãe já desistiu de plantar',
+          'In the bed behind the washtub, where her mother gave up on planting',
+        ),
+        suggestions: [
+          t('No quintal, no pedaço de terra ao lado do muro', 'In the yard, on the patch of dirt by the wall'),
+          t('Na praça, embaixo do escorregador, onde não tem grama', 'In the square, under the slide, where the grass gave up'),
+          t('Na areia da praia que a gente vai todo domingo', 'In the sand at the beach we go to every Sunday'),
+        ],
+        required: true,
+      },
+      {
+        id: 'neighbourhood',
+        group: t('O bairro', 'The neighbourhood'),
+        question: t(
+          'Que lugares do bairro dá para desenhar de olhos fechados?',
+          'Which places in the neighbourhood could you draw with your eyes shut?',
+        ),
+        hint: t(
+          'Três ou quatro. Cada um aparece duas vezes no livro: como é hoje, e como era quando o bicho estava por cima da terra.',
+          'Three or four. Each one appears twice in the book: how it is today, and how it was when the animal was still above ground.',
+        ),
+        placeholder: t(
+          'A praça com o coreto, a ponte de pedestre da avenida, a padaria da esquina',
+          'The square with the bandstand, the footbridge over the avenue, the bakery on the corner',
+        ),
+        suggestions: [
+          t('A praça, a ponte e a escada que sobe pro morro', 'The square, the bridge and the steps up the hill'),
+          t('O campinho, o mercado e a igreja do alto', 'The pitch, the market and the church up top'),
+          t('A padaria, o ponto de ônibus e o terreno baldio da esquina', 'The bakery, the bus stop and the empty lot on the corner'),
+        ],
+        required: true,
+      },
+      {
+        id: 'favourite-dinosaur',
+        group: t('O bicho', 'The animal'),
+        question: t(
+          'Qual é o dinossauro dela?',
+          'Which dinosaur is hers?',
+        ),
+        hint: t(
+          'O nome que ela já sabe falar e corrige os adultos. É esse que ela encontra cavando, na batida 7.',
+          'The name she already says properly and corrects grown-ups about. That is the one she meets digging, on beat 7.',
+        ),
+        placeholder: t('Tricerátops — ela corrige todo mundo que fala errado', 'Triceratops — she corrects everybody who says it wrong'),
+        suggestions: [
+          t('Tricerátops', 'Triceratops'),
+          t('Braquiossauro, o de pescoço comprido', 'Brachiosaurus, the long-necked one'),
+          t('Ela não escolhe um, gosta dos que voam', 'She will not pick one, she likes the flying ones'),
+        ],
+        required: true,
+      },
+      {
+        id: 'doubter',
+        group: t('O bicho', 'The animal'),
+        question: t(
+          'Quem duvida das histórias dela?',
+          'Who doubts her stories?',
+        ),
+        hint: t(
+          'Sem maldade — o que diz "que legal" sem olhar, ou o que explica que é osso de boi. É essa pessoa que ela decide não convencer no fim.',
+          'Nothing unkind — the one who says "how nice" without looking up, or the one who explains it is a cow bone. That is the person she decides not to convince at the end.',
+        ),
+        placeholder: t('O irmão mais velho, que acha graça de tudo que ela acha', 'Her older brother, who finds everything she finds funny'),
+        suggestions: [
+          t('O pai, que responde sem tirar o olho do celular', 'Her dad, who answers without looking up from his phone'),
+          t('A irmã mais velha, que já sabe tudo', 'Her big sister, who already knows everything'),
+          t('Ninguém duvida, todo mundo entra na dela', 'Nobody doubts her, everyone plays along'),
+        ],
+      },
+    ],
+    want:
+      'THE DIGGER wants proof. Not to be believed in general — to come back up out of the hole holding one object that THE ONE WHO DOES NOT BELIEVE HER cannot explain away.',
+    turn:
+      'On beat 9 she climbs the highest point to work out her way home, looks back, and the hill her own house stands on is not a hill: it is a rib. What she was looking for under the ground turns out to be the ground. From there the book stops being about digging something up and becomes about whether to put it back.',
+    beats: [
+      {
+        text: '1. She is digging in THE DIGGING PLACE, an ordinary afternoon, the way she does every week — and today the spade stops dead on something hard.',
+        frameA:
+          'Wide, at her own eye level: the whole digging place with her in the middle of it, mid-swing, spade coming down, the small mess of a hole she has already made, the ordinary things that live in this spot around the edges. She is entirely absorbed and not looking at anything but the dirt. THE ONE WHO DIGS TOO is somewhere in the frame, uninterested.',
+        frameB:
+          'Close and low, almost at ground level, looking up past the blade of the spade into her face: the spade has stopped, standing upright in the dirt, her two hands still gripping the handle, and her head is tipped down towards it with her mouth open. Her expression has changed completely — absorbed in A, startled and listening in B. The hole and one shoe are the only things left of the wide shot.',
+      },
+      {
+        text: '2. It is a bone, and it is far too big to have come off anything that lives around there.',
+        frameA:
+          'Both her hands lifting the bone clear of the dirt, seen from behind her shoulder so the reader looks down into the hole with her. Dirt falling off it. Her face is not visible at all.',
+        frameB:
+          'Flat side-on, like a diagram: the bone laid out on the ground with her own bare arm stretched alongside it for scale, her arm shorter. Her face is now fully visible at the top of the frame, upside down as she leans over her own arm to compare, delighted and slightly appalled. Nothing of the hole in shot.',
+      },
+      {
+        text: '3. She shows it to THE ONE WHO DOES NOT BELIEVE HER, who says it is off a cow. THEREFORE she goes back to the hole.',
+        frameA:
+          'The bone held out at full stretch in the foreground, enormous and close to the reader; behind it and much smaller, the other person half turned away, mid-shrug, giving it the sort of glance that settles the matter. Two levels of attention in one frame.',
+        frameB:
+          'From behind, further off, at the height of an adult: she is walking back towards the digging place with the bone under one arm and the spade over the opposite shoulder, shoulders set. The other person is gone from the frame entirely. Same yard, emptier, and her whole body says the conversation is over.',
+      },
+      {
+        text: '4. She digs deeper — and when she lifts her head, THE SQUARE is not there any more. In its place is a swamp with exactly the same outline.',
+        frameA:
+          'THE SQUARE as it is today, drawn from the digging place looking out: its real furniture, its real edges, people at their ordinary business, her head and shoulders small in the bottom corner of the frame, just risen out of the hole.',
+        frameB:
+          'The identical framing and the identical outline — the same line where the ground rises, the same corner, the same distance — but every object replaced by what stood there before: reeds and open water where the paving is, huge ferns where the trees are, and at the far edge, mostly out of frame, a tail. She is in the same bottom corner, but now turned to face the reader with her eyes wide, which is the only figure that moved.',
+      },
+      {
+        text: '5. She walks out into the neighbourhood that has become another one. THE BRIDGE is a fallen trunk now, and it still gets you across.',
+        frameA:
+          'THE BRIDGE today, seen side-on from the bank, with her stepping onto it — the real railings, the real surface, whatever is written or stuck on it.',
+        frameB:
+          'The same crossing seen from the far bank looking back, so the reader is now on the other side waiting for her: a vast fallen trunk spanning the same gap at the same angle, bark and roots, and her halfway across it with both arms out for balance, laughing, concentrating on her feet. Reverse angle, opposite emotion, same span.',
+      },
+      {
+        text: '6. THE ONE WHO DIGS TOO is not frightened of any of it and bolts off ahead, which is the worst possible news.',
+        frameA:
+          'The animal at full stretch going away from the reader, low and fast, a spray of dirt behind it, the prehistoric ferns blurring past on either side. Her hand is in the near corner of the frame, grabbing at nothing.',
+        frameB:
+          'Turned around: her running towards the reader, close, the spade still in one hand, all effort and open mouth — and behind her, upside down in the sense that it is what she is running towards rather than away from, the enormous thing the animal has just run underneath, shown only as legs and shadow across the top of the frame.',
+      },
+      {
+        text: '7. She comes on THE DINOSAUR at close range. It is not hunting anything. It is digging too.',
+        frameA:
+          'The animal from behind, huge, filling most of the frame, hindquarters and tail towards the reader, head down and out of sight below its own shoulders, dirt flying. She is a small figure at the very edge, stopped.',
+        frameB:
+          'Wide and level, both of them side-on in profile like two workers on the same job: the dinosaur’s head now fully visible and low to the ground with its own hole in front of it, and her at her own hole a little way off, in exactly the same posture. Neither is looking at the other. The joke is only readable at this distance and from this angle, which is why B is the wide one and A was the close one.',
+      },
+      {
+        text: '8. She wants the proof. She picks a tooth up off the ground.',
+        frameA:
+          'Straight down at the ground, a top-down frame with no horizon at all: leaf litter, dirt, the tooth lying among it, and her shadow falling across it. No part of her in shot except the shadow.',
+        frameB:
+          'Very close on her closed fist held against her chest with the tooth inside it, her chin and the bottom of her face at the top of the frame, jaw set. Behind and far out of focus, the shape of the dinosaur going on with its own digging. A hand and a face where A had ground and a shadow.',
+      },
+      {
+        text: '9. THE TURN. She climbs the highest thing she can find to work out the way home, looks back — and the hill her house stands on is not a hill. It is a rib. The whole neighbourhood is lying on top of one animal.',
+        frameA:
+          'From below and behind, her climbing: hands and feet on rock, back to the reader, the top of the climb out of frame above her, the ferns small underneath. Effort and nothing else. The reader cannot see what she is about to see.',
+        frameB:
+          'The widest drawing in the book, and the only one taken from the air: the entire landscape laid out, and running through it the unmistakable curve of a ribcage with the ground lying over it like a blanket — her own house tiny and recognisable on top of the nearest rib, THE SQUARE in the hollow, THE BRIDGE crossing between two of them. She is a very small figure on an outcrop in one corner, seen from behind, and the reader understands the picture at the same moment she does. This is the page a child will spend an hour on.',
+      },
+      {
+        text: '10. The way back is the same way — BUT now she knows what is underneath every part of it.',
+        frameA:
+          'Her coming down the slope towards the reader, middle distance, whole body, walking carefully with the fist still closed, the landscape behind her now ordinary again at her eye level.',
+        frameB:
+          'A different thing entirely: today’s neighbourhood in a calm wide view, the real square and the real bridge and the real corner drawn plainly — and underneath the ground, in the bottom third of the frame, the bones continuing in clean unbroken lines, the way a cross-section is drawn. She is walking along the top of it, small, in silhouette. A picture with two storeys, and the only page where the reader sees both at once.',
+      },
+      {
+        text: '11. She reaches her hole. THEREFORE she gives the tooth back and starts filling it in.',
+        frameA:
+          'Close on the open hand above the hole, the tooth resting on the palm, tipped just enough that it is about to go. The dirt below. No face.',
+        frameB:
+          'Wide and from the side, further back than any frame since the first page, so the reader sees the whole digging place again the way it looked on page one: her on her knees pushing the earth back in with both forearms, dirty to the elbow, the spade lying flat beside her, THE ONE WHO DIGS TOO now helping in the way animals help, which is to say digging it out again. First real laugh on her face since beat 5.',
+      },
+      {
+        text: '12. They ask whether she found anything. She says no. And then she lies down with her ear against the grass.',
+        frameA:
+          'Waist-up, indoors or in the doorway, the other person asking and her shrugging with both palms up, face entirely innocent — the most ordinary drawing in the book on purpose.',
+        frameB:
+          'The last page and the largest idea: her lying flat on the grass, cheek pressed to the ground, eyes shut, filling the top third of the frame — and beneath her, taking the whole of the rest of the page, the complete animal drawn in one continuous line under the earth, curled under the entire neighbourhood, the house and the square and the bridge sitting along its back. Nothing of the A frame remains except her. This is the picture the book was written to arrive at, and it is a full page of line to fill in.',
+      },
+    ],
+    extras:
+      'Anybody the parts above did not take becomes the neighbourhood: they appear in the A frames of beats 4, 5 and 10, in the real place and doing a real thing — waiting at the stop, carrying bread, leaning on a railing — and then in the B frame of the same beat they are in exactly the same spot and the same posture, in the world of before. The same person, the same pose, two eras. That is the running visual joke of the book, it costs no extra page, and it is how a named character who has no part in the plot still ends up in it four times. Give each of them one such pair of their own rather than crowding them into one.',
+    filling: [
+      'THE NEIGHBOURHOOD PLACES ARE THE ONES THE CUSTOMER NAMED, always, and never places carried over from another book. The most recognisable one is THE SQUARE on beat 4; the one that crosses something — a bridge, a footbridge, a set of steps, a level crossing — is THE BRIDGE on beat 5. If nothing crosses anything, beat 5 is the longest walk between two of their places and the trunk lies along it.',
+      'THE OUTLINE IS THE WHOLE TRICK, AND IT IS A DRAWING INSTRUCTION. In every A/B pair set in the neighbourhood, the horizon, the ground line and the position of the large shapes are identical between the two frames, and only what fills them changes. Say so inside the scene description of the B frame, in those words, or the illustrator will draw a swamp that is simply a different picture and the book stops working.',
+      'THE DINOSAUR IS THE ONE THE CUSTOMER NAMED, by name, and it is never a threat. It does not roar, chase, or notice her for more than a moment. If they named a flying one or refused to pick, use it anyway and give it the same job on beat 7 — digging, or dragging something, or working at a nest.',
+      'The device is the tooth, with its colour: picked up on beat 8, carried closed in her fist through 9 and 10, put back on 11. It is the only thing she takes and the only thing she returns.',
+      'NOTHING SCARY, AND NOTHING SAD. She is never in danger, nothing is lost, and the animal under the neighbourhood is a comfortable fact rather than an eerie one. The register is a child doing serious work in the dirt.',
+    ],
+  },
+
 ]
 
 /* ------------------------------------------------------------------ *
  * Casting the real family into the mould
  * ------------------------------------------------------------------ */
 
-export function getBabyStory(id: string): BabyStoryDef | undefined {
-  return BABY_STORIES.find((s) => s.id === id)
+export function getStory(id: string): StoryDef | undefined {
+  return STORIES.find((s) => s.id === id)
 }
 
 /**
@@ -894,6 +1245,19 @@ function adults(brief: BookBrief): Character[] {
 }
 
 /**
+ * One named person who is not the child this book is about.
+ *
+ * The part for whoever doubts her, or whoever is hiding something. A grown-up
+ * first, because that is who it usually is, and another child when the family
+ * named no adult — both play it as written, and a nine-year-old brother who
+ * says it is a cow bone is if anything the better version.
+ */
+function someoneElse(brief: BookBrief): Character | undefined {
+  const others = adults(brief)
+  return others[0]
+}
+
+/**
  * Whether this story can be told about this family at all.
  *
  * The check that stops the one failure that matters: a book handed to a
@@ -901,18 +1265,77 @@ function adults(brief: BookBrief): Character[] {
  * role cannot be cast is not offered, and the two stories with no child in
  * them are why there is always something left on the menu.
  */
-export function canTell(story: BabyStoryDef, brief: BookBrief): boolean {
+export function canTell(story: StoryDef, brief: BookBrief): boolean {
   return story.roles.every((role) => {
     if (!role.required) return true
-    if (role.cast === 'person-not-baby') return Boolean(child(brief))
+    if (role.cast === 'child') return Boolean(child(brief))
     if (role.cast === 'adult') return adults(brief).length > 0
+    if (role.cast === 'anyone-else') return Boolean(someoneElse(brief))
     if (role.cast === 'pet') return pets(brief).length > 0
     return true
   })
 }
 
-export function storiesFor(brief: BookBrief): BabyStoryDef[] {
-  return BABY_STORIES.filter((story) => canTell(story, brief))
+/**
+ * The books on this customer's shelf: the right occasion, and tellable about
+ * this family.
+ *
+ * Two filters, and the order of them is not arbitrary. The occasion is what
+ * the customer chose; the cast is what they have. A story withdrawn for the
+ * second reason is a real absence the customer could fix by naming another
+ * character, and the chooser says so rather than showing a shorter list with
+ * no explanation.
+ */
+export function storiesFor(brief: BookBrief): StoryDef[] {
+  return STORIES.filter(
+    (story) => story.occasionId === brief.occasionId && canTell(story, brief),
+  )
+}
+
+/**
+ * Whether this occasion has a shelf at all.
+ *
+ * Asked before the cast exists, which is why it does not take a brief: the
+ * wizard has to know on the occasion screen whether the screens after it are
+ * the shelf ones or the invented ones, and at that point nobody has been
+ * named yet. `storiesFor` is the narrower question, asked later.
+ *
+ * 'child' deliberately answers false. It is the most-sold occasion in the
+ * trade and it gets a shelf in the next round; until those books are
+ * written, saying it has one would put a customer on an empty screen.
+ */
+export function occasionHasShelf(occasionId: OccasionId | string): boolean {
+  return STORIES.some((story) => story.occasionId === occasionId)
+}
+
+/**
+ * How many drawings this order is.
+ *
+ * Thirteen, unless it is a colouring book of a story whose beats have been
+ * cut into frames — then it is two a beat, which is where twenty-four comes
+ * from. Answers undefined when the caller should use the product's own
+ * default, so there is one number in the catalog and one exception here
+ * rather than two numbers that have to agree.
+ */
+export function panelCount(
+  story: StoryDef | undefined,
+  brief: BookBrief,
+): number | undefined {
+  if (!story || brief.finish !== 'coloring' || !isFramed(story)) return undefined
+  return story.beats.length * 2
+}
+
+/**
+ * Whether this order is printed without a single word inside it.
+ *
+ * Asked by everything downstream of the storyboard — the illustrator, the
+ * sheets, the PDF — none of which has any business knowing what a framed
+ * beat is. It takes the brief because that is what those places hold, and it
+ * is the same question `panelCount` answers, phrased as a yes or no.
+ */
+export function isWordless(brief: BookBrief): boolean {
+  const story = brief.chosenStoryId ? getStory(brief.chosenStoryId) : undefined
+  return Boolean(panelCount(story, brief))
 }
 
 /**
@@ -925,7 +1348,7 @@ export function storiesFor(brief: BookBrief): BabyStoryDef[] {
  * already exists, and every one of them lands somewhere on a page.
  */
 export function questionsFor(
-  story: BabyStoryDef,
+  story: StoryDef,
   brief: BookBrief,
 ): InterviewQuestion[] {
   const hasPet = pets(brief).length > 0
@@ -948,7 +1371,7 @@ export function questionsFor(
 
 /** Questions the wizard will not let the customer walk past. */
 export function requiredQuestionIds(
-  story: BabyStoryDef,
+  story: StoryDef,
   brief: BookBrief,
 ): string[] {
   const shown = new Set(questionsFor(story, brief).map((q) => q.id))
@@ -965,7 +1388,7 @@ export function requiredQuestionIds(
  * happily also invent Aurora's little brother when a beat feels like it wants
  * one. Told "these are the only people in this book", it does not.
  */
-export function castingFor(story: BabyStoryDef, brief: BookBrief): string[] {
+export function castingFor(story: StoryDef, brief: BookBrief): string[] {
   const lines: string[] = [
     'CASTING. The people and animals listed below are the only ones in this book. This is the hardest rule here and it is not a preference.',
     '',
@@ -974,6 +1397,8 @@ export function castingFor(story: BabyStoryDef, brief: BookBrief): string[] {
     'The line between a character and a passer-by: a character is anybody named, anybody who speaks, or anybody who comes back on a second page. The baker who lifts a cloth, a stranger in a queue, people waiting on a platform — those are scenery, they stay unnamed, they never speak and they never return. The moment one of them acquires a name, a line of dialogue or a second appearance, an invented relative has entered the book.',
     '',
     'This matters more here than in any other kind of book. A family who is given a grandmother they do not have, or an older sister for a first child, is not reading a book with a small error in it — they are reading a book about somebody else.',
+    '',
+    'The same rule with no baby in it: a book about a child digging up her own street must be about HER street and HER household. An invented best friend to talk to while she digs is the identical failure wearing different clothes.',
   ]
 
   const kid = child(brief)
@@ -987,7 +1412,7 @@ export function castingFor(story: BabyStoryDef, brief: BookBrief): string[] {
   const cast = new Set<string>()
 
   for (const role of story.roles) {
-    if (role.cast === 'person-not-baby') {
+    if (role.cast === 'child') {
       if (kid) {
         cast.add(kid.id)
         lines.push(
@@ -1011,6 +1436,16 @@ export function castingFor(story: BabyStoryDef, brief: BookBrief): string[] {
               .map((c) => `${c.name}${c.role ? ` (${c.role})` : ''}`)
               .join(', ')}. Use their names. If there is only one, the house is quieter and the beats run exactly as written.`
           : `- ${role.slot}: nobody was named for this part, so keep the grown-up off the page and let the beats happen without one.`,
+      )
+    } else if (role.cast === 'anyone-else') {
+      const other = someoneElse(brief)
+      if (other) cast.add(other.id)
+      lines.push(
+        other
+          ? `- ${role.slot} is ${other.name}${other.age ? `, ${other.age}` : ''}${
+              other.role ? ` (${other.role})` : ''
+            }. One person, not a pair, and by name every time. Whether they are a grown-up or another child changes nothing about the part.`
+          : `- ${role.slot}: nobody else was named, so nobody plays this part. ${role.fallback ?? 'Leave it out rather than inventing somebody.'}`,
       )
     } else if (role.cast === 'pet') {
       if (animals[0]) cast.add(animals[0].id)
@@ -1059,12 +1494,67 @@ export function castingFor(story: BabyStoryDef, brief: BookBrief): string[] {
 }
 
 /**
+ * The beats of a framed story, written out as the panels of a colouring book.
+ *
+ * WHAT THIS IS FOR. A colouring book made this way has no words in it at all
+ * — not a caption, not a page number in prose. So everything the reader is
+ * going to understand has to survive being looked at, in order, by somebody
+ * who cannot read. Two drawings a beat is what makes that possible: the first
+ * is somebody doing something, the second is what came of it, and the child
+ * turning the page feels time pass without being told.
+ *
+ * THE FAILURE IT IS WRITTEN AGAINST. The obvious way to draw a pair is to
+ * draw the scene once and then draw it again with one thing moved. That
+ * produces a book a child fills in half of. Each panel here is sold
+ * separately, in effect — it is an afternoon of somebody's attention — so the
+ * second has to be a picture worth sitting down to on its own: another
+ * distance, another height, another set of faces. The story's own frames
+ * below already say how; this block is what stops the writer smoothing them
+ * back into two takes of one drawing.
+ */
+function framedBeatRules(story: StoryDef, panels: number): string[] {
+  const lines: string[] = [
+    `THIS IS A COLOURING BOOK OF ${panels} DRAWINGS AND NO WORDS. Every page is line art to be filled in, and there is no narration anywhere in it. Leave "narration" and "narrationSecondary" EMPTY on every single page — an empty string, not a sentence, not a caption, not a title. The only writing in this object is on the cover.`,
+    '',
+    `THE ${story.beats.length} BEATS, EACH ONE TWO DRAWINGS. Page ${1} and page ${2} are beat 1, pages 3 and 4 are beat 2, and so on to page ${panels}. Write one entry per page, in this order, and put the drawing described below into "sceneDescription" — expanded with this family's real names, their real places and what these people actually look like, but never reordered, merged or replaced.`,
+    '',
+    'A IS THE GESTURE, B IS THE CONSEQUENCE. The pair is how the reader knows time moved: the hand closed becomes the hand open, the full packet becomes the empty one. Something visible must be different in B, and it must be different because of what happened in A.',
+    '',
+    'B IS A DIFFERENT DRAWING, NOT THE SAME DRAWING AGAIN. This is the rule that decides whether the book is worth owning. B changes the camera — a wide shot becomes a close one, a back becomes a face, a standing figure is seen from above, the reader crosses to the other side — and the faces in B are doing something they were not doing in A. If B could be produced by taking A and moving one arm, it is wrong and you must write the harder version. A child who turns the page and finds the picture they have just coloured will not colour it twice.',
+    '',
+    'WHAT MAY NOT CHANGE INSIDE A PAIR: where they are, and who is there. The story moves somewhere else BETWEEN beats, never inside one. With no words on the page, a change of place mid-pair is a jump the reader has nothing to catch them with.',
+    '',
+    'DRAW IT FOR SOMEBODY WHO IS GOING TO FILL IT IN. Every panel needs enclosed areas big enough to put colour inside and a clear subject that is not lost in texture. Crowds, foliage and rubble are background, held to the edges, and never the thing the page is about.',
+    '',
+    'THE PANELS:',
+  ]
+
+  story.beats.forEach((beat, i) => {
+    const frames = beatFrames(beat)
+    if (!frames) return
+    lines.push(
+      `BEAT ${i + 1} — ${beatText(beat)}`,
+      `  PAGE ${i * 2 + 1} (A): ${frames[0]}`,
+      `  PAGE ${i * 2 + 2} (B): ${frames[1]}`,
+    )
+  })
+
+  return lines
+}
+
+/**
  * The whole mould, ready to be pasted under the brief.
  */
-export function babyStoryPrompt(
-  story: BabyStoryDef,
+export function storyPrompt(
+  story: StoryDef,
   brief: BookBrief,
 ): string {
+  // Two different books come out of the same beats. A reading book is one
+  // page a beat with words under it; a framed story ordered as a colouring
+  // book is two wordless drawings a beat. The beats are identical — what
+  // changes is how many pages they become and what is printed on them.
+  const panels = panelCount(story, brief)
+
   return [
     'THIS BOOK IS A STORY THAT ALREADY EXISTS. You are not inventing it. It has been written, read back and approved, and your job is to cast it with these people and fill its slots with their real details — not to improve its shape, reorder its beats, or add one of your own.',
     '',
@@ -1074,19 +1564,45 @@ export function babyStoryPrompt(
     '',
     ...castingFor(story, brief),
     '',
-    'THE NARRATOR NEVER SPEAKS TO THE BABY. Not once, on any page, including the last. No "e você chega", no "quando você nascer", no page that turns and addresses the cot. The narrator is telling somebody about this family from outside it, in the third person, and a single page that breaks into the second person breaks the voice of the whole book — it is the commonest way this kind of story goes wrong, because the last page invites it. Where a beat below is written in the second person, that is shorthand for what happens, not for how to say it: put it in the third person. If something needs saying TO the baby, a character says it out loud, by name, as a line of speech: — Essa luz é tua, disse a Aurora. That is a person talking to their brother or sister, which is the whole point of the book, and it is not the narrator addressing the reader.',
+    // The second person is the standing temptation of a book written for a
+    // baby, and of no other book on the shelf — so the warning is addressed
+    // to the shelf that needs it rather than pasted into every prompt, where
+    // it would read as an instruction about a baby who is not in the story.
+    ...(story.occasionId === 'new-baby'
+      ? [
+          'THE NARRATOR NEVER SPEAKS TO THE BABY. Not once, on any page, including the last. No "e você chega", no "quando você nascer", no page that turns and addresses the cot. The narrator is telling somebody about this family from outside it, in the third person, and a single page that breaks into the second person breaks the voice of the whole book — it is the commonest way this kind of story goes wrong, because the last page invites it. Where a beat below is written in the second person, that is shorthand for what happens, not for how to say it: put it in the third person. If something needs saying TO the baby, a character says it out loud, by name, as a line of speech: — Essa luz é tua, disse a Aurora. That is a person talking to their brother or sister, which is the whole point of the book, and it is not the narrator addressing the reader.',
+          '',
+        ]
+      : [
+          'THE NARRATOR NEVER ADDRESSES THE CHILD THIS BOOK WAS MADE FOR. Third person throughout, including the last page, which is where the temptation lives. A book that turns and says "e você achou" has changed narrator on its final page. Anything that needs saying to somebody is said out loud by a character, by name, as a line of speech.',
+          '',
+        ]),
+    'THE PRONOUNS IN THE BEATS BELOW MEAN NOTHING. They are written with whichever pronoun the story was first drafted in, and the beats are the same beats whoever is playing the parts. The CASTING block above is the only authority on who these people are and how to speak about them: where a beat says "she" and the casting says otherwise, the casting wins, every time. Where nothing above says which, write around the marking rather than picking one.',
     '',
-    'THE PRONOUNS IN THE BEATS BELOW MEAN NOTHING. They are written with whichever pronoun the story was first drafted in, and the beats are the same beats whoever is playing the parts. The CASTING block above is the only authority on who these people are and how to speak about them: where a beat says "she" and the casting says otherwise, the casting wins, every time. The baby is very often not known to be a boy or a girl at all, and where nothing above says which, write around it rather than picking one.',
+    ...(panels
+      ? framedBeatRules(story, panels)
+      : [
+          `THE BEATS. One page each, in this order, all ${story.beats.length}:`,
+          ...story.beats.map(beatText),
+        ]),
     '',
-    'THE BEATS. One page each, in this order, all thirteen:',
-    ...story.beats,
-    '',
-    'SAY WHEN THEY LEFT AND WHEN THEY CAME BACK. Every time the book moves from the house to the city or back, one plain clause in the words says so — "Saíram depois do almoço", "Pegaram o ônibus", "Voltaram quando o sol já estava baixo". The picture cannot say it and the reader should never have to work out that a page happened somewhere else, or later. It costs half a line and it is the single commonest fault in books built from beats, because a beat list reads as continuous to whoever is writing it and as a jump cut to whoever is reading it.',
+    // A rule about the words, which a wordless book does not have. The
+    // colouring book solves the same problem with the picture instead: the
+    // journey gets its own panel rather than half a line of narration.
+    ...(panels
+      ? [
+          'SHOW THE JOURNEY, BECAUSE YOU CANNOT SAY IT. When the story moves from one place to another between beats, the A frame of the arriving beat has to establish the new place plainly before anything happens in it — the reader has no sentence telling them they are somewhere else, so the drawing is the only notice they get.',
+        ]
+      : [
+          'SAY WHEN THEY LEFT AND WHEN THEY CAME BACK. Every time the book moves from the house to the city or back, one plain clause in the words says so — "Saíram depois do almoço", "Pegaram o ônibus", "Voltaram quando o sol já estava baixo". The picture cannot say it and the reader should never have to work out that a page happened somewhere else, or later. It costs half a line and it is the single commonest fault in books built from beats, because a beat list reads as continuous to whoever is writing it and as a jump cut to whoever is reading it.',
+        ]),
     '',
     'FILLING THE MOULD:',
     ...story.filling.map((f) => `- ${f}`),
     '',
-    'The words on every page are still yours to write, and every rule about how the prose works still applies. What is fixed is what happens, and in what order.',
+    panels
+      ? 'Every drawing is still yours to compose, and every rule about how a page is staged still applies. What is fixed is what happens, in what order, and which two pictures each beat becomes.'
+      : 'The words on every page are still yours to write, and every rule about how the prose works still applies. What is fixed is what happens, and in what order.',
   ].join('\n')
 }
 
@@ -1095,8 +1611,8 @@ export function babyStoryPrompt(
  * titles, storyboard, review, rendering — carries on without knowing that
  * this one was not invented five minutes ago.
  */
-export function babyStoryIdea(
-  story: BabyStoryDef,
+export function storyIdea(
+  story: StoryDef,
   brief: BookBrief,
 ): StoryIdea {
   return {

@@ -176,6 +176,7 @@ src/
   components/            wizard, entrevista, personagens, progresso
   lib/
     catalog.ts           ocasiões, estilos (traço + paleta), tons, tamanhos
+    stories.ts           a prateleira: os livros já escritos, batida a batida
     i18n/                dicionários pt/en
     ai/                  prompts e chamadas da Claude API
     images/              provider de imagem (google | mock) e prompts
@@ -187,6 +188,29 @@ src/
 Os rótulos que o cliente lê ficam nos dicionários (`lib/i18n`); os fragmentos de
 prompt que vão para os modelos ficam no `catalog.ts`. As duas metades usam os
 mesmos ids, então adicionar uma ocasião nova é mexer nesses dois arquivos.
+
+`stories.ts` é a exceção combinada: um livro de prateleira guarda título,
+logline, resumo, perguntas e batidas num lugar só, nos dois idiomas, porque
+partir uma pergunta e suas sugestões entre dois arquivos é como se pergunta em
+português sobre um papel que a versão em inglês já não tem.
+
+**Uma ocasião com histórias não inventa nada.** Quem escolhe `dinossauro` ou
+`vem um bebê aí` escolhe um livro da prateleira, responde só as perguntas que
+aquele livro precisa, e pula as telas de tipo de história, tom e escolha entre
+quatro ideias. Quem escolhe uma ocasião sem prateleira — hoje só `presente para
+o filho(a)` — segue pelo caminho antigo. Quem decide é o campo `occasionId` de
+cada história; não existe lista de "ocasiões com prateleira" para manter em dia.
+
+**O livro de colorir de prateleira tem 24 páginas e nenhuma palavra.** Cada
+batida vira dois desenhos: A é o gesto, B é a consequência — e B é um desenho
+diferente, não o mesmo com um braço mudado (outra distância, outro ângulo, outras
+caras). É o que faz a página valer a pena pintar, e é a única coisa que diz para
+uma criança que o tempo passou, já que não há texto nenhum. Uma história só sai
+nesse formato quando **todas** as suas batidas foram cortadas em quadros; as
+cinco do bebê ainda não foram, e continuam saindo com 13 páginas e texto.
+
+Para ler um desses livros sem gastar desenho:
+`npx tsx scripts/test-shelf-story.mts the-thing-under-the-house`.
 
 As amostras de estilo em `public/styles/` são fixas e versionadas — seis em
 traço, seis coloridas, todas na mesma cena para poderem ser comparadas. O site

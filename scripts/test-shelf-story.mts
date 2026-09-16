@@ -1,8 +1,15 @@
 /**
- * Writes one of the pre-written baby stories end to end, and prints it.
+ * Writes one of the books off the shelf end to end, and prints it.
  *
- *   npx tsx scripts/test-baby-story.mts sunbeam
- *   npx tsx scripts/test-baby-story.mts best-things | on-the-way | training | waiting
+ *   npx tsx scripts/test-shelf-story.mts sunbeam
+ *   npx tsx scripts/test-shelf-story.mts the-thing-under-the-house
+ *
+ * The occasion and the finish come off the story itself rather than being
+ * fixed here, which is what lets one script drive two different objects: the
+ * new-baby stories are thirteen pages with words under them, and a story
+ * whose beats have been cut into frames is twenty-four drawings and no words
+ * at all. Printing the second one prints its scene descriptions, because
+ * there is no narration to print.
  *
  * Text only — no images, no PDF — which is what makes it the cheap way to
  * judge a mould after editing it: about US$1 and seven minutes, against three
@@ -25,18 +32,32 @@ for (const line of fs.readFileSync(path.join(process.cwd(), '.env.local'), 'utf8
   if (m) process.env[m[1]] = m[2].replace(/^["']|["']$/g, '')
 }
 const { generateStoryboard } = await import('../src/lib/ai/claude')
-const { getBabyStory, babyStoryIdea } = await import('../src/lib/baby-stories')
+const { getStory, storyIdea } = await import('../src/lib/stories')
 const { spent } = await import('../src/lib/ai/usage')
 import type { BookBrief, InterviewAnswer } from '../src/lib/types'
 
 // A mesma família nas quatro, de propósito: se um tique aparecer em mais de
 // uma história, ele é do molde e não daquela história.
+/** The baby-shelf family. Every new-baby story is cast from these five. */
 const CAST: BookBrief['characters'] = [
   { id: 'c1', name: 'Aurora', kind: 'person', role: 'irmã mais velha do bebê', age: '6 anos', gender: 'female', appearance: 'cabelo cacheado preso, macacão jeans' },
   { id: 'c2', name: 'Marina', kind: 'person', role: 'mãe', age: '34', gender: 'female', appearance: 'grávida, cabelo curto' },
   { id: 'c3', name: 'Téo', kind: 'person', role: 'pai', age: '36', gender: 'male', appearance: 'barba, óculos' },
   { id: 'c4', name: 'Bigode', kind: 'pet', role: 'gato laranja', appearance: 'gato laranja gordo' },
   { id: 'c5', name: 'bebê', kind: 'person', role: 'o bebê que vem aí', age: 'recém-nascido', appearance: 'recém-nascido' },
+]
+
+/**
+ * A family for the books with no baby in them.
+ *
+ * Deliberately not the one above with the newborn removed: those stories need
+ * somebody who doubts her and somebody who digs with her, and the point of a
+ * fixture is to exercise the parts the mould actually has.
+ */
+const NEIGHBOURHOOD_CAST: BookBrief['characters'] = [
+  { id: 'c1', name: 'Manu', kind: 'person', role: 'filha', age: '7 anos', gender: 'female', appearance: 'cabelo curto na altura da orelha, macacão jeans, tênis vermelho' },
+  { id: 'c2', name: 'Téo', kind: 'person', role: 'irmão mais velho', age: '11 anos', gender: 'male', appearance: 'magro, camiseta de time, boné para trás' },
+  { id: 'c3', name: 'Frida', kind: 'pet', role: 'cachorra vira-lata', appearance: 'caramelo, orelha caída de um lado' },
 ]
 
 const q = (questionId: string, question: string, answer: string): InterviewAnswer =>
@@ -83,6 +104,21 @@ const INTERVIEWS: Record<string, InterviewAnswer[]> = {
     q('other-waiting', 'Além do bebê, o que mais essa família está esperando?',
       'O resultado de um concurso que o Téo fez, e a mangueira do quintal que ainda não deu fruta nenhuma'),
   ],
+  'the-thing-under-the-house': [
+    q('digging-spot', 'Onde ela cava, mexe na terra ou brinca no chão?',
+      'No canteiro atrás do tanque, que a mãe desistiu de plantar. Ela cava ali com uma colher de pedreiro'),
+    q('neighbourhood', 'Que lugares do bairro dá para desenhar de olhos fechados?',
+      'A praça do coreto, a passarela que atravessa a avenida, a padaria da esquina e a escadaria que sobe pro morro'),
+    q('favourite-dinosaur', 'Qual é o dinossauro dela?',
+      'Tricerátops. Ela corrige todo mundo que fala errado'),
+    q('doubter', 'Quem duvida das histórias dela?',
+      'O Téo, que ri de tudo que ela acha e diz que é osso de boi'),
+  ],
+}
+
+/** Which family plays which shelf. */
+const CASTS: Record<string, BookBrief['characters']> = {
+  'the-thing-under-the-house': NEIGHBOURHOOD_CAST,
 }
 
 // Checked before anything is built, and before anything is spent. Without
@@ -90,30 +126,38 @@ const INTERVIEWS: Record<string, InterviewAnswer[]> = {
 // property of undefined, which reads like a bug in the product rather than a
 // missing argument.
 const storyId = process.argv[2]
-if (!storyId || !INTERVIEWS[storyId] || !getBabyStory(storyId)) {
+if (!storyId || !INTERVIEWS[storyId] || !getStory(storyId)) {
   console.error(
-    `Uso: npx tsx scripts/test-baby-story.mts <historia>\n` +
+    `Uso: npx tsx scripts/test-shelf-story.mts <historia>\n` +
       `Histórias: ${Object.keys(INTERVIEWS).join(', ')}`,
   )
   process.exit(1)
 }
 
+const story = getStory(storyId)!
+
 const brief: BookBrief = {
-  locale: 'pt', bookLanguage: 'pt', finish: 'coloring', occasionId: 'new-baby',
+  locale: 'pt', bookLanguage: 'pt', finish: 'coloring',
+  // Off the story, not fixed here: the shelf has more than one occasion on it
+  // now, and a brief that said 'new-baby' about a dinosaur book would feed the
+  // writer the wrong angle before it read a single beat.
+  occasionId: story.occasionId,
   chosenStoryId: storyId,
   storyTypeId: 'everyday-magic', toneId: 'warm', artStyleId: 'chibi',
-  title: '', place: 'Salvador, Bahia',
-  characters: CAST,
+  title: '',
+  place: CASTS[storyId] ? 'Santo André, São Paulo' : 'Salvador, Bahia',
+  characters: CASTS[storyId] ?? CAST,
   interview: INTERVIEWS[storyId],
 }
-
-const story = getBabyStory(storyId)!
 const t0 = Date.now()
-const sb = await generateStoryboard(brief, babyStoryIdea(story, brief))
+const sb = await generateStoryboard(brief, storyIdea(story, brief))
 console.log(`\n=== ${sb.title} === (${((Date.now()-t0)/1000).toFixed(0)}s, ${sb.pages.length} páginas)\n`)
 for (const p of sb.pages) {
   console.log(`--- ${p.index} --- [${p.charactersOnPage.join(',')}]`)
-  console.log(p.narration)
+  // A wordless book has nothing to print but the drawing it asked for, which
+  // is also the thing worth reading back: the whole bet is that the second
+  // frame of each pair is a different picture rather than the same one again.
+  console.log(p.narration.trim() || p.sceneDescription)
 }
 const s = spent()
 console.log('\n=== CUSTO ===')

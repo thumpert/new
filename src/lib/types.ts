@@ -24,12 +24,46 @@ export type Locale = 'pt'
 export const LOCALES: Locale[] = ['pt']
 export const DEFAULT_LOCALE: Locale = 'pt'
 
+/**
+ * What the book is for — and, since the shelf, which shelf it is on.
+ *
+ * It used to be a prompt setting: five moods the writer was steered towards
+ * before inventing a story from scratch. Now most of these are a row of
+ * pre-written books with a cover each, and the id is what says which row.
+ * Three decisions are baked into this list and each of them removed
+ * something:
+ *
+ * 'relationship' and 'pet' are gone. A twenty-four page colouring book as a
+ * present between adults is a different business from a book for a child, and
+ * it had been pulling the flow sideways since the beginning — it is the
+ * reason the wizard asks about tone, and the reason the interview had to work
+ * for a customer with no child in the cast. Neither will ever have a shelf,
+ * so neither stays.
+ *
+ * 'new-baby' now covers the older child's book as well as the baby's. They
+ * were drifting into one occasion on their own: three of the five stories
+ * already on this shelf are about the child who was there first, not about
+ * the newborn. Splitting them would have meant drawing a line between "bebê"
+ * and "irmão" that no customer would find, so the line is gone and the shelf
+ * is one shelf. The id is kept as it is because orders on disk carry it.
+ *
+ * 'dinosaur' and 'space' are two occasions rather than one called adventure.
+ * They have nothing in common except being large inventions, and an umbrella
+ * over them is only useful while the home page is a form. Once it is a shelf,
+ * each is a book with its own cover, and a customer recognises a dinosaur on
+ * a cover faster than they recognise a category.
+ *
+ * Orders placed before this list changed still carry a retired id. See
+ * `getOccasion`, which answers with the nearest living occasion rather than
+ * throwing, so an old book still opens and still prints.
+ */
 export type OccasionId =
   | 'child'
   | 'new-baby'
   | 'birthday'
-  | 'relationship'
-  | 'pet'
+  | 'dinosaur'
+  | 'space'
+  | 'holiday'
 
 export type StoryTypeId =
   | 'adventure'
@@ -223,12 +257,16 @@ export interface BookBrief {
   ageBandId?: AgeBandId
   occasionId: OccasionId
   /**
-   * Which of the pre-written stories this book is, for occasions that offer
-   * them. Set on `new-baby` and absent everywhere else.
+   * Which book off the shelf this is, for occasions that have one.
    *
    * Its presence is what switches the whole flow: the story is chosen before
    * the questions rather than after, the questions are the ones that story
-   * actually needs, and nothing is invented. See src/lib/baby-stories.ts.
+   * actually needs, and nothing is invented. See src/lib/stories.ts.
+   *
+   * It also decides the shape of the object. A story whose beats have been
+   * cut into frames, ordered as a colouring book, is twenty-four wordless
+   * drawings rather than thirteen captioned ones — so this field changes the
+   * page count, and everything that counts pages asks for it.
    */
   chosenStoryId?: string
   storyTypeId: StoryTypeId

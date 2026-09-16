@@ -1,4 +1,4 @@
-import { babyStoryPrompt, getBabyStory } from '../baby-stories'
+import { getStory, panelCount, storyPrompt } from '../stories'
 import { readingBookRules } from './reading-book'
 import { twelvePageRules } from './twelve-pages'
 import { BOOK_PAGES, getArtStyle, getBookLanguage, getOccasion, getStoryType, getTone } from '../catalog'
@@ -64,12 +64,19 @@ export function briefContext(brief: BookBrief): string {
   const storyType = getStoryType(brief.storyTypeId)
   const tone = getTone(brief.toneId)
 
+  // The length of THIS book, not the product's usual one. A colouring book
+  // off the shelf is twice its beats, and stating thirteen underneath a mould
+  // that lists twenty-four panels is the kind of contradiction a model splits
+  // the difference on.
+  const story = brief.chosenStoryId ? getStory(brief.chosenStoryId) : undefined
+  const length = panelCount(story, brief) ?? BOOK_PAGES
+
   const lines = [
     `OCCASION: ${occasion.storyAngle}`,
     `STORY SHAPE: ${storyType.prompt}`,
     `NARRATOR TONE: ${tone.prompt}`,
     `SETTING: ${brief.place || 'not specified — invent something that fits the characters'}`,
-    `BOOK LENGTH: ${BOOK_PAGES} illustrated pages`,
+    `BOOK LENGTH: ${length} illustrated pages`,
     '',
     'CHARACTERS:',
     ...brief.characters.map((c) => `- ${describeCharacter(c)}`),
@@ -435,8 +442,14 @@ export function storyboardUser(
   // cast has already been decided from the characters the customer named
   // rather than inferred here for the second time.
   const preWritten = brief.chosenStoryId
-    ? getBabyStory(brief.chosenStoryId)
+    ? getStory(brief.chosenStoryId)
     : undefined
+
+  // Set when this order is the twenty-four panel colouring book: a framed
+  // story, ordered to be coloured in. Three of the blocks below are about
+  // words, and this book has none — so they are skipped rather than sent and
+  // contradicted two paragraphs later by the mould itself.
+  const wordless = Boolean(panelCount(preWritten, brief))
 
   /*
    * The tense, said out loud, because until now nothing said it.
@@ -459,15 +472,22 @@ export function storyboardUser(
 
   return [
     `Write the full ${pageCount}-page storyboard for the chosen story.`,
-    `${narrationRule} Scene descriptions must always be in English — they are read by the image model, not by a person.`,
-    tenseRule,
+    wordless
+      ? 'There is no narration in this book. Leave "narration" and "narrationSecondary" empty on every page. Scene descriptions must always be in English — they are read by the image model, not by a person.'
+      : `${narrationRule} Scene descriptions must always be in English — they are read by the image model, not by a person.`,
+    // Tense is a property of prose, and a book with no prose in it has none.
+    ...(wordless ? [] : [tenseRule]),
     detail,
     '',
     // A reading book is a different object from the other two, so its rules
-    // go in first and everything below is read in their light.
-    ...(brief.finish === 'reading'
-      ? [readingBookRules(brief), '']
-      : [twelvePageRules(brief), '']),
+    // go in first and everything below is read in their light. A wordless
+    // colouring book gets neither: the twelve-page rules are about what each
+    // page SAYS, and the mould below replaces them page for page.
+    ...(wordless
+      ? []
+      : brief.finish === 'reading'
+        ? [readingBookRules(brief), '']
+        : [twelvePageRules(brief), '']),
     'CHOSEN STORY:',
     `Title: ${idea.title}`,
     `Logline: ${idea.logline}`,
@@ -487,7 +507,7 @@ export function storyboardUser(
     // and dropped the refrain everywhere between the second page and the
     // thirteenth. Both are review failures, and every review failure buys
     // another full rewrite of the book.
-    ...(preWritten ? ['', babyStoryPrompt(preWritten, brief)] : []),
+    ...(preWritten ? ['', storyPrompt(preWritten, brief)] : []),
     ...(!preWritten && idea.anchored && anchor
       ? [
           '',

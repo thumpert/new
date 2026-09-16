@@ -10,6 +10,7 @@ import { getAgeBand } from '../catalog'
 import { fit, sanitize, wrap } from './text'
 import { fetchBinary, putFile } from '../storage'
 import { isLineArt } from '../types'
+import { isWordless } from '../stories'
 import type { BookBrief, BookLanguageId, Order, StoryPage } from '../types'
 
 /**
@@ -151,8 +152,39 @@ export async function buildBookPdf(order: Order): Promise<Uint8Array> {
   // printer somewhere to trim and bind.
   const bleed = !isLineArt(order.brief.finish)
 
+  // A colouring book off the shelf has no words in it at all, so its page is
+  // the drawing and nothing else: held inside the margin the way every
+  // colouring page is, with no narration band reserved under it and no
+  // sentence printed into one. It is the reading book's picture sheet in line
+  // instead of colour — which is exactly what the format was meant to be.
+  const wordless = isWordless(order.brief)
+
   for (const page of order.storyboard.pages) {
     const render = rendersByIndex.get(page.index)
+
+    if (wordless) {
+      const sheet = pdf.addPage([A4.width, A4.height])
+      const box = {
+        x: MARGIN,
+        y: MARGIN,
+        width: A4.width - MARGIN * 2,
+        height: A4.height - MARGIN * 2,
+      }
+      if (render?.imageUrl) {
+        await drawImage(pdf, sheet, render.imageUrl, box)
+      } else {
+        drawPlaceholder(sheet, fonts, box, {
+          label: render?.status === 'failed' ? t.failed : t.placeholder,
+          detail: render?.error ?? render?.promptPreview ?? page.sceneDescription,
+        })
+      }
+      // The page number is the only mark on the sheet. It is worth keeping:
+      // twenty-four loose drawings with nothing written on them are
+      // impossible to put back in order once a child has pulled them apart,
+      // and it is the one number that cannot be mistaken for a caption.
+      drawCentered(sheet, String(page.index), fonts.body, 9, MARGIN - 4, MUTED)
+      continue
+    }
 
     // A reading book is spreads, not pages: the picture takes the left-hand
     // sheet whole and the words get the right-hand sheet to themselves. That

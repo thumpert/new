@@ -1,5 +1,5 @@
 import { generateStoryboard } from '@/lib/ai/claude'
-import { babyStoryIdea, getBabyStory } from '@/lib/baby-stories'
+import { storyIdea, getStory } from '@/lib/stories'
 import { getOrder, updateOrder } from '@/lib/store'
 import { startTask } from '@/lib/tasks'
 import { chooseIdeaSchema } from '@/lib/validation'
@@ -39,11 +39,11 @@ export async function POST(request: Request, { params }: Context) {
     // the brief instead, which is also the only copy that matters: the beats
     // live in this repository, not in the order.
     const story = order.brief.chosenStoryId
-      ? getBabyStory(order.brief.chosenStoryId)
+      ? getStory(order.brief.chosenStoryId)
       : undefined
 
     const idea = story
-      ? babyStoryIdea(story, order.brief)
+      ? storyIdea(story, order.brief)
       : order.ideas?.find((i) => i.id === parsed.data.ideaId)
     if (!idea) return badRequest('That story idea does not belong to this order.')
 
