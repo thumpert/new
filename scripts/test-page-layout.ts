@@ -68,7 +68,7 @@ async function main() {
       locale: 'pt',
       bookLanguage: 'pt',
       finish: FINISH,
-      occasionId: 'child',
+      occasionId: 'birthday',
       storyTypeId: 'adventure',
       toneId: 'serene',
       artStyleId: 'cartoon',

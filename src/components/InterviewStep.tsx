@@ -29,25 +29,11 @@ export function InterviewStep({
   questions,
   answers,
   onAnswer,
-  onMore,
-  busy,
 }: {
   dict: Dictionary
   questions: InterviewQuestion[]
   answers: Record<string, string>
   onAnswer: (questionId: string, answer: string) => void
-  /**
-   * More questions can be fetched, and this is what fetches them.
-   *
-   * Set only while an invented book is still owed the questions written for
-   * it. The conversation opens on the setting alone, because the writer of
-   * the other questions needs to know where the book happens — so the Next
-   * button on that last bubble asks for the rest instead of being disabled,
-   * which is what it would otherwise be with a single question on screen.
-   */
-  onMore?: () => void
-  /** A fetch is in flight. Keeps the button from being pressed twice. */
-  busy?: boolean
 }) {
   const copy = dict.wizard.interview
   const [index, setIndex] = useState(0)
@@ -142,22 +128,14 @@ export function InterviewStep({
           >
             {dict.common.back}
           </Button>
-          {/* On the last bubble this is either a dead end or the way to get
-              the rest of the questions, and it says which. */}
-          {index === ordered.length - 1 && onMore ? (
-            <Button onClick={onMore} disabled={busy}>
-              {busy ? dict.common.generating : copy.more}
-            </Button>
-          ) : (
-            <Button
-              onClick={() =>
-                setIndex((i) => Math.min(ordered.length - 1, i + 1))
-              }
-              disabled={index === ordered.length - 1}
-            >
-              {dict.common.next}
-            </Button>
-          )}
+          <Button
+            onClick={() =>
+              setIndex((i) => Math.min(ordered.length - 1, i + 1))
+            }
+            disabled={index === ordered.length - 1}
+          >
+            {dict.common.next}
+          </Button>
         </div>
       </section>
 

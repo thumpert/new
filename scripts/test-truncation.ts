@@ -7,10 +7,17 @@
  * Points the SDK at a local server that returns canned Messages API bodies,
  * so it exercises the real client and the real code path without a key and
  * without spending anything.
+ *
+ * Exercises generateTitleSuggestions rather than the ideas call this used to
+ * call before the ideas call existed: the ideas call was the invented-from-
+ * scratch flow, retired along with the last occasion that still needed it.
+ * Title suggestions are the smallest surviving schema-validated call, and
+ * askForJson's truncation handling does not know or care which schema it is
+ * validating — any of them proves the same code path.
  */
 import { createServer } from 'node:http'
 import type { AddressInfo } from 'node:net'
-import type { BookBrief } from '../src/lib/types'
+import type { BookBrief, StoryIdea } from '../src/lib/types'
 
 type Canned = { stop_reason: string; text: string }
 
@@ -85,21 +92,24 @@ const brief: BookBrief = {
   interview: [],
 }
 
+const idea: StoryIdea = {
+  id: 'idea1',
+  title: 'As Aventuras da Lila',
+  logline: 'Uma menina descobre um quintal sem fim.',
+  summary: 'A Lila sai pela porta dos fundos e o quintal cresce.',
+  highlights: ['Ela abre a porta.', 'A trilha aparece.', 'Ela volta.'],
+  turn: 'A trilha começa a responder quando ela fala.',
+  device: 'um novelo de lã azul',
+}
+
 const VALID = JSON.stringify({
-  ideas: [
-    {
-      title: 'As Aventuras da Lila',
-      logline: 'Uma menina descobre um quintal sem fim.',
-      summary: 'A Lila sai pela porta dos fundos e o quintal cresce.',
-      highlights: ['Ela abre a porta.', 'A trilha aparece.', 'Ela volta.'],
-      turn: 'A trilha começa a responder quando ela fala.',
-      device: 'um novelo de lã azul',
-    },
-  ],
+  titles: ['As Aventuras da Lila', 'O Quintal Sem Fim', 'A Trilha da Lila'],
 })
 
-// Cut mid-string, exactly how a max_tokens truncation lands.
-const TRUNCATED = VALID.slice(0, 90)
+// Cut mid-string, exactly how a max_tokens truncation lands. Well short of
+// VALID's own length, which is 74 characters for three short titles — a
+// truncation test that does not actually truncate proves nothing.
+const TRUNCATED = VALID.slice(0, 40)
 
 async function check(
   name: string,
@@ -107,9 +117,9 @@ async function check(
   expect: 'ok' | string,
 ): Promise<boolean> {
   canned = setup
-  const { generateIdeas } = await import('../src/lib/ai/claude')
+  const { generateTitleSuggestions } = await import('../src/lib/ai/claude')
   try {
-    await generateIdeas(brief)
+    await generateTitleSuggestions(brief, idea)
     if (expect === 'ok') {
       console.log(`  ok   ${name}`)
       return true
@@ -147,7 +157,7 @@ async function main() {
     ),
     await check(
       'valid JSON of the wrong shape is caught',
-      { stop_reason: 'end_turn', text: '{"ideas":[{"title":"x"}]}' },
+      { stop_reason: 'end_turn', text: '{"titles":"not an array"}' },
       'did not match the expected shape',
     ),
     await check(

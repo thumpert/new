@@ -34,18 +34,18 @@ export async function POST(request: Request, { params }: Context) {
     const order = await getOrder(id)
     if (!order) return notFound('Order not found.')
 
-    // A pre-written story is not in `order.ideas` — it was never proposed by
-    // a model, so nothing ever wrote it there. It is rebuilt from the id on
-    // the brief instead, which is also the only copy that matters: the beats
-    // live in this repository, not in the order.
+    // Rebuilt from the id on the brief rather than read off the order: the
+    // beats live in this repository, not in the order, and every order
+    // carries a chosen story now that no occasion invents one from scratch.
     const story = order.brief.chosenStoryId
       ? getStory(order.brief.chosenStoryId)
       : undefined
+    if (!story) return badRequest('This order has no chosen story.')
 
-    const idea = story
-      ? storyIdea(story, order.brief)
-      : order.ideas?.find((i) => i.id === parsed.data.ideaId)
-    if (!idea) return badRequest('That story idea does not belong to this order.')
+    const idea = storyIdea(story, order.brief)
+    if (idea.id !== parsed.data.ideaId) {
+      return badRequest('That story idea does not belong to this order.')
+    }
 
     const brief = parsed.data.title
       ? { ...order.brief, title: parsed.data.title }

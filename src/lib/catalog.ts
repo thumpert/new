@@ -17,35 +17,11 @@ export interface OccasionDef {
   id: OccasionId
   /** Steers the story generator towards the right emotional register. */
   storyAngle: string
-  /** Seeds the interview so questions feel written for this occasion. */
-  interviewFocus: string
   /** Story types that make sense for this occasion, best first. */
   suggestedStoryTypes: StoryTypeId[]
-  /**
-   * A story shape this occasion always offers, alongside the freely invented
-   * ones.
-   *
-   * It is a mould, not a manuscript. The writer fills it with this family's
-   * names, this setting's landmarks and this household's animal, so two
-   * customers who both pick the occasion get the same skeleton and never the
-   * same book — which is the whole reason it is written as a shape here
-   * rather than kept as a finished story on disk.
-   *
-   * Enforced rather than requested: `generateIdeas` will not return a set
-   * without it. See the `anchor` field on the ideas schema.
-   */
-  anchorIdea?: string
 }
 
 export const OCCASIONS: OccasionDef[] = [
-  {
-    id: 'child',
-    storyAngle:
-      'A gift from a parent or relative to a child. Celebrates who the child is: their curiosity, their favourite things, the small everyday moments that make them themselves.',
-    interviewFocus:
-      'the child’s personality, what they love doing, their favourite toy or place, funny habits, who they are closest to',
-    suggestedStoryTypes: ['adventure', 'everyday-magic', 'fairy-tale', 'funny'],
-  },
   {
     // One shelf, not two. This used to be the baby's book, and the book for
     // the child who was there first was going to be a second occasion beside
@@ -57,50 +33,12 @@ export const OCCASIONS: OccasionDef[] = [
     id: 'new-baby',
     storyAngle:
       'A baby is arriving, or has just arrived, and this book is for somebody in that house. Most often it is for the child who was there first, and then it is about what changes for them rather than about the baby: what they hand over, what they are asked for, what they are the only one who can do. When there is no older child, it is the family waiting for and meeting the baby. Gentle either way, and never a book that tells anybody how to feel about it.',
-    interviewFocus:
-      'how the family found out, what the older child has been told and what they have asked, what is being handed over or moved to make room, how siblings and pets reacted, the meaning of the baby’s name',
     suggestedStoryTypes: ['everyday-magic', 'journey', 'fairy-tale'],
-    anchorIdea: [
-      'THE MIRROR ROUTE.',
-      '',
-      'A family builds a route of mirrors across the place they live, so that a beam of daylight travels the whole city and comes home into the room the baby will sleep in. What holds it together is the family placing the mirrors and the light bouncing from one to the next: every page happens because the page before it put a mirror somewhere.',
-      '',
-      'Two roles carry the shape, and both are cast from the characters the customer actually named. THE FINDER is whoever finds the first mirror and wants something. THE BLOCKER is what stands in front of the last one. Cast them before writing the beats — see CASTING below.',
-      '',
-      'The beats, in order:',
-      '1. The room meant for the baby is still full of boxes and bare walls. THE BLOCKER is already settled on one empty patch of floor, and stays there in the background of every page set at home.',
-      '2. THE FINDER opens a box looking for something else and finds a mirror.',
-      '3. Sunlight hits it and throws a beam across the bare wall. Everyone stops.',
-      '4. Turning the mirror moves the beam. There is a rule: the hand has to stay still or the light runs off.',
-      '5. The rest of the boxes give up more mirrors, and they are counted — few enough to run out. THE FINDER keeps the first one, the one she found, out of the pile and in her pocket. Nobody argues.',
-      '6. Somebody says the light is the baby on its way, and that whoever arrives somewhere new needs somebody to show them around.',
-      '7. The route is proposed: one mirror at a time, out across the place and back home, so the whole of it reaches the baby.',
-      '8. The first mirror goes up outside the house — one from the pile, not the one in her pocket — and the beam leaves home for the first time.',
-      '9-10. The beam crosses the real landmarks of the SETTING, one mirror and one page each, and they travel out to meet it where it lands.',
-      '11. THE TURN. They reach the last stop on the route and the bag is empty. Nobody asks. THE FINDER takes her own mirror out of her pocket and hands it over, and the book stops being about collecting and starts being about having given something away. Play it in silence: the empty bag, the hand coming out of the pocket.',
-      '12. The last landmark, carrying her mirror.',
-      '13. The route reaches home at last and nothing lights up.',
-      '14. The last mirror is found blocked by THE BLOCKER, in the exact patch of floor it has occupied since the first page.',
-      '15. THE BLOCKER is moved out of the way, and the whole house floods with light at once.',
-      '16. The light reaches the baby’s room, which by now has a cot and a finished wall — and it is arriving through the mirror she gave away, on the other side of the place, where she will never see it.',
-      '',
-      'CASTING. Use only the characters the customer named. Never add a sibling, a second parent or a pet to make the shape fit — the shape bends, the cast does not.',
-      '- THE FINDER is the youngest named character who is not the baby. Children are in this book only when the customer gave us children. When the cast is adults only, an adult finds the mirror and the want is unchanged: to be the one who knows this place well enough to show it to somebody arriving. When the customer named a single character, that person builds the route alone and the beats run exactly as written, in a quieter house.',
-      '- THE BLOCKER is the family’s own pet, by name, when they have one: asleep on that patch of floor from page one, asked to move on beat 15, taking its time about it. With no pet, it is a thing that stands in that home’s sunny spot — a drying rack, the stack of boxes nobody opened, a wardrobe door left open, a suitcase never put away — and beat 15 is somebody finally shifting it after two weeks of walking round it.',
-      '- Whichever it is, THE BLOCKER has to be visible on page one and in the background of every page at home, so the reader solves beat 14 before anybody in the book does.',
-      '',
-      'Fill the rest of the mould with what this family actually gave us:',
-      '- THE LANDMARKS COME FROM THE SETTING, ALWAYS. Use the real, nameable places of wherever this story is set. A capital city gives its monuments; a small town gives its church tower, its water tank, its bridge; a farm gives the silo, the gate, the big tree. Never carry over landmarks from another book — the setting is the point of this step.',
-      '- If the family has not just moved house, the boxes are whatever is being cleared out to make room for the baby.',
-      '- The device is the first mirror, with its colour. It is the one kept back in beat 5 and given away in beat 11.',
-    ].join('\n'),
   },
   {
     id: 'birthday',
     storyAngle:
       'A birthday celebration. Builds towards a party or a surprise, and looks back fondly at the year that passed.',
-    interviewFocus:
-      'the best thing that happened this year, what they are obsessed with right now, who would be at the party, a running joke among friends',
     suggestedStoryTypes: ['adventure', 'funny', 'superhero', 'everyday-magic'],
   },
   // The two halves of what was nearly a single occasion called adventure.
@@ -111,24 +49,18 @@ export const OCCASIONS: OccasionDef[] = [
     id: 'dinosaur',
     storyAngle:
       'The child’s own neighbourhood turns out to have something enormous underneath it. The register is matter-of-fact rather than thrilling: the impossible thing is described by its weight, its temperature and what it did to the ground, and the child treats digging it up as work rather than as a quest. Never a book about danger — nothing hunts anybody.',
-    interviewFocus:
-      'where the child digs or plays in the dirt, which places in the neighbourhood could be drawn, the dinosaur they can already name, who does not believe their stories',
     suggestedStoryTypes: ['adventure', 'everyday-magic'],
   },
   {
     id: 'space',
     storyAngle:
       'The family goes up after something they look at together from the ground. Wonder, and a rope: the scale is enormous and the stakes are domestic, which is what keeps it from becoming a tour of the solar system.',
-    interviewFocus:
-      'what the family looks at in the sky together and where they look at it from, what the child is afraid of in the dark, what they carry everywhere',
     suggestedStoryTypes: ['adventure', 'journey', 'everyday-magic'],
   },
   {
     id: 'holiday',
     storyAngle:
       'A trip the family actually took or is about to take, told from the height of a child. The famous places are the background; what moves the book is who is allowed to point at the way, or who is allowed to be first. Never a tour of monuments — that is a list, and a list fails the but/therefore test on every page.',
-    interviewFocus:
-      'where the family went or is going, three or four places from that trip, something the child noticed that nobody else did, the silly place that turned out to be the best bit, how the journey itself goes',
     suggestedStoryTypes: ['journey', 'adventure', 'everyday-magic'],
   },
 ]
@@ -682,9 +614,9 @@ export function getAgeBand(id: AgeBandId | undefined): AgeBandDef {
  * behaviour — throw on anything not in the list — turned it into a page
  * that would not load at all.
  *
- * 'child' is the fallback because it is the only occasion with no shape of
- * its own: its angle is "a present for somebody, about who they are", which
- * is the least wrong thing to say about a book whose real occasion no longer
+ * The first entry of OCCASIONS is the fallback — whichever occasion that
+ * happens to be carries no special claim to fit a retired one, it is simply
+ * the least wrong thing to say about a book whose real occasion no longer
  * exists. It is used to READ an old order, never to write a new one — the
  * wizard can only send an id from OCCASIONS.
  */

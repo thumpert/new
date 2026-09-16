@@ -1,4 +1,5 @@
 import { generateTitleSuggestions } from '@/lib/ai/claude'
+import { getStory, storyIdea } from '@/lib/stories'
 import { getOrder } from '@/lib/store'
 import { startTask } from '@/lib/tasks'
 import { chooseIdeaSchema } from '@/lib/validation'
@@ -26,8 +27,17 @@ export async function POST(request: Request, { params }: Context) {
     const order = await getOrder(id)
     if (!order) return notFound('Order not found.')
 
-    const idea = order.ideas?.find((i) => i.id === parsed.data.ideaId)
-    if (!idea) return badRequest('That story idea does not belong to this order.')
+    // Rebuilt from the id on the brief, the same way the generate route does
+    // — the beats live in this repository, not on the order.
+    const story = order.brief.chosenStoryId
+      ? getStory(order.brief.chosenStoryId)
+      : undefined
+    if (!story) return badRequest('This order has no chosen story.')
+
+    const idea = storyIdea(story, order.brief)
+    if (idea.id !== parsed.data.ideaId) {
+      return badRequest('That story idea does not belong to this order.')
+    }
 
     await startTask(id, 'titles', async () => ({
       titles: await generateTitleSuggestions(order.brief, idea),

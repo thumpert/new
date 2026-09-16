@@ -53,17 +53,25 @@ export const DEFAULT_LOCALE: Locale = 'pt'
  * each is a book with its own cover, and a customer recognises a dinosaur on
  * a cover faster than they recognise a category.
  *
- * Orders placed before this list changed still carry a retired id. See
- * `getOccasion`, which answers with the nearest living occasion rather than
- * throwing, so an old book still opens and still prints.
+ * 'child' is gone too, and for a different reason than 'relationship' and
+ * 'pet': it was never wrong, it is just the one occasion left with no shelf.
+ * Every occasion here now resolves to a pre-written book — see
+ * src/lib/stories.ts — because the invented-from-scratch flow (four ideas a
+ * model writes per order, from nothing) has been retired along with it. A
+ * form asking the most-sold occasion in the trade to invent its own book from
+ * a blank page was already the weakest part of the product; keeping it alive
+ * for 'child' alone, after every other occasion had a shelf, would have meant
+ * keeping the whole invented pipeline — the ideas screen, the gap-filling
+ * questions, a second AI call before the interview even starts — for one
+ * occasion out of six. 'child' returns once it has stories of its own; until
+ * then it is round 2, exactly as the proposal that planned this shelf always
+ * said it would be.
+ *
+ * Orders placed before this list changed still carry a retired id, 'child'
+ * included. See `getOccasion`, which answers with the nearest living occasion
+ * rather than throwing, so an old book still opens and still prints.
  */
-export type OccasionId =
-  | 'child'
-  | 'new-baby'
-  | 'birthday'
-  | 'dinosaur'
-  | 'space'
-  | 'holiday'
+export type OccasionId = 'new-baby' | 'birthday' | 'dinosaur' | 'space' | 'holiday'
 
 export type StoryTypeId =
   | 'adventure'
@@ -335,15 +343,6 @@ export interface StoryIdea {
    * than a book without one.
    */
   device?: string
-  /**
-   * Whether this is the shape the occasion always offers, rather than one the
-   * writer invented freely. See `anchorIdea` in src/lib/catalog.ts.
-   *
-   * Kept on the idea so the set can be checked before it reaches the
-   * customer, and so the anchored one can lead the four. Optional because
-   * orders written before it existed are still on disk.
-   */
-  anchored?: boolean
 }
 
 export interface StoryPage {
@@ -440,7 +439,6 @@ export interface PageRender {
 
 export type OrderStatus =
   | 'draft'
-  | 'ideas'
   | 'storyboard'
   /**
    * The story is written and waiting to be read. Nothing is drawn until it is
@@ -458,13 +456,13 @@ export type OrderStatus =
 /**
  * Slow work started by one request and finished after it, so a proxy never
  * sits watching a silent connection. See src/lib/tasks.ts.
+ *
+ * 'interview', 'gaps' and 'ideas' used to live here — the three calls that
+ * only the invented-from-scratch flow made, before every occasion had a
+ * shelf. A shelf book's questions and idea are already on this machine, so
+ * there is nothing to start and nothing to wait for.
  */
-export type TaskKind =
-  | 'interview'
-  | 'gaps'
-  | 'ideas'
-  | 'titles'
-  | 'storyboard'
+export type TaskKind = 'titles' | 'storyboard'
 
 export interface OrderTask {
   kind: TaskKind
@@ -481,8 +479,14 @@ export interface Order {
   updatedAt: string
   status: OrderStatus
   brief: BookBrief
-  interviewQuestions?: InterviewQuestion[]
-  ideas?: StoryIdea[]
+  /**
+   * Id of the idea the storyboard was written from — 'story-<id>' for every
+   * order, since every order is a book off the shelf. Kept as a general id
+   * rather than reusing `brief.chosenStoryId` directly because the storyboard
+   * pipeline (review, repair, the generate route) is written against
+   * StoryIdea and does not otherwise need to know a story ever came from a
+   * shelf rather than somewhere else.
+   */
   chosenIdeaId?: string
   storyboard?: Storyboard
   renders?: PageRender[]

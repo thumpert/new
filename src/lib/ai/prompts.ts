@@ -99,95 +99,6 @@ export function briefContext(brief: BookBrief): string {
   return lines.join('\n')
 }
 
-export const INTERVIEW_SYSTEM = `You write the interview questions for a personalized coloring book service.
-
-The customer has told us the occasion and who the characters are. Your job is to ask the questions that will make the book feel unmistakably theirs — the small, concrete, specific things a stranger could never guess.
-
-Rules:
-- Ask about concrete moments and habits, never abstractions. "What does she do the second she gets home from school?" beats "What is she like?".
-- Every question must be answerable in one or two sentences by someone who is not a writer.
-- Use the characters' actual names in the questions.
-- Each question needs a short hint explaining why we are asking, and a placeholder showing the kind of answer we want.
-- Never ask anything the customer has already told us.
-
-Organise the questions into themed groups of two or three. Each group is shown on one screen, so the questions inside it should belong to the same train of thought — one group about how they met, another about everyday habits, another about the funny stuff. Give each group a short title, two or three words. Questions in the same group must carry exactly the same group title.
-
-For every question, also write three suggested answers:
-- Each one short, one sentence, in the customer's own register — the way a parent would actually reply, not the way a copywriter would.
-- Make them concrete and plausible for these specific characters. If the pet is a one-eared dog called Biscoito, the suggestions mention Biscoito.
-- The three must differ from each other in substance, so picking one is a real choice.
-- They are starting points the customer will edit, not guesses at the truth. Never phrase them as if you know the answer.
-
-Write the questions, hints, placeholders, group titles and suggestions in the requested language.`
-
-export function interviewUser(brief: BookBrief, count: number): string {
-  const occasion = getOccasion(brief.occasionId)
-  return [
-    `Write ${count} interview questions in ${uiLanguage(brief)}, organised into three or four themed groups.`,
-    '',
-    `For this occasion, the most fertile ground is: ${occasion.interviewFocus}.`,
-    '',
-    briefContext(brief),
-  ].join('\n')
-}
-
-export const IDEAS_SYSTEM = `You are a children's book author who writes personalized coloring books.
-
-You will be given everything a customer told us about the people they love. Propose four genuinely different story ideas built from those details.
-
-WHAT HOLDS THE BOOK TOGETHER IS CAUSE, NOT AN OBJECT. Each page happens because of the page before it: somebody does something, and that makes the next thing happen. That is the whole binding. Do not invent a thing to carry the story — a thread, a boat, a balloon travelling through every page — because a story built around an object bends itself to keep the object busy, and the people end up following it about instead of wanting anything.
-
-Test the connection this way: read the idea back saying "and so…" between the beats. If "and so" fits, the pages are joined by cause. If you need "and then", they are only in a row, and the book will feel like a list of nice moments however well each one is written.
-
-There may still be ONE SMALL THING that belongs to these people and turns up more than once — the biscuit tin the buttons live in, the one shoe she never puts back on. If such a thing exists in what the customer told us, name it in the "device" field with its colour, because on a coloring page it becomes the single coloured object on the paper. It is a detail that recurs, not the engine: the story must make complete sense with it deleted. If nothing like that is already in their lives, leave "device" empty rather than inventing one.
-
-EVERY IDEA MUST HAVE SOMEBODY WANTING SOMETHING. State it in the "want" field, in one sentence, from page one and unmet: to be listened to all the way through for once, to not be left behind, to be the one who is asked first, to keep something that is about to be given away. Small and concrete, and drawn from what the customer actually told us rather than invented.
-
-This is the rule that decides whether the book is worth reading, and it is separate from every other rule here. An idea can have a turn, a shape and real details and still be a mechanism nobody cares about, because nothing is at stake for anybody. A reader follows a story because somebody might not get what they want. Take the want away and twelve perfectly connected pages become a machine ticking.
-
-Test it: say out loud "the reader keeps turning because they want to find out whether ___". If the blank cannot be filled from your idea, the idea is not finished.
-
-GIVE THE READER SOMETHING TO WONDER ABOUT. Somewhere in the first third, something the reader does not understand yet and wants to — a habit nobody explains, an object that turns up before it makes sense, a sentence somebody starts and does not finish. It is answered near the end. Say in the summary what is withheld and where it lands. This is not the same as being unclear: the reader always knows what is happening, and wonders only what it will come to.
-
-Every idea must also have a turn: something that changes partway through, so that the second half of the book cannot be swapped with the first. State it in the "turn" field, in one sentence.
-
-This is the hardest rule and the one most often broken. A premise is not a turn. "A kite that visits the places she loves" is a premise, and on its own it produces twelve pages of "the next place is…", any two of which could trade places without anything breaking. Give it a turn — the string snaps and she has to find her own way back — and every page after that depends on the one before it. Apply the same test to each idea you propose: if the pages could be shuffled, it is not a story yet.
-
-Rules:
-- Each idea must use the customer's real details. If they mentioned a one-eared cat named Biscoito, Biscoito is in the story.
-- The four ideas must differ in structure, not just in wording: a quest, a day-in-the-life, a fantastical transformation, a look back through time — pick four distinct shapes. Whichever shape you choose, it still needs its turn; a look back through time is the shape most likely to arrive without one.
-- Every idea must be drawable: things that happen in places, with characters doing things. Avoid inner monologue and abstraction.
-- When the customer supplied photographs to include, say in the summary where each one falls in this particular story. A photograph that could sit anywhere sits nowhere.
-- The title should sound like a real children's book, not a summary.
-- Highlights are three concrete scenes, each one sentence, in story order.
-- Somewhere in each idea the reader should get there before a character does — usually one of them has already noticed what the other is about to discover. That gap is where caring about somebody on a page comes from, and in a book about people who know each other well it costs nothing to arrange.
-
-Two languages are involved. The buyer is choosing between these four ideas, so the logline, summary and highlights are written in their language. The title is printed on the cover of the book, so it is written in the book's language. When the two differ, that is deliberate — do not "fix" it by translating the title.`
-
-export function ideasUser(brief: BookBrief): string {
-  const language = getBookLanguage(brief.bookLanguage)
-  const anchor = getOccasion(brief.occasionId).anchorIdea
-
-  return [
-    `Propose four story ideas. Write the logline, summary and highlights in ${uiLanguage(brief)}. Write the title in ${language.primary}.`,
-    '',
-    briefContext(brief),
-    // One of the four is a shape this occasion always offers. It goes after
-    // the brief rather than before it, so the family's own details are
-    // already read by the time the mould asks to be filled with them.
-    ...(anchor
-      ? [
-          '',
-          'ONE OF THE FOUR IS WRITTEN TO A REQUIRED SHAPE.',
-          '',
-          'Write it first, set its "anchor" field to true, and set "anchor" to false on the other three. It is judged as an idea like any other: it still needs its want, its turn and this family’s real details, and it still has to read like a story somebody wrote for them rather than a form that was filled in. The remaining three are yours to invent freely, and must not reuse this shape.',
-          '',
-          anchor,
-        ]
-      : []),
-  ].join('\n')
-}
-
 export const TITLES_SYSTEM = `You name children's books.
 
 You will be given the story the customer chose and everything they told us about the people in it. Propose three titles.
@@ -434,13 +345,10 @@ export function storyboardUser(
     ? `Narration must be in ${language.primary}, with "narrationSecondary" carrying the same sentence in ${language.secondary}.`
     : `Narration must be in ${language.primary}. Leave "narrationSecondary" empty.`
 
-  const anchor = getOccasion(brief.occasionId).anchorIdea
-
-  // A pre-written story, when the customer picked one. It replaces the
-  // anchor's "here is a shape, fill it" with something stronger: the beats
-  // are not a suggestion of what could happen, they are what happens, and the
-  // cast has already been decided from the characters the customer named
-  // rather than inferred here for the second time.
+  // Every order carries a chosen story now — there is no occasion left
+  // without a shelf — so this is never undefined in practice. It stays
+  // optional in type because this function does not enforce that invariant
+  // itself; the wizard and the generate route do.
   const preWritten = brief.chosenStoryId
     ? getStory(brief.chosenStoryId)
     : undefined
@@ -497,25 +405,11 @@ export function storyboardUser(
     // whether anybody keeps reading, so it is stated rather than left to be
     // inferred from the summary.
     ...(idea.want ? [`What somebody wants, from page one: ${idea.want}`] : []),
-    // The occasion's own shape, when the customer picked it.
-    //
-    // Without this the writer got a logline, three highlights and a want, and
-    // had to invent the other thirteen pages — for a story whose page order
-    // was already decided and shown to the customer on the screen where they
-    // chose it. It invented differently every time: one run replaced the red
-    // round mirror named in the idea with a brass one the size of a plate,
-    // and dropped the refrain everywhere between the second page and the
-    // thirteenth. Both are review failures, and every review failure buys
-    // another full rewrite of the book.
+    // The occasion's own shape. Without this the writer got a logline, three
+    // highlights and a want, and had to invent the rest of the pages for a
+    // story whose page order was already decided and shown to the customer on
+    // the screen where they chose it.
     ...(preWritten ? ['', storyPrompt(preWritten, brief)] : []),
-    ...(!preWritten && idea.anchored && anchor
-      ? [
-          '',
-          'THE PAGE ORDER IS ALREADY DECIDED. This is the shape the customer chose, and the summary and highlights above are that shape filled with their details. Write the pages to it: each numbered beat is one page, in this order, carrying the names, the setting and the recurring object named in the idea rather than anything invented here. You are writing the prose and the pictures, not choosing what happens.',
-          '',
-          anchor,
-        ]
-      : []),
     '',
     briefContext(brief),
     '',

@@ -1,11 +1,19 @@
 import { promises as fs } from 'node:fs'
 import { spent, resetSpend } from '../src/lib/ai/usage'
 import { getAgeBand } from '../src/lib/catalog'
+import { getStory, storyIdea } from '../src/lib/stories'
 import type { AgeBandId, BookBrief } from '../src/lib/types'
 
 /**
- * Generates a real reading book and checks it against the age it was ordered
- * for. Run with an age band as the argument: little | middle | big.
+ * Generates a real reading book off the shelf and checks it against the age
+ * it was ordered for. Run with an age band as the argument: little | middle |
+ * big.
+ *
+ * Used to invent its own story with generateIdeas before every occasion had
+ * a shelf. There is no invented flow left to call, and there does not need
+ * to be one for what this script is actually checking: whether a chosen
+ * story's page count and word band come out right for reading, and every
+ * shelf story answers that the same way regardless of which one is picked.
  */
 async function env() {
   const raw = await fs.readFile('.env.local', 'utf8')
@@ -18,11 +26,13 @@ async function env() {
 async function main() {
   await env()
   const bandId = (process.argv[2] as AgeBandId) || 'little'
-  const { generateIdeas, generateStoryboard } = await import('../src/lib/ai/claude')
+  const { generateStoryboard } = await import('../src/lib/ai/claude')
+
+  const story = getStory('the-case-of-the-shut-door')!
 
   const brief: BookBrief = {
     locale: 'pt', bookLanguage: 'pt', finish: 'reading', ageBandId: bandId,
-    occasionId: 'child', storyTypeId: 'adventure', toneId: 'playful',
+    occasionId: story.occasionId, storyTypeId: 'adventure', toneId: 'warm',
     artStyleId: 'chibi', title: '', place: 'a casa da avó em Petrópolis, com o quintal de mangueiras',
     characters: [
       { id: 'c1', name: 'Lila', kind: 'person', age: '5 anos',
@@ -35,14 +45,13 @@ async function main() {
         storyNotes: 'guarda botões numa lata de biscoito.' },
     ],
     interview: [
-      { questionId: 'q1', question: 'O que a Lila faz ao chegar na casa da avó?', answer: 'Tira um tênis só e sai andando assim até alguém reclamar.' },
-      { questionId: 'q2', question: 'O que tem no quintal?', answer: 'Um formigueiro que ela visita todo dia e um pé de manga alto demais.' },
+      { questionId: 'detective-method', question: 'Qual é o jeito dela de descobrir as coisas?', answer: 'Ela revira gaveta e pergunta sem parar até alguém falhar.' },
+      { questionId: 'wished-guest', question: 'Quem ela queria muito que aparecesse na festa?', answer: 'O tio que mora longe e ela não vê há um ano.' },
     ],
   }
 
   resetSpend()
-  const ideas = await generateIdeas(brief)
-  const board = await generateStoryboard(brief, ideas[0])
+  const board = await generateStoryboard(brief, storyIdea(story, brief))
   const band = getAgeBand(bandId)
 
   console.log(`\nTÍTULO: ${board.title}`)
@@ -55,7 +64,7 @@ async function main() {
     if (!ok) fora++
     console.log(`${String(p.index).padStart(2)}. [${String(n).padStart(3)}p]${ok ? '  ' : ' !'} ${p.narration}`)
   }
-  console.log(`\npáginas: ${board.pages.length} (esperado 16)`)
+  console.log(`\npáginas: ${board.pages.length} (esperado ${story.beats.length})`)
   console.log(`fora da faixa: ${fora}`)
   console.log(`custo do texto: US$ ${spent().usd.toFixed(4)}`)
 }

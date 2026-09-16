@@ -32,10 +32,7 @@ import type { Order, OrderTask, TaskKind } from './types'
  * has actually been measured doing, with room on top.
  */
 const STALE_AFTER: Record<TaskKind, number> = {
-  interview: 10 * 60 * 1000,
-  gaps: 10 * 60 * 1000,
   titles: 10 * 60 * 1000,
-  ideas: 20 * 60 * 1000,
   // The slowest thing in the product by a wide margin.
   storyboard: 45 * 60 * 1000,
 }

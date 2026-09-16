@@ -2,17 +2,10 @@
 
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import {
-  ART_STYLES,
-  BOOK_LANGUAGES,
-  OCCASIONS,
-  getOccasion,
-} from '@/lib/catalog'
+import { ART_STYLES, BOOK_LANGUAGES, OCCASIONS, getOccasion } from '@/lib/catalog'
 import {
   PLACE_QUESTION_ID,
   getStory,
-  occasionHasShelf,
-  openingQuestions,
   questionsFor,
   say,
   storiesFor,
@@ -49,6 +42,25 @@ import {
   TextInput,
 } from './ui'
 
+/**
+ * Every occasion resolves to a book off the shelf now. There is no path left
+ * that invents a story from a blank brief.
+ *
+ * That used to be two flows sharing one wizard: an occasion with pre-written
+ * stories skipped a screen and two AI calls (four invented ideas, a
+ * free-written interview); an occasion with none walked through both. The
+ * screens for that second path — four ideas to choose between, the narrator's
+ * tone, the shape of story — are gone from here, not merely hidden, because
+ * the last occasion that needed them (`child`) was retired rather than given
+ * an invented book to keep the product working without a shelf of its own.
+ * See the note on `OccasionId` in src/lib/types.ts.
+ *
+ * The consequence for this file: `chosenStoryId` is no longer optional in
+ * spirit, even though the type still allows it while the wizard is on the
+ * 'shelf' screen deciding. Once the customer leaves that screen a story is
+ * assumed to exist, and the code below does not carry a second branch for
+ * when it does not.
+ */
 const STEPS = [
   // The finish comes first: it is the biggest fork in the product, and every
   // later screen reads differently once you know which book you are making.
@@ -58,20 +70,6 @@ const STEPS = [
   'age',
   'bookLanguage',
   'occasion',
-  // 'storyType' and 'tone' used to sit here, and both are gone.
-  //
-  // They were skipped for a book off the shelf, because a mould is already a
-  // shape and already a voice. What that exposed is that they were never the
-  // customer's questions to answer: an occasion with no shelf yet was still
-  // asking somebody buying a present to pick the narrator's register off a
-  // list of five, and then handing the answer to a writer who had been given
-  // the occasion, the cast and the interview anyway. Nobody choosing between
-  // 'poético' and 'sereno' is making the book better; they are doing the
-  // writer's job with less information than the writer has.
-  //
-  // The two fields still exist on the brief and still reach the prompts. The
-  // story type comes off the occasion, which already lists which shapes suit
-  // it, best first. The tone is the house voice — see TONE below.
   'artStyle',
   'characters',
   // Which pre-written story this is. It comes before every question, because
@@ -89,9 +87,6 @@ const STEPS = [
   // did not look like somebody asking — which is the whole claim of the
   // product. See PLACE_QUESTION in src/lib/stories.ts.
   'interview',
-  // The title comes after the story is chosen, so the suggestions can be
-  // drawn from that story rather than guessed from the brief.
-  'ideas',
   'title',
 ] as const
 
@@ -138,7 +133,7 @@ export function Wizard({
   const [finish, setFinish] = useState<BookFinish>(initialFinish ?? 'coloring')
   const [ageBandId, setAgeBandId] = useState<AgeBandId>('middle')
   const [bookLanguage, setBookLanguage] = useState<BookLanguageId>(locale)
-  const [occasionId, setOccasionId] = useState<OccasionId>('child')
+  const [occasionId, setOccasionId] = useState<OccasionId>(OCCASIONS[0].id)
   /**
    * The narrator's register, and no longer a question.
    *
@@ -159,24 +154,15 @@ export function Wizard({
 
   const [questions, setQuestions] = useState<InterviewQuestion[]>([])
   const [answers, setAnswers] = useState<Record<string, string>>({})
-  const [ideas, setIdeas] = useState<StoryIdea[]>([])
-  const [chosenIdeaId, setChosenIdeaId] = useState<string | null>(null)
-  const [titleSuggestions, setTitleSuggestions] = useState<string[]>([])
-  /** The brief is only checked for gaps once, however many times they go back. */
-  const [askedForMore, setAskedForMore] = useState(false)
   /**
-   * Whether the written-to-order questions have been fetched.
-   *
-   * Only the invented flow has any. It cannot fetch them at the same moment
-   * it used to, because the setting is now the first thing asked inside the
-   * conversation rather than a screen before it — and a question writer that
-   * has not been told where the book happens writes worse questions, and
-   * writes one asking where the book happens.
-   *
-   * So the conversation opens with that one question, and the rest are
-   * written once it has been answered.
+   * The chosen story, dressed as a StoryIdea so the storyboard, review and
+   * rendering steps carry on without knowing it was never proposed by a
+   * model. There used to be four of these to pick between; now there is
+   * exactly one, decided on the 'shelf' screen, and this holds it from the
+   * interview onward.
    */
-  const [interviewLoaded, setInterviewLoaded] = useState(false)
+  const [idea, setIdea] = useState<StoryIdea | null>(null)
+  const [titleSuggestions, setTitleSuggestions] = useState<string[]>([])
 
   const current: Step = STEPS[step]
 
@@ -253,33 +239,13 @@ export function Wizard({
   }
 
   /**
-   * Whether this order picks a book off a shelf instead of inventing one.
-   *
-   * Asked of the OCCASION and not of the cast, which matters: this decides
-   * which screens exist, and it is read while the customer is still three
-   * screens away from naming anybody. Using `storiesFor` here instead would
-   * make the step list flicker as characters are typed in — the shelf would
-   * appear the moment a name was entered and vanish when it was cleared.
-   *
-   * Which of the shelf's books this particular family can be given is the
-   * narrower question, and it is asked on the shelf screen itself, where
-   * there is a cast to ask it about.
-   */
-  const preWritten = occasionHasShelf(occasionId)
-
-  /**
    * Which steps this particular order actually walks through.
    *
-   * Three of them are conditional now, and they are conditional for the same
-   * reason: a step that cannot change the book should not be on the way to
-   * it. The age band only reaches a reading book. The shelf only exists for
-   * an occasion that has one. And the ideas screen — four stories to choose
-   * between — has nothing to show when the story was chosen six screens ago.
+   * The age band only reaches a reading book. Everything else is on every
+   * order's path — there is no second, shorter path any more.
    */
   const shown = (s: Step) => {
     if (s === 'age') return finish === 'reading'
-    if (s === 'shelf') return preWritten
-    if (s === 'ideas') return !preWritten
     return true
   }
 
@@ -331,11 +297,9 @@ export function Wizard({
   /**
    * Creates the order and opens the conversation.
    *
-   * Nothing is fetched here any more, in either flow, and the screen appears
-   * at once. A book off the shelf has its questions on this machine already.
-   * A freely invented one opens on the setting alone — the one question every
-   * book asks — and the rest are written after it is answered, by a model
-   * that has then been told where the book happens.
+   * The questions are already on this machine — every story's questions are
+   * written into src/lib/stories.ts, not asked of a model — so this is
+   * synchronous and the screen appears at once.
    */
   const startInterview = () =>
     run(async () => {
@@ -345,117 +309,49 @@ export function Wizard({
       })
       setOrderId(created.id)
 
-      const story = chosenStoryId ? getStory(chosenStoryId) : undefined
-      setQuestions(
-        story ? questionsFor(story, brief()) : openingQuestions(brief()),
-      )
-      setInterviewLoaded(Boolean(story))
+      const story = getStory(chosenStoryId!)
+      if (!story) throw new Error(dict.common.error)
+      setQuestions(questionsFor(story, brief()))
       next()
     })
 
   /**
-   * The rest of an invented book's questions, written now that the setting is
-   * known.
-   *
-   * Runs when the customer moves past the opening question, and exactly once.
-   * The order is patched first so the writer reads the place from the same
-   * brief everything else will.
+   * Leaving the interview. Nothing is checked and nothing is asked twice:
+   * every question here is optional, and whatever was left blank is the
+   * writer's to decide from — see `assumptionsFor` in src/lib/stories.ts.
    */
-  const loadInterview = () =>
-    run(async () => {
-      if (!orderId || interviewLoaded) return
-      setInterviewLoaded(true)
-      await call(`/api/orders/${orderId}`, { method: 'PATCH', json: brief() })
-      const result = await runTask<{ questions: InterviewQuestion[] }>(
-        orderId,
-        `/api/orders/${orderId}/interview`,
-        'interview',
-      )
-      setQuestions((current) => [...current, ...result.questions])
-    })
-
-  /**
-   * Leaving the interview. Before writing anything, the brief is read the way
-   * the writer will read it, and anything still too thin comes back as more
-   * questions on this same screen — the last moment where the person who can
-   * fix it is still here. Asked once: a second refusal to move on would be
-   * nagging, and the customer is allowed a thin book.
-   */
-  const loadIdeas = () =>
+  const chooseStory = () =>
     run(async () => {
       if (!orderId) throw new Error(dict.common.error)
-
-      // Somebody who answered the setting and went straight for the footer
-      // never triggered the fetch. Do it here rather than let them past with
-      // a one-question interview behind them.
-      if (!interviewLoaded) {
-        await loadInterview()
-        return
-      }
-
       await call(`/api/orders/${orderId}`, { method: 'PATCH', json: brief() })
 
-      // A pre-written story skips the gap check and the ideas screen alike.
-      // There is nothing to check the brief for — the questions it just
-      // answered are exactly the ones this story needs — and nothing to
-      // choose between, because the choice was made before the questions.
-      const story = chosenStoryId ? getStory(chosenStoryId) : undefined
-      if (story) {
-        const idea = storyIdea(story, brief())
-        setIdeas([idea])
-        setChosenIdeaId(idea.id)
-        if (!title.trim()) setTitle(idea.title)
-        next()
-        return
-      }
-
-      if (!askedForMore) {
-        setAskedForMore(true)
-        const gaps = await runTask<{ questions: InterviewQuestion[] }>(
-          orderId,
-          `/api/orders/${orderId}/gaps`,
-          'gaps',
-        )
-        if (gaps.questions.length > 0) {
-          setQuestions((current) => [...current, ...gaps.questions])
-          return
-        }
-      }
-
-      const result = await runTask<{ ideas: StoryIdea[] }>(
-        orderId,
-        `/api/orders/${orderId}/ideas`,
-        'ideas',
-      )
-      setIdeas(result.ideas)
-      setChosenIdeaId(null)
-      setTitleSuggestions([])
+      const story = getStory(chosenStoryId!)
+      if (!story) throw new Error(dict.common.error)
+      const chosen = storyIdea(story, brief())
+      setIdea(chosen)
+      if (!title.trim()) setTitle(chosen.title)
       next()
     })
 
   /** Moves on to naming, pre-loading three titles for the chosen story. */
   const goToTitle = () =>
     run(async () => {
-      if (!orderId || !chosenIdeaId) throw new Error(dict.common.error)
-      next()
-
-      const chosen = ideas.find((i) => i.id === chosenIdeaId)
-      if (chosen && !title.trim()) setTitle(chosen.title)
+      if (!orderId || !idea) throw new Error(dict.common.error)
 
       const result = await runTask<{ titles: string[] }>(
         orderId,
         `/api/orders/${orderId}/titles`,
         'titles',
-        { ideaId: chosenIdeaId },
+        { ideaId: idea.id },
       )
       setTitleSuggestions(result.titles)
     })
 
   const generateBook = () =>
     run(async () => {
-      if (!orderId || !chosenIdeaId) throw new Error(dict.common.error)
+      if (!orderId || !idea) throw new Error(dict.common.error)
       await runTask(orderId, `/api/orders/${orderId}/generate`, 'storyboard', {
-        ideaId: chosenIdeaId,
+        ideaId: idea.id,
         title: title.trim() || undefined,
       })
       router.push(`/${locale}/livro/${orderId}`)
@@ -464,24 +360,6 @@ export function Wizard({
   const charactersReady = characters.every(
     (c) => c.name.trim() && c.appearance.trim(),
   )
-
-  /*
-   * NOTHING HOLDS THIS DOOR ANY MORE.
-   *
-   * A pre-written story used to mark some of its questions required and the
-   * wizard would not let anybody past without them, on the reasoning that an
-   * unanswered slot makes the model invent the city rather than making the
-   * book thinner.
-   *
-   * The reasoning was right about the model and wrong about the customer.
-   * Half the people here are buying a present for a child who is not theirs,
-   * and they do not know which dinosaur is the favourite — so the door did
-   * not collect the answer, it collected a made-up one typed to get past, or
-   * it lost the sale. And the model inventing is not a defect to be prevented,
-   * it is a thing to be instructed: see `assumptionsFor`, which names each
-   * empty slot, shows the shape of an answer, and tells the writer to pick the
-   * ordinary one and hold it all the way through.
-   */
 
   const footer = (
     onNext: () => void,
@@ -603,10 +481,10 @@ export function Wizard({
         >
           <div className="grid gap-4">
             {/* An occasion whose every book needs somebody this family did not
-                name. It cannot happen today — the shelf always has one book
-                castable from a single named person — but it is one story away
-                from happening, and a screen that renders as blank space with
-                a dead Next button is the worst way to find out. */}
+                name. It cannot happen today — every occasion's shelf has at
+                least one book castable from a single named person — but a
+                screen that renders as blank space with a dead Next button is
+                the worst way to find out otherwise. */}
             {storiesFor(brief()).length === 0 && (
               <p className="rounded-2xl border border-line bg-paper-raised p-5 text-sm leading-relaxed text-ink-soft">
                 {dict.wizard.shelf.empty}
@@ -690,29 +568,20 @@ export function Wizard({
         </StepShell>
       )}
 
-
       {current === 'characters' && (
         <StepShell
           title={dict.wizard.characters.title}
           subtitle={dict.wizard.characters.subtitle}
-          // The cast is the last screen before the conversation for an
-          // invented book; a book off the shelf has its chooser in between.
-          footer={footer(preWritten ? next : startInterview, charactersReady)}
+          footer={footer(next, charactersReady)}
         >
-          {/* Only for occasions with a shelf, where the menu of stories
-              actually depends on who is added — telling anybody else that a
-              child unlocks stories would be describing a door that is not
-              there. */}
-          {preWritten && (
-            <p className="mb-5 rounded-2xl border border-line bg-accent-soft/40 p-4 text-sm leading-relaxed text-ink">
-              {dict.wizard.characters.shelfIntro}
-            </p>
-          )}
+          <p className="mb-5 rounded-2xl border border-line bg-accent-soft/40 p-4 text-sm leading-relaxed text-ink">
+            {dict.wizard.characters.shelfIntro}
+          </p>
           <CharactersStep
             dict={dict}
             characters={characters}
             onChange={setCharacters}
-            preWritten={preWritten}
+            preWritten
           />
         </StepShell>
       )}
@@ -720,22 +589,13 @@ export function Wizard({
       {current === 'interview' && (
         <StepShell
           title={dict.wizard.interview.title}
-          subtitle={
-            chosenStoryId
-              ? dict.wizard.interview.subtitleStory
-              : dict.wizard.interview.subtitle
-          }
-          footer={footer(loadIdeas)}
+          subtitle={dict.wizard.interview.subtitle}
+          footer={footer(chooseStory)}
         >
           <InterviewStep
             dict={dict}
             questions={questions}
             answers={answers}
-            busy={busy}
-            // Set only while an invented book still owes the customer the
-            // rest of its questions. It turns the last bubble's Next button
-            // into "ask me the rest" instead of a dead end.
-            onMore={interviewLoaded ? undefined : loadInterview}
             onAnswer={(id, answer) =>
               setAnswers((prev) => ({ ...prev, [id]: answer }))
             }
@@ -777,8 +637,9 @@ export function Wizard({
                 {dict.wizard.title.suggest}
               </p>
               {titleSuggestions.length === 0 ? (
-                // Only while the call is in flight — if it failed, the error
-                // is already shown above and naming still works by hand.
+                // Fetched once, when this screen is first reached — see the
+                // effect below. Only the loading state is drawn here; a
+                // failure leaves the field free to be typed by hand.
                 busy && <p className="text-sm text-ink-soft">{dict.common.loading}</p>
               ) : (
                 <div className="flex flex-wrap gap-2">
@@ -802,6 +663,9 @@ export function Wizard({
                   })}
                 </div>
               )}
+              {titleSuggestions.length === 0 && !busy && (
+                <TitleSuggestionLoader onLoad={goToTitle} />
+              )}
             </div>
             <Field
               label={dict.wizard.dedication.title}
@@ -818,96 +682,26 @@ export function Wizard({
           </div>
         </StepShell>
       )}
-
-      {current === 'ideas' && (
-        <StepShell
-          title={dict.wizard.ideas.title}
-          subtitle={dict.wizard.ideas.subtitle}
-          footer={
-            <>
-              <Button variant="quiet" onClick={loadIdeas} disabled={busy}>
-                {dict.wizard.ideas.regenerate}
-              </Button>
-              <Button
-                onClick={goToTitle}
-                disabled={busy || !chosenIdeaId}
-                className="ml-auto"
-              >
-                {busy ? dict.common.generating : dict.common.next}
-              </Button>
-            </>
-          }
-        >
-          <div className="grid gap-4">
-            {ideas.map((idea) => {
-              const selected = chosenIdeaId === idea.id
-              return (
-                <button
-                  key={idea.id}
-                  type="button"
-                  onClick={() => setChosenIdeaId(idea.id)}
-                  aria-pressed={selected}
-                  className={`rounded-2xl border p-5 text-left transition ${
-                    selected
-                      ? 'border-accent bg-accent-soft'
-                      : 'border-line bg-paper-raised hover:border-accent/50'
-                  }`}
-                >
-                  <h2 className="font-serif text-xl text-ink">{idea.title}</h2>
-                  <p className="mt-1 text-sm italic text-ink-soft">
-                    {idea.logline}
-                  </p>
-                  <p className="mt-3 text-sm leading-relaxed text-ink">
-                    {idea.summary}
-                  </p>
-                  <p className="mt-4 text-xs uppercase tracking-wide text-ink-soft">
-                    {dict.wizard.ideas.highlights}
-                  </p>
-                  <ul className="mt-1.5 space-y-1 text-sm text-ink-soft">
-                    {idea.highlights.map((h, i) => (
-                      <li key={i}>— {h}</li>
-                    ))}
-                  </ul>
-                  {/* The turn and the want are shown because they are what
-                      separate a story from a list, and choosing without
-                      seeing them is how a list gets picked. The want goes
-                      first: it is the one that decides whether anybody keeps
-                      reading, and it is the easiest of the three for a
-                      customer to judge against the people they know. */}
-                  {(idea.want || idea.device || idea.turn) && (
-                    <div className="mt-4 space-y-1.5 border-t border-line pt-3 text-sm text-ink-soft">
-                      {idea.want && (
-                        <p>
-                          <span className="font-medium text-ink">
-                            {dict.wizard.ideas.want}
-                          </span>{' '}
-                          {idea.want}
-                        </p>
-                      )}
-                      {idea.device && (
-                        <p>
-                          <span className="font-medium text-ink">
-                            {dict.wizard.ideas.device}
-                          </span>{' '}
-                          {idea.device}
-                        </p>
-                      )}
-                      {idea.turn && (
-                        <p>
-                          <span className="font-medium text-ink">
-                            {dict.wizard.ideas.turn}
-                          </span>{' '}
-                          {idea.turn}
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </button>
-              )
-            })}
-          </div>
-        </StepShell>
-      )}
     </div>
   )
+}
+
+/**
+ * Fetches the title suggestions once, the moment the naming screen is shown.
+ *
+ * There used to be an ideas screen between the interview and this one, and
+ * `goToTitle` ran as that screen's own "next" transition — the fetch had a
+ * natural moment to start from. With that screen gone, the naming screen is
+ * reached directly from the interview, so it has to ask for its own
+ * suggestions on arrival instead. A component with no visible output is a
+ * plainer way to say "run this once, on mount" than reaching for an effect
+ * inside the much larger Wizard function.
+ */
+function TitleSuggestionLoader({ onLoad }: { onLoad: () => void }) {
+  const [asked, setAsked] = useState(false)
+  if (!asked) {
+    setAsked(true)
+    onLoad()
+  }
+  return null
 }

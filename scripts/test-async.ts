@@ -56,7 +56,7 @@ async function main() {
   await env()
   const brief = {
     locale: 'pt', bookLanguage: 'pt', finish: 'coloring',
-    occasionId: 'child', storyTypeId: 'adventure', toneId: 'playful',
+    occasionId: 'birthday', storyTypeId: 'adventure', toneId: 'playful',
     artStyleId: 'chibi', title: '', place: 'o quintal da avó em Petrópolis',
     characters: [{ id: 'c1', name: 'Lila', kind: 'person', age: '5 anos',
       appearance: 'cabelo cacheado, óculos redondos',

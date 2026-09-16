@@ -150,7 +150,6 @@ export const pt = {
         'Quanto mais detalhes reais, mais o livro parece de vocês. Nenhuma pergunta é obrigatória: o que ficar em branco a gente supõe.',
       answerPlaceholder: 'Escreva o que vier à cabeça…',
       subtitleStory: 'São as coisas que a história escolhida lê para virar a de vocês. Nenhuma é obrigatória — o que você deixar em branco a gente escolhe por você, do jeito mais comum possível.',
-      more: 'Perguntar o resto',
       allQuestions: 'Todas as perguntas',
       current: 'Atual',
       close: 'Fechar',
@@ -171,17 +170,11 @@ export const pt = {
       subtitle: 'Vai impressa na primeira página.',
       placeholder: 'Para a Lila, que transforma qualquer quintal em floresta.',
     },
-    ideas: {
-      title: 'Escolha a história',
-      subtitle: 'Escrevemos quatro possibilidades a partir do que você contou.',
-      choose: 'Escolher esta',
-      chosen: 'Escolhida',
-      regenerate: 'Gerar outras ideias',
-      highlights: 'O que acontece',
-      want: 'O que está em jogo:',
-      device: 'O fio da história:',
-      turn: 'O que muda no meio:',
-    },
+    // 'ideas' saiu daqui: era a tela entre a entrevista e o título, com
+    // quatro histórias inventadas para escolher. Não existe mais história
+    // inventada nenhuma — toda ocasião tem prateleira — então não existe mais
+    // tela nem rótulo para ela. Ainda no git em 026ac7e se algum dia a
+    // invenção do zero voltar para alguma ocasião nova.
     review: {
       title: 'Tudo certo?',
       subtitle: 'Confira antes de gerarmos as ilustrações.',
@@ -303,11 +296,10 @@ export const pt = {
         'A narração em português e, embaixo e menor, a tradução — para a criança que cresce entre as duas línguas.',
     },
   },
+  // 'child' saiu daqui junto com o fluxo inventado que a leitura desse rótulo
+  // dependia. Ela volta quando tiver prateleira própria — round 2, como a
+  // proposta sempre disse.
   occasions: {
-    child: {
-      label: 'Presente para o filho(a)',
-      description: 'Uma história sobre quem essa criança é.',
-    },
     // Uma prateleira só. O livro do bebê e o livro de quem já estava em casa
     // viraram a mesma ocasião, então o rótulo precisa dizer os dois sem
     // obrigar ninguém a escolher entre "bebê" e "irmão" antes de ver as

@@ -57,7 +57,7 @@ async function main() {
 
   const brief = {
     locale: 'pt', bookLanguage: 'pt', finish: 'coloring',
-    occasionId: 'child', storyTypeId: 'adventure', toneId: 'playful',
+    occasionId: 'birthday', storyTypeId: 'adventure', toneId: 'playful',
     artStyleId: 'chibi', title: '',
     place: 'a casa da avó em Petrópolis, com o quintal cheio de mangueiras',
     characters: [

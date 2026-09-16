@@ -1,4 +1,5 @@
 import { generateStoryboard } from '@/lib/ai/claude'
+import { getStory, storyIdea } from '@/lib/stories'
 import { startRender } from '@/lib/render'
 import { getOrder, updateOrder } from '@/lib/store'
 import { badRequest, jsonError, notFound } from '../../../_lib/respond'
@@ -44,10 +45,14 @@ export async function POST(request: Request, { params }: Context) {
       return Response.json({ status: 'rendering' })
     }
 
-    const idea = order.ideas?.find((i) => i.id === order.chosenIdeaId)
-    if (!idea) return badRequest('The chosen story idea is no longer on file.')
+    // Rebuilt from the id on the brief, the same way the generate route does
+    // — the beats live in this repository, not on the order.
+    const story = order.brief.chosenStoryId
+      ? getStory(order.brief.chosenStoryId)
+      : undefined
+    if (!story) return badRequest('This order has no chosen story.')
 
-    const storyboard = await generateStoryboard(order.brief, idea)
+    const storyboard = await generateStoryboard(order.brief, storyIdea(story, order.brief))
     await updateOrder(id, (current) => ({ ...current, storyboard }))
 
     return Response.json({ storyboard })
