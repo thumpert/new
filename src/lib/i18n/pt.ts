@@ -92,14 +92,6 @@ export const pt = {
       empty:
         'Nenhuma das histórias dessa ocasião funciona com os personagens que você incluiu. Volte uma tela e adicione quem falta — ou troque a ocasião.',
     },
-    storyType: {
-      title: 'Que tipo de história você quer?',
-      subtitle: 'Escolha o formato da aventura.',
-    },
-    tone: {
-      title: 'Qual é o tom do narrador?',
-      subtitle: 'É a voz que vai contar a história.',
-    },
     artStyle: {
       title: 'Qual estilo de desenho?',
       subtitle: 'Todos são em traço preto e branco, prontos para colorir.',
@@ -346,57 +338,14 @@ export const pt = {
       description: 'A viagem da família, contada da altura de quem é baixinho.',
     },
   },
-  storyTypes: {
-    adventure: { label: 'Aventura', description: 'Uma missão, um obstáculo e a volta para casa.' },
-    'everyday-magic': {
-      label: 'Magia do cotidiano',
-      description: 'Um dia comum onde algo mágico acontece.',
-    },
-    'fairy-tale': { label: 'Conto de fadas', description: 'Castelos, florestas e uma moral gentil.' },
-    journey: { label: 'Linha do tempo', description: 'Uma viagem pelos momentos que trouxeram vocês até aqui.' },
-    superhero: { label: 'Super-herói', description: 'Poderes que nascem do jeito real de cada um.' },
-    funny: { label: 'Comédia', description: 'Tudo dá errado do jeito mais engraçado possível.' },
-  },
-  // Os exemplos narram todos a mesma cena de propósito — a mesma menina, o
-  // mesmo cachorro, o mesmo portão. É o que torna as cinco vozes comparáveis:
-  // o que muda entre os cards é só o jeito de contar.
-  tones: {
-    warm: {
-      label: 'Afetuoso',
-      description:
-        'Uma conversa entre dois: um mede o carinho de braços abertos, o outro tenta superar.',
-      example:
-        '— Zeca, você sabe de quanto eu gosto daqui?\nO Zeca não sabia.\nA Lila abriu os braços até os ombros doerem.\n— Desse tanto. E ainda sobra um pedaço.',
-    },
-    playful: {
-      label: 'Brincalhão',
-      description:
-        'Frases curtas que se acumulam, e o riso vem do jeito de cada um — não do que acontece.',
-      example:
-        'A Lila é assim: chega, empurra o portão, e o quintal inteiro já fica sabendo.\nO Zeca é mais assim ainda.\nO Zeca chega antes.',
-    },
-    poetic: {
-      label: 'Poético',
-      description:
-        'Versos curtos, uma imagem por página. Rima só quando ela chega sozinha.',
-      example:
-        'Abriu-se o portão sem pressa.\nA tarde entrou junto, e ficou.\nO Zeca correu na frente\ncomo quem já adivinhou.',
-    },
-    epic: {
-      label: 'Épico',
-      description:
-        'Narração ao vivo, de locutor perdendo a compostura por causa de quase nada.',
-      example:
-        'Ela se aproxima do portão… empurra… ABRIU!\nO quintal está aberto, senhoras e senhores!\nE olha o Zeca! O Zeca já passou!',
-    },
-    serene: {
-      label: 'Sereno',
-      description:
-        'Quase ninguém fala. O narrador repara numa coisa de cada vez, e cada gesto traz as tardes anteriores.',
-      example:
-        'O portão guardava o rangido de todas as tardes que vieram antes.\nA Lila entrou, e com ela entraram as outras vezes em que tinha entrado.\nO Zeca ia adiante, como quem sabe o caminho de cor.',
-    },
-  },
+  // storyTypes e tones saíram junto com as duas telas que os liam.
+  //
+  // O que os modelos recebem continua igual: os fragmentos de prompt de cada
+  // tipo e de cada tom estão no catalog.ts, e o brief ainda carrega os dois
+  // campos — só que agora o tipo vem da ocasião e o tom é sempre 'warm'. O que
+  // morreu foi o rótulo e a descrição que o cliente lia para escolher, porque
+  // não há mais escolha. Os cinco exemplos de voz continuam no git, em
+  // 31aab72:src/lib/i18n/pt.ts, se algum dia voltarem.
   artStyles: {
     chibi: {
       label: 'Chibi',

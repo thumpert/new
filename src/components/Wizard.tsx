@@ -6,8 +6,6 @@ import {
   ART_STYLES,
   BOOK_LANGUAGES,
   OCCASIONS,
-  STORY_TYPES,
-  TONES,
   getOccasion,
 } from '@/lib/catalog'
 import {
@@ -59,11 +57,20 @@ const STEPS = [
   'age',
   'bookLanguage',
   'occasion',
-  // Both are skipped once a pre-written story is chosen — it already is a
-  // shape and a voice, and asking again only offers the customer a chance to
-  // contradict the book they just picked.
-  'storyType',
-  'tone',
+  // 'storyType' and 'tone' used to sit here, and both are gone.
+  //
+  // They were skipped for a book off the shelf, because a mould is already a
+  // shape and already a voice. What that exposed is that they were never the
+  // customer's questions to answer: an occasion with no shelf yet was still
+  // asking somebody buying a present to pick the narrator's register off a
+  // list of five, and then handing the answer to a writer who had been given
+  // the occasion, the cast and the interview anyway. Nobody choosing between
+  // 'poético' and 'sereno' is making the book better; they are doing the
+  // writer's job with less information than the writer has.
+  //
+  // The two fields still exist on the brief and still reach the prompts. The
+  // story type comes off the occasion, which already lists which shapes suit
+  // it, best first. The tone is the house voice — see TONE below.
   'artStyle',
   'characters',
   // Which pre-written story this is. It comes before every question, because
@@ -126,8 +133,16 @@ export function Wizard({
   const [ageBandId, setAgeBandId] = useState<AgeBandId>('middle')
   const [bookLanguage, setBookLanguage] = useState<BookLanguageId>(locale)
   const [occasionId, setOccasionId] = useState<OccasionId>('child')
-  const [storyTypeId, setStoryTypeId] = useState<StoryTypeId>('adventure')
-  const [toneId, setToneId] = useState<ToneId>('warm')
+  /**
+   * The narrator's register, and no longer a question.
+   *
+   * 'warm' is the house voice: measured in arms, jumps and distances rather
+   * than in numbers, which is the voice every story on the shelf was written
+   * in. A book that came out in one of the other four was not a different
+   * book, it was the same book read by somebody else — and a customer had to
+   * guess which of five strangers they wanted before naming a single person.
+   */
+  const toneId: ToneId = 'warm'
   const [artStyleId, setArtStyleId] = useState<ArtStyleId>('chibi')
   const [chosenStoryId, setChosenStoryId] = useState<string | null>(null)
   const [place, setPlace] = useState('')
@@ -147,14 +162,20 @@ export function Wizard({
 
   const current: Step = STEPS[step]
 
-  /** Story types the chosen occasion actually suits, best first. */
-  const storyTypeOrder = useMemo(() => {
-    const preferred = getOccasion(occasionId).suggestedStoryTypes
-    return [...STORY_TYPES].sort(
-      (a, b) =>
-        (preferred.indexOf(a.id) + 1 || 99) - (preferred.indexOf(b.id) + 1 || 99),
-    )
-  }, [occasionId])
+  /**
+   * The shape of story this occasion suits, taken rather than asked for.
+   *
+   * Every occasion already carries an ordered list of the shapes that fit it,
+   * written when the occasion was, by somebody who knew what the books on
+   * that shelf were going to be. Reading the first of them is strictly better
+   * information than a customer's guess on a screen shown before they have
+   * named anybody — and it is the same list that used to sort the options on
+   * that screen, so the default was already what most people clicked.
+   */
+  const storyTypeId: StoryTypeId = useMemo(
+    () => getOccasion(occasionId).suggestedStoryTypes[0] ?? 'adventure',
+    [occasionId],
+  )
 
   const brief = (): BookBrief => ({
     locale,
@@ -227,15 +248,14 @@ export function Wizard({
    *
    * Three of them are conditional now, and they are conditional for the same
    * reason: a step that cannot change the book should not be on the way to
-   * it. The age band only reaches a reading book. Story type and tone are
-   * already decided the moment a pre-written story is picked. And the ideas
-   * screen — four stories to choose between — has nothing to show when the
-   * story was chosen six screens ago.
+   * it. The age band only reaches a reading book. The shelf only exists for
+   * an occasion that has one. And the ideas screen — four stories to choose
+   * between — has nothing to show when the story was chosen six screens ago.
    */
   const shown = (s: Step) => {
     if (s === 'age') return finish === 'reading'
     if (s === 'shelf') return preWritten
-    if (s === 'storyType' || s === 'tone' || s === 'ideas') return !preWritten
+    if (s === 'ideas') return !preWritten
     return true
   }
 
@@ -582,47 +602,6 @@ export function Wizard({
                 </button>
               )
             })}
-          </div>
-        </StepShell>
-      )}
-
-      {current === 'storyType' && (
-        <StepShell
-          title={dict.wizard.storyType.title}
-          subtitle={dict.wizard.storyType.subtitle}
-          footer={footer(next)}
-        >
-          <div className="grid gap-3 sm:grid-cols-2">
-            {storyTypeOrder.map((s) => (
-              <OptionCard
-                key={s.id}
-                label={dict.storyTypes[s.id].label}
-                description={dict.storyTypes[s.id].description}
-                selected={storyTypeId === s.id}
-                onSelect={() => setStoryTypeId(s.id)}
-              />
-            ))}
-          </div>
-        </StepShell>
-      )}
-
-      {current === 'tone' && (
-        <StepShell
-          title={dict.wizard.tone.title}
-          subtitle={dict.wizard.tone.subtitle}
-          footer={footer(next)}
-        >
-          <div className="grid gap-3 sm:grid-cols-2">
-            {TONES.map((t) => (
-              <OptionCard
-                key={t.id}
-                label={dict.tones[t.id].label}
-                description={dict.tones[t.id].description}
-                example={dict.tones[t.id].example}
-                selected={toneId === t.id}
-                onSelect={() => setToneId(t.id)}
-              />
-            ))}
           </div>
         </StepShell>
       )}
