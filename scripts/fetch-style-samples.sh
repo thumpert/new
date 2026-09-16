@@ -16,7 +16,7 @@
 # Higgsfield, em 15/08/2026, antes de o app migrar para a API do Google. Este
 # script fica como registro de origem, mas os links do CDN expiram e a
 # Higgsfield saiu do projeto: refazer uma amostra hoje é gerar pelo provider do
-# Google. Para as coloridas existe `scripts/make-colour-samples.ts`, que passa
+# Google. Para as coloridas existe `scripts/make-style-samples.ts`, que passa
 # pelo prompt real do app; as em traço ainda não têm equivalente.
 set -euo pipefail
 

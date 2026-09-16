@@ -383,6 +383,13 @@ export const pt = {
       descriptionColoured:
         'Desenho animado dos anos 90, com cor chapada e cenário em camadas.',
     },
+    'retro-storybook': {
+      label: 'Clássico retrô',
+      description:
+        'Árvores geométricas e cenas montadas em camadas, como um livro dos anos 50.',
+      descriptionColoured:
+        'Formas chapadas com textura de giz, em verdes e terrosos meio desbotados.',
+    },
   },
 }
 

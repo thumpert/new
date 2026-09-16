@@ -201,10 +201,10 @@ Sobrou uma conta Higgsfield com **48,38 créditos** e o CLI instalado na máquin
 - **O título vem depois da escolha da história**, para as sugestões nascerem
   daquela história.
 - **O provider é plugável** (`google` | `mock`). O mock não é enfeite.
-- **As amostras de estilo são fixas e versionadas.** Dez arquivos em
-  `public/styles/` — cinco em traço, cinco coloridas, todas na mesma cena. O site
+- **As amostras de estilo são fixas e versionadas.** Doze arquivos em
+  `public/styles/` — seis em traço, seis coloridas, todas na mesma cena. O site
   nunca as gera em tempo de execução, senão a vitrine deixa de ser promessa. Para
-  refazer: `npx tsx scripts/make-colour-samples.ts [estilo]`.
+  refazer: `npx tsx scripts/make-style-samples.ts [estilo]`.
 
 ---
 
@@ -226,7 +226,7 @@ npx tsx scripts/smoke-pdf.ts            # fluxo de colorir, do roteiro ao PDF, s
 npx tsx scripts/smoke-pdf.ts coloured   # o mesmo, no livro colorido
 npx tsx scripts/test-google.ts          # uma imagem real, confere a integração
 npx tsx scripts/test-covers.ts          # as 2 capas + contracapa, de verdade
-npx tsx scripts/make-colour-samples.ts  # regera as amostras coloridas do assistente
+npx tsx scripts/make-style-samples.ts  # regera as amostras de estilo do assistente
 ```
 
 ---

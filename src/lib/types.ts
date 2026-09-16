@@ -32,6 +32,7 @@ export type ArtStyleId =
   | 'superhero-comic'
   | 'fine-line'
   | 'cartoon'
+  | 'retro-storybook'
 
 
 export type CharacterKind = 'person' | 'pet'

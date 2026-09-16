@@ -427,6 +427,56 @@ export const ART_STYLES: ArtStyleDef[] = [
     sample: '/styles/cartoon.png',
     sampleColoured: '/styles/cartoon-colour.png',
   },
+  /*
+   * The mid-century picture book, and the only style here whose natural form
+   * has no outline at all. Shapes are cut from flat colour and read against
+   * each other; a dry chalk grain sits over everything; light arrives as
+   * hard-edged wedges rather than as a gradient. That absence is most of what
+   * the look *is*.
+   *
+   * Which makes it the hardest here to turn into a page to colour, and the
+   * reason the split between `prompt` and `palette` matters more for this
+   * style than for any other. `prompt` reaches both finishes, so it holds
+   * only what survives into line: the geometry — slab trees, stacked planes,
+   * one large near shape against small far figures. The absence of outline
+   * and the chalk grain live in `palette`, where only the coloured book sees
+   * them.
+   *
+   * Written the other way round first, and it failed exactly as this file
+   * warns elsewhere: `prompt` said "no outlines, grain everywhere" while the
+   * caveat and the line-art rules demanded closed black contours and no tone.
+   * The model resolved the contradiction by dropping the style altogether and
+   * drawing a generic coloring page — round blobs for trees, no staging. A
+   * contradicted prompt does not get a compromise, it gets the default.
+   */
+  {
+    id: 'retro-storybook',
+    prompt: [
+      'Mid-century storybook illustration, painted in gouache on textured paper.',
+      'SHAPES: every form is reduced to a flat geometric silhouette, angular rather than rounded. Trees are TAPERED SLABS and long narrow triangles, wider at the base and cut off straight; foliage masses are single angular blocks; hills and paths are broad curved bands. Nothing is drawn as an organic blob.',
+      'PROPORTIONS: characters are simplified and slightly squat, with heads a little larger than life but well short of chibi. Limbs are simple rounded tubes, hands are soft mitten shapes, feet are small rounded wedges.',
+      'FACE: minimal and placed low on the head. Eyes are small almond or oval shapes; brows are a single short stroke; the mouth is one simple curve. Cheeks are marked as two plain circles sitting on the surface, not blended in.',
+      'INTERIOR MARKS: sparing scratchy pencil and crayon marks sit on top of the shapes as detail only — wood grain on trunks, single blades of grass, whiskers, the spokes of a seed head. They never trace the edge of a shape.',
+      'COMPOSITION: theatrical staging in flat overlapping planes, with STRONG SCALE CONTRAST — one large near element, often cropped by the frame, set against small figures further in. No perspective lines and no vanishing point; depth comes from overlap alone, with the planes stacked one in front of the next.',
+    ].join(' '),
+    coloringCaveat:
+      'Draw this style as contour line: every shape gets a clean closed black outline, and the geometry above is what must survive — the tapered slab trees, the planes stacked one in front of the next, the one large near shape against the small distant ones. Carry none of the chalk grain, the brush-drag or the wedges of light and shadow across into the line: on a page to be coloured they become specks and tones a child cannot fill.',
+    palette: [
+      'Muted mid-century gouache, as if printed with slightly worn inks.',
+      'NO OUTLINES: no form has a contour line around it — shapes are separated by colour and value meeting edge to edge, never by a drawn border. This is what makes the style read as painted rather than drawn.',
+      'TEXTURE: the signature of the style, present everywhere. A dry chalk-and-gouache grain covers every shape, the tooth of the paper showing through; large areas carry visible brush-drag streaks in the direction the shape was painted.',
+      'LIGHT: shafts of light and cast shadow are themselves flat hard-edged shapes, laid across the scene as slanted wedges in a lighter or darker value. No gradients, no soft edges, no glow.',
+      'HUES: earthy and a touch dirty — moss and olive green, sage, slate blue-grey, warm cream, ochre, and brick red or burnt orange as the one warm note against the cool field.',
+      'SATURATION: low to middling throughout, every colour pulled a step towards grey. Nothing is clean or bright.',
+      'RANGE: a deliberately small set of colours for the whole page, reused across unrelated objects rather than each thing getting its own.',
+      'CONTRAST: carried by value between neighbouring flat planes, which is what makes the shapes legible without any outline.',
+      'FILLS: flat in intent but never clean — every area keeps its chalk grain and its brush-drag, so the colour looks laid down by hand rather than filled.',
+      'LIGHT AND SHADOW: painted as their own flat shapes in a lighter or darker version of the underlying hue, with hard edges.',
+    ].join(' '),
+    complexity: 'medium',
+    sample: '/styles/retro-storybook.png',
+    sampleColoured: '/styles/retro-storybook-colour.png',
+  },
 ]
 
 export interface BookLanguageDef {

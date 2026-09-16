@@ -380,5 +380,12 @@ export const en: Dictionary = {
       descriptionColoured:
         'A 90s animated show, in flat colour with scenery staged in layers.',
     },
+    'retro-storybook': {
+      label: 'Retro storybook',
+      description:
+        'Geometric trees and scenes staged in layers, like a 1950s picture book.',
+      descriptionColoured:
+        'Flat shapes with a chalky grain, in faded greens and earth tones.',
+    },
   },
 }

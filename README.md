@@ -188,11 +188,11 @@ Os rótulos que o cliente lê ficam nos dicionários (`lib/i18n`); os fragmentos
 prompt que vão para os modelos ficam no `catalog.ts`. As duas metades usam os
 mesmos ids, então adicionar uma ocasião nova é mexer nesses dois arquivos.
 
-As amostras de estilo em `public/styles/` são fixas e versionadas — cinco em
-traço, cinco coloridas, todas na mesma cena para poderem ser comparadas. O site
+As amostras de estilo em `public/styles/` são fixas e versionadas — seis em
+traço, seis coloridas, todas na mesma cena para poderem ser comparadas. O site
 nunca as gera em tempo de execução: elas são uma promessa do que o cliente vai
 receber. Para refazer as coloridas:
-`npx tsx scripts/make-colour-samples.ts [estilo]`.
+`npx tsx scripts/make-style-samples.ts [estilo]`.
 
 ## Escopo atual
 

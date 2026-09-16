@@ -1,24 +1,30 @@
 /**
- * Draws the five coloured style samples that the colour-book flow shows in the
- * style picker.
+ * Draws the style samples the wizard shows in its picker.
  *
- *   npx tsx scripts/make-colour-samples.ts            # all five
- *   npx tsx scripts/make-colour-samples.ts chibi      # just one
+ *   npx tsx scripts/make-style-samples.ts                       # every style, coloured
+ *   npx tsx scripts/make-style-samples.ts chibi                 # one style, coloured
+ *   npx tsx scripts/make-style-samples.ts chibi coloring        # one style, in line
  *
- * Same scene for all five, and the same scene as the line-art samples in
- * public/styles, so the two sets are comparable and a customer switching
- * between the two flows sees the same picture drawn two ways.
+ * Same scene for every style and for both finishes, so the picker stays a set
+ * of comparable promises: a customer switching between the two flows sees the
+ * same picture drawn two ways.
  *
- * It goes through the real pagePrompt with finish='reading', so what the
- * picker promises is what the pipeline actually produces. Writes straight into
- * public/styles/<id>-colour.png; they are checked into git and never generated
- * at runtime.
+ * It goes through the real pagePrompt, so what the picker promises is what the
+ * pipeline actually produces. Writes straight into public/styles/<id>.png for
+ * the line samples and <id>-colour.png for the coloured ones; both are checked
+ * into git and never generated at runtime.
+ *
+ * The finish defaults to 'reading' because the four original line samples were
+ * drawn elsewhere — fetch-style-samples.sh pulled them from a provider that
+ * has since left the project — and they are known-good files with a
+ * provenance. Redrawing them by accident would throw that away, so producing a
+ * line sample stays something you ask for by name.
  */
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
 import { ART_STYLES } from '../src/lib/catalog'
 import { GoogleProvider, googleConfigured } from '../src/lib/images/google'
-import type { ArtStyleId } from '../src/lib/types'
+import type { ArtStyleId, BookFinish } from '../src/lib/types'
 
 /** The scene the original line-art samples were drawn from. */
 const SCENE =
@@ -46,6 +52,13 @@ async function main() {
     process.exit(1)
   }
 
+  const finish = (process.argv[3] ?? 'reading') as BookFinish
+  if (finish !== 'reading' && finish !== 'coloring') {
+    console.error(`Acabamento desconhecido: ${finish}. Use 'reading' ou 'coloring'.`)
+    process.exit(1)
+  }
+  const suffix = finish === 'coloring' ? '' : '-colour'
+
   const provider = new GoogleProvider()
   const outDir = path.join(process.cwd(), 'public', 'styles')
 
@@ -57,7 +70,7 @@ async function main() {
       index: 0,
       sceneDescription: SCENE,
       artStyleId: style.id,
-      finish: 'reading',
+      finish,
       characters: [],
       referenceUrls: [],
     })
@@ -65,7 +78,7 @@ async function main() {
     const bytes = await fs.readFile(
       path.join(process.cwd(), '.data', 'files', path.basename(image.url)),
     )
-    const out = path.join(outDir, `${style.id}-colour.png`)
+    const out = path.join(outDir, `${style.id}${suffix}.png`)
     await fs.writeFile(out, bytes)
 
     const secs = ((Date.now() - started) / 1000).toFixed(0)
@@ -74,7 +87,7 @@ async function main() {
   }
 
   console.log('\nAgora reduza para 720px de largura, como as originais:')
-  console.log('  sips --resampleWidth 720 public/styles/*-colour.png')
+  console.log(`  sips --resampleWidth 720 public/styles/*${suffix}.png`)
 }
 
 main().catch((err) => {
