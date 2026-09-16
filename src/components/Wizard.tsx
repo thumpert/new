@@ -9,10 +9,11 @@ import {
   getOccasion,
 } from '@/lib/catalog'
 import {
+  PLACE_QUESTION_ID,
   getStory,
   occasionHasShelf,
+  openingQuestions,
   questionsFor,
-  requiredQuestionIds,
   say,
   storiesFor,
   storyIdea,
@@ -81,7 +82,12 @@ const STEPS = [
   // is no cast to filter by, and it renders empty — which is exactly what it
   // did the first time it was tried in a browser.
   'shelf',
-  'place',
+  // 'place' used to sit here: one screen, one big empty box, asking where the
+  // story happens. It is the same question it always was and it is now the
+  // first bubble of the conversation below, because a form field standing
+  // between the cast and the interview was the one moment in the flow that
+  // did not look like somebody asking — which is the whole claim of the
+  // product. See PLACE_QUESTION in src/lib/stories.ts.
   'interview',
   // The title comes after the story is chosen, so the suggestions can be
   // drawn from that story rather than guessed from the brief.
@@ -145,7 +151,6 @@ export function Wizard({
   const toneId: ToneId = 'warm'
   const [artStyleId, setArtStyleId] = useState<ArtStyleId>('chibi')
   const [chosenStoryId, setChosenStoryId] = useState<string | null>(null)
-  const [place, setPlace] = useState('')
   const [title, setTitle] = useState('')
   const [dedication, setDedication] = useState('')
   const [characters, setCharacters] = useState<Character[]>([
@@ -159,6 +164,19 @@ export function Wizard({
   const [titleSuggestions, setTitleSuggestions] = useState<string[]>([])
   /** The brief is only checked for gaps once, however many times they go back. */
   const [askedForMore, setAskedForMore] = useState(false)
+  /**
+   * Whether the written-to-order questions have been fetched.
+   *
+   * Only the invented flow has any. It cannot fetch them at the same moment
+   * it used to, because the setting is now the first thing asked inside the
+   * conversation rather than a screen before it — and a question writer that
+   * has not been told where the book happens writes worse questions, and
+   * writes one asking where the book happens.
+   *
+   * So the conversation opens with that one question, and the rest are
+   * written once it has been answered.
+   */
+  const [interviewLoaded, setInterviewLoaded] = useState(false)
 
   const current: Step = STEPS[step]
 
@@ -188,11 +206,17 @@ export function Wizard({
     toneId,
     artStyleId,
     title,
-    place,
+    // Asked as the first bubble of the conversation now, and lifted back out
+    // of it here. Everything downstream still reads `brief.place`, which is
+    // what it always read — the question moved, the field did not.
+    place: answers[PLACE_QUESTION_ID]?.trim() ?? '',
     dedication: dedication.trim() || undefined,
     characters: characters.map((c) => ({ ...c, name: c.name.trim() })),
     interview: questions
-      .filter((q) => answers[q.id]?.trim())
+      // The setting is a fact about the book, not something somebody said
+      // about it. Sending it as both would state it twice in one prompt, in
+      // two registers that are read differently.
+      .filter((q) => q.id !== PLACE_QUESTION_ID && answers[q.id]?.trim())
       .map((q) => ({
         questionId: q.id,
         question: q.question,
@@ -305,14 +329,13 @@ export function Wizard({
   }
 
   /**
-   * Creates the order and gets the questions.
+   * Creates the order and opens the conversation.
    *
-   * Two different things depending on the order. A freely invented book still
-   * has its questions written for it by a model that has just read the brief.
-   * A pre-written story does not: its questions are the slots of a story that
-   * already exists, they are the same every time, and they are already on
-   * this machine — so there is no request, no wait, and nothing that can come
-   * back wrong.
+   * Nothing is fetched here any more, in either flow, and the screen appears
+   * at once. A book off the shelf has its questions on this machine already.
+   * A freely invented one opens on the setting alone — the one question every
+   * book asks — and the rest are written after it is answered, by a model
+   * that has then been told where the book happens.
    */
   const startInterview = () =>
     run(async () => {
@@ -323,19 +346,32 @@ export function Wizard({
       setOrderId(created.id)
 
       const story = chosenStoryId ? getStory(chosenStoryId) : undefined
-      if (story) {
-        setQuestions(questionsFor(story, brief()))
-        next()
-        return
-      }
+      setQuestions(
+        story ? questionsFor(story, brief()) : openingQuestions(brief()),
+      )
+      setInterviewLoaded(Boolean(story))
+      next()
+    })
 
+  /**
+   * The rest of an invented book's questions, written now that the setting is
+   * known.
+   *
+   * Runs when the customer moves past the opening question, and exactly once.
+   * The order is patched first so the writer reads the place from the same
+   * brief everything else will.
+   */
+  const loadInterview = () =>
+    run(async () => {
+      if (!orderId || interviewLoaded) return
+      setInterviewLoaded(true)
+      await call(`/api/orders/${orderId}`, { method: 'PATCH', json: brief() })
       const result = await runTask<{ questions: InterviewQuestion[] }>(
-        created.id,
-        `/api/orders/${created.id}/interview`,
+        orderId,
+        `/api/orders/${orderId}/interview`,
         'interview',
       )
-      setQuestions(result.questions)
-      next()
+      setQuestions((current) => [...current, ...result.questions])
     })
 
   /**
@@ -348,6 +384,15 @@ export function Wizard({
   const loadIdeas = () =>
     run(async () => {
       if (!orderId) throw new Error(dict.common.error)
+
+      // Somebody who answered the setting and went straight for the footer
+      // never triggered the fetch. Do it here rather than let them past with
+      // a one-question interview behind them.
+      if (!interviewLoaded) {
+        await loadInterview()
+        return
+      }
+
       await call(`/api/orders/${orderId}`, { method: 'PATCH', json: brief() })
 
       // A pre-written story skips the gap check and the ideas screen alike.
@@ -420,23 +465,23 @@ export function Wizard({
     (c) => c.name.trim() && c.appearance.trim(),
   )
 
-  /**
-   * Whether the interview can be left.
+  /*
+   * NOTHING HOLDS THIS DOOR ANY MORE.
    *
-   * Free interviews stay optional: every question there is a nice-to-have,
-   * and a customer is allowed a thin book. A pre-written story is different —
-   * some of its questions are slots the story cannot be written without, and
-   * an unanswered one does not make the book thinner, it makes the model
-   * invent the city or the list of favourite things. Those are marked
-   * required, and this is what holds the door shut.
+   * A pre-written story used to mark some of its questions required and the
+   * wizard would not let anybody past without them, on the reasoning that an
+   * unanswered slot makes the model invent the city rather than making the
+   * book thinner.
+   *
+   * The reasoning was right about the model and wrong about the customer.
+   * Half the people here are buying a present for a child who is not theirs,
+   * and they do not know which dinosaur is the favourite — so the door did
+   * not collect the answer, it collected a made-up one typed to get past, or
+   * it lost the sale. And the model inventing is not a defect to be prevented,
+   * it is a thing to be instructed: see `assumptionsFor`, which names each
+   * empty slot, shows the shape of an answer, and tells the writer to pick the
+   * ordinary one and hold it all the way through.
    */
-  const questionsAnswered = (() => {
-    const story = chosenStoryId ? getStory(chosenStoryId) : undefined
-    if (!story) return true
-    return requiredQuestionIds(story, brief()).every((id) =>
-      answers[id]?.trim(),
-    )
-  })()
 
   const footer = (
     onNext: () => void,
@@ -554,7 +599,7 @@ export function Wizard({
         <StepShell
           title={dict.wizard.shelf.title}
           subtitle={dict.wizard.shelf.subtitle}
-          footer={footer(next, Boolean(chosenStoryId))}
+          footer={footer(startInterview, Boolean(chosenStoryId))}
         >
           <div className="grid gap-4">
             {/* An occasion whose every book needs somebody this family did not
@@ -650,7 +695,9 @@ export function Wizard({
         <StepShell
           title={dict.wizard.characters.title}
           subtitle={dict.wizard.characters.subtitle}
-          footer={footer(next, charactersReady)}
+          // The cast is the last screen before the conversation for an
+          // invented book; a book off the shelf has its chooser in between.
+          footer={footer(preWritten ? next : startInterview, charactersReady)}
         >
           {/* Only for occasions with a shelf, where the menu of stories
               actually depends on who is added — telling anybody else that a
@@ -670,39 +717,25 @@ export function Wizard({
         </StepShell>
       )}
 
-      {current === 'place' && (
-        <StepShell
-          title={dict.wizard.place.title}
-          subtitle={dict.wizard.place.subtitle}
-          footer={footer(startInterview, place.trim().length > 2)}
-        >
-          <TextArea
-            value={place}
-            rows={4}
-            maxLength={600}
-            placeholder={dict.wizard.place.placeholder}
-            onChange={setPlace}
-          />
-        </StepShell>
-      )}
-
       {current === 'interview' && (
         <StepShell
           title={dict.wizard.interview.title}
           subtitle={
-            // A pre-written story asks for things it cannot do without, so
-            // the screen must not keep telling the customer to skip whatever
-            // does not appeal — the button will not let them.
             chosenStoryId
               ? dict.wizard.interview.subtitleStory
               : dict.wizard.interview.subtitle
           }
-          footer={footer(loadIdeas, questionsAnswered)}
+          footer={footer(loadIdeas)}
         >
           <InterviewStep
             dict={dict}
             questions={questions}
             answers={answers}
+            busy={busy}
+            // Set only while an invented book still owes the customer the
+            // rest of its questions. It turns the last bubble's Next button
+            // into "ask me the rest" instead of a dead end.
+            onMore={interviewLoaded ? undefined : loadInterview}
             onAnswer={(id, answer) =>
               setAnswers((prev) => ({ ...prev, [id]: answer }))
             }

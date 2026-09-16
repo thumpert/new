@@ -229,15 +229,15 @@ export interface InterviewQuestion {
    * starting points, not the model's guesses about the truth.
    */
   suggestions: string[]
-  /**
-   * Whether the book cannot be written without an answer.
-   *
-   * Only ever set by a pre-written story, where some questions are not extra
-   * colour but the slot the story reads from: with no landmarks, the book
-   * about crossing a city has no city. Every question of a freely invented
-   * book stays optional, which is what it always was.
+  /*
+   * There used to be a `required` flag here, set by a pre-written story on
+   * the questions whose answers it reads from, and the wizard would not let
+   * anybody past without them. Nothing is compulsory now: an empty slot is
+   * something the writer is told to fill sensibly and hold, rather than
+   * something the customer is stopped at. The stories still mark which slots
+   * they lean on — `loadBearing` in src/lib/stories.ts — but that is a note
+   * to the writer and never reaches this screen.
    */
-  required?: boolean
 }
 
 export interface InterviewAnswer {

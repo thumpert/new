@@ -144,17 +144,13 @@ export const pt = {
       addPhoto: 'Mais uma foto',
       removePhoto: 'Remover foto',
     },
-    place: {
-      title: 'Onde a história acontece?',
-      subtitle: 'Um lugar que signifique alguma coisa para vocês.',
-      placeholder: 'Ex.: a casa da vovó em Petrópolis, com o quintal cheio de mangueiras',
-    },
     interview: {
       title: 'Conte um pouco mais',
       subtitle:
-        'Quanto mais detalhes reais, mais o livro parece de vocês. Pode pular o que não fizer sentido.',
+        'Quanto mais detalhes reais, mais o livro parece de vocês. Nenhuma pergunta é obrigatória: o que ficar em branco a gente supõe.',
       answerPlaceholder: 'Escreva o que vier à cabeça…',
-      subtitleStory: 'Estas são as coisas que a história escolhida precisa saber. As marcadas com ★ são as que ela não consegue escrever sem.',
+      subtitleStory: 'São as coisas que a história escolhida lê para virar a de vocês. Nenhuma é obrigatória — o que você deixar em branco a gente escolhe por você, do jeito mais comum possível.',
+      more: 'Perguntar o resto',
       allQuestions: 'Todas as perguntas',
       current: 'Atual',
       close: 'Fechar',

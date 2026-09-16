@@ -165,13 +165,65 @@ export interface StoryQuestionDef {
   placeholder?: Localized
   suggestions: Localized[]
   /**
-   * The book cannot be written without this one. The wizard will not move on
-   * until it is answered, which is a thing the old free interview never did —
-   * every question there was optional, so the answer that the whole story
-   * hangs on was as skippable as the one about a funny habit.
+   * The story leans on this one — it is a slot the book reads from rather
+   * than extra colour.
+   *
+   * It used to mean "the wizard will not let them past without it", and that
+   * is gone. Nothing is compulsory now, because a customer who does not know
+   * which dinosaur is their child's favourite is not a customer to stop at a
+   * door: they are a customer we should make a sensible assumption for and
+   * let through. Half the people filling this in are buying a present for
+   * somebody else's child and genuinely do not know.
+   *
+   * What it means now is where the writer is told to invent. An unanswered
+   * slot marked here is named in the prompt with an example of the shape an
+   * answer takes, and the writer fills it and commits to it — see
+   * `assumptionsFor`. Left unmarked, an empty answer is simply one less
+   * detail and nobody is told anything.
    */
-  required?: boolean
+  loadBearing?: boolean
   showIf?: QuestionCondition
+}
+
+/**
+ * Where the story happens, asked as the first thing in the conversation.
+ *
+ * It lives here, with the story questions, because that is now where it is
+ * asked. It used to be a screen of its own with a big empty box on it — a
+ * form field sitting between the cast and the interview, which made it the
+ * one question in the flow that did not look like somebody asking. It is the
+ * same question either way; what changed is that it arrives in a bubble with
+ * the rest of them.
+ *
+ * It is not a story question and no story declares it. Every book needs it,
+ * including the freely invented ones, so it is built here and prepended to
+ * whatever list the flow produces.
+ *
+ * Its answer does NOT stay in the interview. It is lifted into `brief.place`,
+ * which is what every prompt already reads — see the wizard. Leaving it in
+ * both would tell the writer the setting twice, once as a fact and once as
+ * something a customer said, and those are read differently.
+ */
+export const PLACE_QUESTION_ID = 'place'
+
+const PLACE_QUESTION: StoryQuestionDef = {
+  id: PLACE_QUESTION_ID,
+  group: t('O lugar', 'The place'),
+  question: t('Onde essa história acontece?', 'Where does this story happen?'),
+  hint: t(
+    'A cidade, o bairro, a casa — o que for verdade. É o cenário do livro inteiro, e os desenhos saem daqui.',
+    'The city, the neighbourhood, the house — whatever is true. It is the setting of the whole book, and the drawings come from it.',
+  ),
+  placeholder: t(
+    'A casa da vovó em Petrópolis, com o quintal cheio de mangueiras',
+    'Grandma’s house in Petrópolis, with the yard full of mango trees',
+  ),
+  suggestions: [
+    t('Aqui em casa mesmo, num apartamento de São Paulo', 'Right here at home, in a São Paulo flat'),
+    t('Na casa da avó no interior, com quintal e galinha', 'At grandma’s in the countryside, with a yard and chickens'),
+    t('Salvador, entre a praia e a ladeira de casa', 'Salvador, between the beach and our own hill'),
+  ],
+  loadBearing: true,
 }
 
 /**
@@ -324,7 +376,7 @@ const PLACES_QUESTION: StoryQuestionDef = {
     t('A ponte, o mercado municipal e a igreja da praça', 'The bridge, the market hall and the church on the square'),
     t('A padaria da esquina e o campinho atrás de casa', 'The bakery on the corner and the little pitch behind the house'),
   ],
-  required: true,
+  loadBearing: true,
 }
 
 const NO_PET_QUESTION: StoryQuestionDef = {
@@ -347,7 +399,7 @@ const NO_PET_QUESTION: StoryQuestionDef = {
     t('A pilha de caixas que ninguém abriu ainda', 'The stack of boxes nobody has opened yet'),
     t('A mala da maternidade, pronta perto da porta', 'The hospital bag, packed, by the door'),
   ],
-  required: true,
+  loadBearing: true,
   showIf: 'no-pet',
 }
 
@@ -407,7 +459,7 @@ export const STORIES: StoryDef[] = [
           t('Em cima da caixa que ninguém desmontou ainda', 'On top of the box nobody has flattened yet'),
           t('Bem na porta do quarto do bebê', 'Right in the doorway of the baby’s room'),
         ],
-        required: true,
+        loadBearing: true,
         showIf: 'has-pet',
       },
       {
@@ -511,7 +563,7 @@ export const STORIES: StoryDef[] = [
           t('Sorvete de chocolate, futebol na rua e dormir na cama da gente', 'Chocolate ice cream, football in the street, sleeping in our bed'),
           t('Correr no parque, tomar banho de mangueira e raspar a tigela do bolo', 'Running in the park, the garden hose, scraping the cake bowl'),
         ],
-        required: true,
+        loadBearing: true,
       },
       {
         id: 'too-big',
@@ -530,7 +582,7 @@ export const STORIES: StoryDef[] = [
           t('O estádio no dia de jogo', 'The stadium on match day'),
           t('A cachoeira do sítio do avô', 'The waterfall at her grandad’s place'),
         ],
-        required: true,
+        loadBearing: true,
       },
       {
         id: 'unteachable',
@@ -626,7 +678,7 @@ export const STORIES: StoryDef[] = [
           t('Quis saber se ele vai chegar sabendo o nome dela', 'She wanted to know if he will arrive knowing her name'),
           t('Perguntou o que ele come lá dentro', 'She asked what he eats in there'),
         ],
-        required: true,
+        loadBearing: true,
       },
       {
         id: 'keepsake',
@@ -645,7 +697,7 @@ export const STORIES: StoryDef[] = [
           t('Um desenho que ela fez do quarto', 'A drawing she made of the room'),
           t('A manta que era dela quando era bebê', 'The blanket that was hers when she was a baby'),
         ],
-        required: true,
+        loadBearing: true,
       },
     ],
     want:
@@ -723,7 +775,7 @@ export const STORIES: StoryDef[] = [
           t('Mexe muito quando escuta a voz do pai', 'Moves a lot when he hears his dad’s voice'),
           t('Soluça todo dia no fim da tarde', 'Hiccups every day in the late afternoon'),
         ],
-        required: true,
+        loadBearing: true,
       },
       {
         id: 'voices',
@@ -847,7 +899,7 @@ export const STORIES: StoryDef[] = [
           t('A estação de trem e o rio que corta a cidade', 'The train station and the river through the middle'),
           t('A praia e o mercado municipal', 'The beach and the market hall'),
         ],
-        required: true,
+        loadBearing: true,
       },
       NO_PET_QUESTION,
       {
@@ -867,7 +919,7 @@ export const STORIES: StoryDef[] = [
           t('Em cima da pilha de roupinha dobrada', 'On top of the pile of folded baby clothes'),
           t('Na porta do quarto, virado pro corredor', 'In the doorway, facing the hall'),
         ],
-        required: true,
+        loadBearing: true,
         showIf: 'has-pet',
       },
       {
@@ -997,7 +1049,7 @@ export const STORIES: StoryDef[] = [
           t('Na praça, embaixo do escorregador, onde não tem grama', 'In the square, under the slide, where the grass gave up'),
           t('Na areia da praia que a gente vai todo domingo', 'In the sand at the beach we go to every Sunday'),
         ],
-        required: true,
+        loadBearing: true,
       },
       {
         id: 'neighbourhood',
@@ -1019,7 +1071,7 @@ export const STORIES: StoryDef[] = [
           t('O campinho, o mercado e a igreja do alto', 'The pitch, the market and the church up top'),
           t('A padaria, o ponto de ônibus e o terreno baldio da esquina', 'The bakery, the bus stop and the empty lot on the corner'),
         ],
-        required: true,
+        loadBearing: true,
       },
       {
         id: 'favourite-dinosaur',
@@ -1038,7 +1090,7 @@ export const STORIES: StoryDef[] = [
           t('Braquiossauro, o de pescoço comprido', 'Brachiosaurus, the long-necked one'),
           t('Ela não escolhe um, gosta dos que voam', 'She will not pick one, she likes the flying ones'),
         ],
-        required: true,
+        loadBearing: true,
       },
       {
         id: 'doubter',
@@ -1352,32 +1404,80 @@ export function questionsFor(
   brief: BookBrief,
 ): InterviewQuestion[] {
   const hasPet = pets(brief).length > 0
-  return story.questions
+  return [PLACE_QUESTION, ...story.questions]
     .filter((q) => {
       if (q.showIf === 'has-pet') return hasPet
       if (q.showIf === 'no-pet') return !hasPet
       return true
     })
-    .map((q) => ({
-      id: q.id,
-      group: say(q.group, brief),
-      question: say(q.question, brief),
-      hint: q.hint ? say(q.hint, brief) : undefined,
-      placeholder: q.placeholder ? say(q.placeholder, brief) : undefined,
-      suggestions: q.suggestions.map((sug) => say(sug, brief)),
-      required: q.required,
-    }))
+    .map((q) => ask(q, brief))
 }
 
-/** Questions the wizard will not let the customer walk past. */
-export function requiredQuestionIds(
-  story: StoryDef,
-  brief: BookBrief,
-): string[] {
+/**
+ * The question every book asks, whether or not it came off the shelf.
+ *
+ * The invented flow has no story to take questions from and still needs the
+ * setting, so it asks this one on its own while the rest are being written.
+ */
+export function openingQuestions(brief: BookBrief): InterviewQuestion[] {
+  return [ask(PLACE_QUESTION, brief)]
+}
+
+function ask(q: StoryQuestionDef, brief: BookBrief): InterviewQuestion {
+  return {
+    id: q.id,
+    group: say(q.group, brief),
+    question: say(q.question, brief),
+    hint: q.hint ? say(q.hint, brief) : undefined,
+    placeholder: q.placeholder ? say(q.placeholder, brief) : undefined,
+    suggestions: q.suggestions.map((sug) => say(sug, brief)),
+  }
+}
+
+/**
+ * What to invent, for the slots this story leans on that came back empty.
+ *
+ * The other half of making every question optional. Dropping the door is easy
+ * and on its own it is a downgrade: a story that reads a favourite dinosaur
+ * off an answer, handed nothing, will either write around the hole until the
+ * beat stops meaning anything or pick something at random on page seven and
+ * something else on page nine.
+ *
+ * So an empty slot is named, once, before the beats — with an example of the
+ * SHAPE an answer takes, which the question already carries as its
+ * placeholder. "Invent a favourite dinosaur" produces a generic one;
+ * "something like: Tricerátops — she corrects everybody who says it wrong"
+ * produces one with a child attached to it. Then the writer is told to hold
+ * it, because the failure that actually reaches a customer is not a wrong
+ * guess, it is two different guesses in one book.
+ */
+export function assumptionsFor(story: StoryDef, brief: BookBrief): string[] {
+  const answered = new Set(
+    brief.interview.filter((a) => a.answer.trim()).map((a) => a.questionId),
+  )
+  // The setting is asked as a question and stored as a field: the wizard
+  // lifts it out of the interview into `brief.place`, so it is never in the
+  // list above however plainly it was answered. Without this the prompt told
+  // the writer to invent a city the customer had just typed.
+  if (brief.place.trim()) answered.add(PLACE_QUESTION_ID)
   const shown = new Set(questionsFor(story, brief).map((q) => q.id))
-  return story.questions
-    .filter((q) => q.required && shown.has(q.id))
-    .map((q) => q.id)
+  const missing = [PLACE_QUESTION, ...story.questions].filter(
+    (q) => q.loadBearing && shown.has(q.id) && !answered.has(q.id),
+  )
+  if (missing.length === 0) return []
+
+  return [
+    'NOBODY ANSWERED THESE, AND THAT IS ALLOWED. No question in this product is compulsory — most people buying a present for somebody else\'s child genuinely do not know the answer to half of them, and stopping them at a door is worse than deciding for them.',
+    '',
+    'So you decide, and the rule is: pick the ordinary thing, not the interesting one. What is wanted is something so plausible the family would not notice it was invented — the default for a Brazilian household of this kind, in this place, with these people in it. A slot filled with something striking is how a book stops being about them.',
+    '',
+    'THEN HOLD IT. Write it down for yourself and use the same one on every page it appears. One guess, carried all the way through, reads as a fact nobody mentioned; two different guesses in one book reads as a broken book, and it is the only failure this can actually cause.',
+    '',
+    ...missing.map((q) => {
+      const shape = q.placeholder ? ` An answer here looks like: "${q.placeholder.en}".` : ''
+      return `- NOT ANSWERED — ${q.question.en}${shape} Choose one and keep it.`
+    }),
+  ]
 }
 
 /**
@@ -1564,6 +1664,12 @@ export function storyPrompt(
     '',
     ...castingFor(story, brief),
     '',
+    // Before the beats, never after: a beat that reads from an empty slot has
+    // to already know what is in it by the time it is read.
+    ...(() => {
+      const assumptions = assumptionsFor(story, brief)
+      return assumptions.length > 0 ? [...assumptions, ''] : []
+    })(),
     // The second person is the standing temptation of a book written for a
     // baby, and of no other book on the shelf — so the warning is addressed
     // to the shelf that needs it rather than pasted into every prompt, where
