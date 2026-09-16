@@ -39,8 +39,8 @@ export const pt = {
     colourBookAlt: 'A mesma página já pintada, para ler',
     sticker: 'Página por página',
     kinds: {
-      heading: 'Dois livros, a mesma história',
-      body: 'Você escolhe na primeira tela, e a escolha desce até o fundo: muda o traço, a paleta e como a página é diagramada.',
+      heading: 'Uma história, dois tipos de aventura',
+      body: 'Você escolhe se quer um livro de colorir ou um livro para ler. Os detalhes são os mesmos, a aventura muda.',
       colouring: {
         label: 'Para colorir',
         body: 'Traço preto sobre branco, sem uma palavra dentro: a história se conta de desenho em desenho, e são 24 deles nas histórias de prateleira. A capa já vem colorida — o resto é trabalho de quem ganhar.',
@@ -53,21 +53,21 @@ export const pt = {
     reassurance: 'Você lê a história inteira antes de a gente desenhar qualquer página.',
     footnote: 'Impresso em A4 · também para ler no navegador',
     subtitle:
-      'E não é só o nome na capa. O herói tem o tênis que ela tira ao chegar, a avó que responde pergunta com pergunta, o formigueiro que ela visita todo dia. A gente pergunta, escreve a história e desenha — e o livro chega com essas coisas dentro.',
+      'Um livro personalizado, seja para colorir ou para ler com seu herói. Cada história é única, com os detalhes que só vocês sabem reconhecer. O herói tem o tênis que ela tira ao chegar, a avó que responde pergunta com pergunta, o formigueiro que ela visita todo dia. A gente pergunta, escreve a história e desenha. O livro chega impresso com uma história única para você.',
     cta: 'Personalizar',
     how: 'Como funciona',
     steps: [
       {
         title: 'A gente pergunta',
-        body: 'Perguntas escritas para este livro, não um formulário. É de "para no meio da rua para olhar formiga" que sai uma história — de "é muito querida" não sai nada.',
+        body: 'Você nos conta os detalhes que importam, os personagens que entram na história e ajuda a criar a aventura.',
       },
       {
-        title: 'Você lê antes de desenhar',
-        body: 'Em algumas ocasiões você escolhe entre histórias que já escrevemos. Nas outras, escrevemos quatro possíveis e você fica com uma. Nos dois casos você lê o livro inteiro antes de qualquer desenho — texto é barato, desenho não.',
+        title: 'Você escolhe o traço e a aventura',
+        body: 'Você decide o tipo de desenho, como vai ser a aventura e qual o tipo de história.',
       },
       {
         title: 'Escolhe a capa, e o livro é desenhado',
-        body: 'Duas capas para você decidir. Depois cada página é ilustrada no estilo que você escolheu, conferida uma a uma, e sai em PDF pronto para imprimir — e num link para ler na hora.',
+        body: 'Você vê a capa e decide qual gosta mais. Cada página é desenhada e personalizada, imprimimos e você recebe em casa o seu livro.',
       },
     ],
   },
