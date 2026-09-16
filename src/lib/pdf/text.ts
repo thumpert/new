@@ -23,10 +23,24 @@ export function fit(
   font: PDFFont,
   measure: number,
 ): [lines: string[], size: number, leading: number] {
+  /*
+   * Size, leading, and the most lines allowed at that size.
+   *
+   * The floor is 14pt and that number is not free-floating: it is the
+   * smallest type the reading book ever sets, on its 9-and-over band. Below
+   * it the two products disagreed about how small is too small for a child,
+   * and the colouring book — the one read by the youngest readers — was the
+   * one going down to 10.
+   *
+   * The ladder still does what it did before: a page that will not fit is set
+   * a step smaller rather than having its last line dropped, which is what
+   * used to happen silently and reads as a sentence stopping in the middle.
+   * What changed is where the ladder starts and where it stops.
+   */
   const steps: [number, number, number][] = [
-    [13, 19, 4],
-    [11.5, 16.5, 5],
-    [10, 14, 6],
+    [18, 25, 3],
+    [16, 22, 4],
+    [14, 20, 5],
   ]
 
   for (const [size, leading, max] of steps) {

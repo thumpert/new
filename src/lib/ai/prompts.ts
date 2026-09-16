@@ -438,9 +438,29 @@ export function storyboardUser(
     ? getBabyStory(brief.chosenStoryId)
     : undefined
 
+  /*
+   * The tense, said out loud, because until now nothing said it.
+   *
+   * Four stories came out in the past and one came out entirely in the
+   * present, and none of that was decided — it was whatever the run
+   * produced. Within a book it was at least consistent, so it never looked
+   * like a defect; across two books bought by the same family it would be
+   * two different narrators.
+   *
+   * Past is the default: it is how the language tells a story, and it is
+   * what suits a book made of things a family said had happened. A story
+   * that wants the present declares it in its own mould along with the
+   * reason, and the reason is passed through rather than swallowed, so the
+   * writer knows what the tense is doing and holds it for that.
+   */
+  const tenseRule = preWritten?.tense
+    ? `TENSE: write this book in the PRESENT, all thirteen pages of it. This is the story's own decision and not a default — ${preWritten.tense.because} Hold it from the first page to the last: one page slipping into the past breaks exactly the thing the present was chosen for.`
+    : 'TENSE: write the whole book in the PAST. "A Aurora achou um espelhinho", not "a Aurora acha um espelhinho". It is the register this language tells stories in, and it is the right one for a book assembled out of things this family said had happened — the book is a record, and it will be read again in five years. Choose it on page one and never move: a book that drifts between past and present reads as two people writing it.'
+
   return [
     `Write the full ${pageCount}-page storyboard for the chosen story.`,
     `${narrationRule} Scene descriptions must always be in English — they are read by the image model, not by a person.`,
+    tenseRule,
     detail,
     '',
     // A reading book is a different object from the other two, so its rules

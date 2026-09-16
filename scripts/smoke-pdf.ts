@@ -7,6 +7,7 @@
  */
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
+import { BOOK_PAGES } from '../src/lib/catalog'
 import { buildBookPdf } from '../src/lib/pdf/build'
 import {
   chooseCover,
@@ -64,7 +65,7 @@ const order: Order = {
       },
     ],
     interview: [],
-    // Exercises the memory path: page 4 is redrawn from a photograph rather
+    // Page 4 is redrawn, which is the repair path: one page regenerated
     // than from an invented scene.
   },
   storyboard: {
@@ -72,7 +73,10 @@ const order: Order = {
     // Exercita a cor unica: no livro de colorir este objeto e a unica cor.
     device: 'a red woollen thread',
     dedication: 'Para a Lila, que transforma qualquer quintal em floresta.',
-    pages: Array.from({ length: FINISH === 'reading' ? 16 : 12 }, (_, i) => ({
+    // Both finishes are thirteen pages now. This said 12 and 16, which were
+    // the two lengths before they were unified, so the smoke test had been
+    // checking a book the product no longer makes.
+    pages: Array.from({ length: BOOK_PAGES }, (_, i) => ({
       index: i + 1,
       // Toda terceira pagina fala, com travessao e quebra de linha — e a
       // combinacao que a tipografia do PDF costumava destruir sem avisar.
@@ -86,7 +90,6 @@ const order: Order = {
           : `Página ${i + 1}: a Lila e o Biscoito seguem a trilha entre as mangueiras, e o quintal fica cada vez maior.`,
       sceneDescription: `Wide shot of Lila and her dog Biscoito walking along a garden path between mango trees, page ${i + 1} of the journey.`,
       charactersOnPage: ['c1', 'c2'],
-      memoryId: i === 3 ? 'm1' : undefined,
     })),
   },
 }
@@ -139,11 +142,10 @@ async function main() {
   await fs.writeFile(out, bytes)
 
   console.log(`pdf: ${out} (${(bytes.length / 1024).toFixed(1)} KB)`)
-  // The memory page must have taken the other prompt path entirely.
-  const memoryPage = (afterRedraw ?? rendered).renders?.find((r) => r.index === 4)
-  const usedPhoto = memoryPage?.promptPreview?.includes('real photograph, redrawn')
-  console.log(`pagina de memoria (4) usou o prompt da foto: ${usedPhoto ? 'SIM' : 'NAO'}`)
-  if (!usedPhoto) throw new Error('a pagina de memoria nao usou memoryPagePrompt')
+  // The photograph-becomes-a-page feature used to be asserted here. It was
+  // taken out of the product in August — it never worked well enough to ship
+  // — and the assertion outlived it, which left the only free end-to-end
+  // check failing for a reason that had nothing to do with the code under it.
 
   console.log(`prompt sample:\n${renders[0]?.promptPreview ?? '(none)'}`)
 }

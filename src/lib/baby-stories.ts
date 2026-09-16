@@ -180,6 +180,21 @@ export interface BabyStoryDef {
    * with the ones its roles did not take, and the casting block names them.
    */
   extras: string
+  /**
+   * Declared only when this story is NOT written in the past.
+   *
+   * Every book here defaults to the past: it is the register the language
+   * tells stories in, and it suits a book assembled out of things a family
+   * actually said happened. A story that wants otherwise says so here, and
+   * says why — the reason travels into the prompt, so the writer is told what
+   * the tense is doing rather than just obeying a rule.
+   *
+   * This exists because one story came out in the present on its own and was
+   * right to. Left to chance it would have come out in the past on the next
+   * run, and a customer ordering two books would have got two different
+   * narrators without anybody having chosen that.
+   */
+  tense?: { use: 'present'; because: string }
 }
 
 /* ------------------------------------------------------------------ *
@@ -575,6 +590,11 @@ export const BABY_STORIES: BabyStoryDef[] = [
     roles: [
       { id: 'grown-up', slot: 'THE PARENTS', cast: 'adult', required: true },
     ],
+    tense: {
+      use: 'present',
+      because:
+        'every page of this book has two halves happening at the same moment — the baby rehearsing on the inside, the family reacting on the outside — and simultaneity is what the present tense is for. In the past, "the baby trained and the mother felt it" becomes two events in a row instead of one event seen from two places. It is also a book about somebody who has not arrived yet, and the past tense keeps implying they have.',
+    },
     questions: [
       {
         id: 'noticed',
@@ -599,27 +619,6 @@ export const BABY_STORIES: BabyStoryDef[] = [
         required: true,
       },
       {
-        id: 'room-ready',
-        group: t('O quarto', 'The room'),
-        question: t(
-          'O que já está pronto esperando, e o que ainda falta?',
-          'What is already there waiting, and what is still missing?',
-        ),
-        hint: t(
-          'Nas últimas páginas os dois terminam o quarto e apagam a luz. Vale dizer o que está meio pronto — é mais verdadeiro que um quarto de revista.',
-          'In the last pages the two of them finish the room and turn off the light. Half-done is worth saying — it is truer than a magazine nursery.',
-        ),
-        placeholder: t(
-          'Berço montado e roupinha lavada; falta pendurar tudo na parede',
-          'Cot up and clothes washed; nothing on the walls yet',
-        ),
-        suggestions: [
-          t('Tudo pronto menos a cortina', 'Everything but the curtain'),
-          t('Só o berço, o resto ainda está em caixa', 'Just the cot, the rest is still boxed'),
-          t('A mala da maternidade já está perto da porta', 'The hospital bag is already by the door'),
-        ],
-      },
-      {
         id: 'voices',
         group: t('O bebê', 'The baby'),
         question: t(
@@ -638,6 +637,27 @@ export const BABY_STORIES: BabyStoryDef[] = [
           t('Um canta desafinado o tempo todo', 'One of us sings out of tune constantly'),
           t('Um fala com a barriga todo dia antes de dormir', 'One of us talks to the bump every night'),
           t('Um ri muito alto, dá pra ouvir de longe', 'One of us laughs very loudly, you can hear it from far off'),
+        ],
+      },
+      {
+        id: 'room-ready',
+        group: t('O quarto', 'The room'),
+        question: t(
+          'O que já está pronto esperando, e o que ainda falta?',
+          'What is already there waiting, and what is still missing?',
+        ),
+        hint: t(
+          'Nas últimas páginas os dois terminam o quarto e apagam a luz. Vale dizer o que está meio pronto — é mais verdadeiro que um quarto de revista.',
+          'In the last pages the two of them finish the room and turn off the light. Half-done is worth saying — it is truer than a magazine nursery.',
+        ),
+        placeholder: t(
+          'Berço montado e roupinha lavada; falta pendurar tudo na parede',
+          'Cot up and clothes washed; nothing on the walls yet',
+        ),
+        suggestions: [
+          t('Tudo pronto menos a cortina', 'Everything but the curtain'),
+          t('Só o berço, o resto ainda está em caixa', 'Just the cot, the rest is still boxed'),
+          t('A mala da maternidade já está perto da porta', 'The hospital bag is already by the door'),
         ],
       },
     ],

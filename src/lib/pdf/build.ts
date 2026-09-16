@@ -31,10 +31,28 @@ const A4 = { width: 595.28, height: 841.89 }
 
 /** 12.7mm — comfortably clear of a perfect-bound gutter. */
 const MARGIN = 36
-/** Vertical space reserved under the drawing for the narration. */
-const NARRATION_BLOCK = 88
-/** Extra room when a bilingual book prints a support line underneath. */
-const NARRATION_BLOCK_BILINGUAL = 122
+/**
+ * Vertical space reserved under the drawing for the narration.
+ *
+ * Derived from the worst case the type ladder in ./text.ts allows, not
+ * chosen: five lines at 14pt with 20pt of leading descend 80pt from the first
+ * baseline, and the first baseline sits 30pt below the top of the band. So
+ * the band has to be at least 110, and 112 leaves a hair.
+ *
+ * It was 88, which was right for a ladder that bottomed out at 10pt. Raising
+ * the floor to 14 without raising this would have pushed the fifth line of a
+ * full page off the bottom of its own band — the exact failure the ladder
+ * exists to prevent, reintroduced from the other end.
+ *
+ * Both still sit inside the bottom fifth of the sheet that the illustration
+ * is drawn to leave open, which is about 154pt on A4.
+ */
+const NARRATION_BLOCK = 112
+/**
+ * Extra room when a bilingual book prints a support line underneath: the
+ * band above plus 8pt of gap and up to three lines at 80% of 14pt.
+ */
+const NARRATION_BLOCK_BILINGUAL = 154
 
 const INK = rgb(0.1, 0.1, 0.12)
 const MUTED = rgb(0.45, 0.45, 0.5)
@@ -511,13 +529,20 @@ function drawNarration(
 
   // The translation sits smaller and lighter: there to be checked against,
   // not to compete with the line the reader is meant to read first.
+  //
+  // Eighty per cent of whatever the story ended up at, which is the same
+  // ratio the reading book uses. It was a fixed 10pt, and that quietly broke
+  // the hierarchy on exactly the pages that needed it most: as a fuller page
+  // pushed the story down its ladder, the gap between the two closed, and at
+  // the bottom step they were the same size — told apart only by colour.
   const secondary = story.narrationSecondary?.trim()
   if (secondary) {
+    const supportSize = size * 0.8
     y -= 8
-    const support = wrap(secondary, fonts.body, 10, measure)
+    const support = wrap(secondary, fonts.body, supportSize, measure)
     for (const line of support.slice(0, 3)) {
-      drawCentered(page, line, fonts.body, 10, y, MUTED)
-      y -= 14
+      drawCentered(page, line, fonts.body, supportSize, y, MUTED)
+      y -= supportSize * 1.4
     }
   }
 
