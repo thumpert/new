@@ -208,7 +208,7 @@ export function BookProgress({
             {order.storyboard.pages.map((page) => (
               <li
                 key={page.index}
-                className="flex gap-3 rounded-xl border border-line bg-paper-raised p-4"
+                className="flex gap-3 rounded-[var(--raio-folha)] border-2 border-ink bg-paper-raised p-4"
               >
                 <span className="w-5 shrink-0 pt-0.5 text-xs tabular-nums text-ink-soft">
                   {page.index}
@@ -271,7 +271,7 @@ export function BookProgress({
               return (
                 <div
                   key={id}
-                  className="flex flex-col overflow-hidden rounded-2xl border border-line bg-paper-raised"
+                  className="flex flex-col overflow-hidden rounded-[var(--raio-card)] border-2 border-ink bg-paper-raised"
                 >
                   <div className="flex aspect-[3/4] items-center justify-center bg-paper">
                     {cover.imageUrl ? (
@@ -331,7 +331,7 @@ export function BookProgress({
         </section>
       )}
 
-      <div className="mt-9 rounded-2xl border border-line bg-paper-raised p-6">
+      <div className="mt-9 rounded-[var(--raio-card)] border-2 border-ink bg-paper-raised p-6">
         <div className="flex items-baseline justify-between">
           <span className="text-sm text-ink">{stage}</span>
           {total > 0 && (
@@ -360,12 +360,12 @@ export function BookProgress({
                     selected === r.index ? 'ring-2 ring-accent ring-offset-1' : ''
                   } ${
                     r.status === 'done'
-                      ? 'border-accent bg-accent-soft text-accent'
+                      ? 'border-ink bg-[var(--giz-amarelo)] text-[#5a4413]'
                       : r.status === 'failed'
-                        ? 'border-accent bg-accent/20 text-accent'
+                        ? 'border-ink bg-[var(--giz-verde)] text-[#12331b]'
                         : r.status === 'generating'
                           ? 'animate-pulse border-accent/40 bg-paper text-ink-soft'
-                          : 'border-line bg-paper text-ink-soft'
+                          : 'border-ink bg-paper text-ink-soft'
                   }`}
                 >
                   {r.index}
@@ -376,7 +376,7 @@ export function BookProgress({
         )}
 
         {selectedRender && (
-          <div className="mt-5 rounded-xl border border-line bg-paper p-4">
+          <div className="mt-5 rounded-[var(--raio-folha)] border-2 border-ink bg-paper p-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="text-sm font-medium text-ink">
                 {dict.progress.page} {selectedRender.index}
@@ -404,7 +404,7 @@ export function BookProgress({
         )}
 
         {failed > 0 && (
-          <div className="mt-4 rounded-xl border border-accent/30 bg-accent/5 p-3">
+          <div className="mt-4 rounded-[var(--raio-folha)] border-2 border-ink bg-accent-soft p-3">
             <p className="text-sm text-ink">
               {dict.progress.failedPages}{' '}
               {failedRenders.map((r) => r.index).join(', ')}
@@ -433,7 +433,7 @@ export function BookProgress({
           </a>
           <a
             href={`/api/orders/${orderId}/pdf`}
-            className="rounded-full border border-line px-6 py-3 text-sm font-medium transition hover:bg-paper-warm"
+            className="rounded-[var(--raio-pill)] border-2 border-ink px-6 py-3 text-sm font-medium transition hover:bg-paper-warm"
           >
             {dict.progress.download}
           </a>

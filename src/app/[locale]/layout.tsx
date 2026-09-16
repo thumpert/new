@@ -48,7 +48,7 @@ export default async function LocaleLayout({
 
   return (
     <html
-      lang={locale === 'pt' ? 'pt-BR' : 'en'}
+      lang="pt-BR"
       className={`h-full ${fonteTitulo.variable} ${fonteCorpo.variable}`}
     >
       <body className="flex min-h-full flex-col">{children}</body>

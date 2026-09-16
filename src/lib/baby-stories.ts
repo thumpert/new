@@ -41,8 +41,25 @@ export interface Localized {
 
 const t = (pt: string, en: string): Localized => ({ pt, en })
 
-export function say(text: Localized, brief: BookBrief): string {
-  return brief.locale === 'en' ? text.en : text.pt
+/**
+ * Everything this renders — story titles, loglines, summaries, the interview
+ * questions and their suggestions — is read by the BUYER, on the site, and
+ * the site is Portuguese. So it answers in Portuguese, and the `brief` is
+ * kept in the signature because the caller has one and the day a second site
+ * language appears this is the one place that has to change.
+ *
+ * The English strings stay in the definitions below rather than being torn
+ * out. They are the finished counterpart to every Portuguese one, deleting a
+ * hundred of them is a large diff with nothing gained, and none of them is
+ * reachable from here.
+ *
+ * Note what this is NOT: the language the book is printed in. That is
+ * `bookLanguage`, it still offers English, and the writer is told about it
+ * separately — a Portuguese summary going into the prompt for an English book
+ * is correct, because the summary is a brief and not a manuscript.
+ */
+export function say(text: Localized, _brief: BookBrief): string {
+  return text.pt
 }
 
 /* ------------------------------------------------------------------ *

@@ -10,7 +10,7 @@ import { getAgeBand } from '../catalog'
 import { fit, sanitize, wrap } from './text'
 import { fetchBinary, putFile } from '../storage'
 import { isLineArt } from '../types'
-import type { BookBrief, Locale, Order, StoryPage } from '../types'
+import type { BookBrief, BookLanguageId, Order, StoryPage } from '../types'
 
 /**
  * Builds the print-ready A4 PDF.
@@ -46,7 +46,28 @@ interface Fonts {
   bodyItalic: PDFFont
 }
 
-const COPY: Record<Locale, Record<string, string>> = {
+/**
+ * The words the book prints that nobody wrote: the cover subtitle, the
+ * "starring" label, "The End", the colophon.
+ *
+ * Keyed by the language the BOOK is in, which is not the language the site is
+ * in. It used to be keyed by the site locale, and that was wrong in a way
+ * nobody had hit hard: a Brazilian ordering an English book for a child
+ * learning English — the exact case the two-language split exists for — got
+ * an English story with "Fim" printed under it. Dropping the English site
+ * would have made it every English book, which is how it surfaced.
+ *
+ * A bilingual book takes its primary language, the one set in larger type on
+ * the page: 'en-pt' prints this chrome in English, 'pt-fr' in Portuguese.
+ */
+const BOOK_COPY_LANGUAGE: Record<BookLanguageId, 'pt' | 'en'> = {
+  pt: 'pt',
+  en: 'en',
+  'en-pt': 'en',
+  'pt-fr': 'pt',
+}
+
+const COPY: Record<'pt' | 'en', Record<string, string>> = {
   pt: {
     subtitle: 'um livro de colorir feito só para você',
     starring: 'Com',
@@ -68,8 +89,7 @@ const COPY: Record<Locale, Record<string, string>> = {
 export async function buildBookPdf(order: Order): Promise<Uint8Array> {
   if (!order.storyboard) throw new Error('Cannot build a PDF without a storyboard')
 
-  const locale = order.brief.locale
-  const t = COPY[locale] ?? COPY.pt
+  const t = COPY[BOOK_COPY_LANGUAGE[order.brief.bookLanguage] ?? 'pt']
 
   const pdf = await PDFDocument.create()
   pdf.setTitle(order.storyboard.title)
@@ -255,7 +275,7 @@ async function drawCover(
     if (names.length > 0) {
       drawCentered(
         page,
-        formatNames(names, order.brief.locale),
+        formatNames(names, order.brief.bookLanguage),
         fonts.bodyItalic,
         14,
         y - 6,
@@ -290,7 +310,7 @@ async function drawCover(
     drawCentered(page, t.starring.toUpperCase(), fonts.body, 9, y, MUTED)
     y -= 22
     for (const line of wrap(
-      formatNames(names, order.brief.locale),
+      formatNames(names, order.brief.bookLanguage),
       fonts.display,
       18,
       A4.width - MARGIN * 4,
@@ -356,7 +376,7 @@ async function drawClosing(
   if (names.length > 0) {
     drawCentered(
       page,
-      formatNames(names, order.brief.locale),
+      formatNames(names, order.brief.bookLanguage),
       fonts.bodyItalic,
       13,
       74,
@@ -580,9 +600,16 @@ function drawCentered(
   page.drawText(safe, { x: (A4.width - width) / 2, y, size, font, color })
 }
 
-function formatNames(names: string[], locale: Locale): string {
+/**
+ * "Aurora, Marina e Téo" — printed on the cover under the title.
+ *
+ * Takes the book's language for the same reason the rest of the printed
+ * chrome does: this word is set in the book, so it has to be in the book's
+ * language, not the buyer's.
+ */
+function formatNames(names: string[], language: BookLanguageId): string {
   if (names.length === 1) return names[0]
-  const and = locale === 'pt' ? 'e' : 'and'
+  const and = BOOK_COPY_LANGUAGE[language] === 'en' ? 'and' : 'e'
   return `${names.slice(0, -1).join(', ')} ${and} ${names[names.length - 1]}`
 }
 

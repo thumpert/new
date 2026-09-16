@@ -4,9 +4,24 @@
  * The flow is: brief -> ideas -> chosen idea -> storyboard -> page renders -> PDF.
  */
 
-export type Locale = 'pt' | 'en'
+/**
+ * The language the SITE is read in. One only.
+ *
+ * Not to be confused with `BookLanguageId`, which is the language the book is
+ * printed in and still offers English, English-with-Portuguese and
+ * Portuguese-with-French. The two were always separate on purpose — a
+ * Brazilian buying a present for a child learning English browses in
+ * Portuguese and orders an English book — and it is the site half that has
+ * been dropped: whoever is buying reads Portuguese.
+ *
+ * Kept as a type with one member rather than deleted outright, because the
+ * URL still carries /pt and orders already on disk carry a locale. Some of
+ * those say 'en'; normalizeLocale answers 'pt' for anything it does not
+ * recognise, so an old order opens instead of throwing.
+ */
+export type Locale = 'pt'
 
-export const LOCALES: Locale[] = ['pt', 'en']
+export const LOCALES: Locale[] = ['pt']
 export const DEFAULT_LOCALE: Locale = 'pt'
 
 export type OccasionId =

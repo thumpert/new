@@ -1,44 +1,34 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { DEFAULT_LOCALE, LOCALES } from './lib/types'
+import { DEFAULT_LOCALE } from './lib/types'
 
 /**
- * Redirects locale-less paths onto the visitor's best supported locale so
- * every page lives under /pt or /en.
+ * Puts every page under /pt.
+ *
+ * This used to negotiate Accept-Language across two site languages. There is
+ * one now, so there is nothing to negotiate: a locale-less path is rewritten
+ * onto /pt, and so is a path that still asks for the retired /en — an English
+ * link handed out before the change lands on the Portuguese page rather than
+ * on a 404.
+ *
+ * The prefix stays in the URL even though it can only hold one value. Orders
+ * already placed have their book at /pt/livro/<id>, those links are out in
+ * the world, and dropping the segment would break every one of them to save
+ * three characters.
  */
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  const hasLocale = LOCALES.some(
-    (locale) => pathname === `/${locale}` || pathname.startsWith(`/${locale}/`),
-  )
-  if (hasLocale) return
-
-  const locale = pickLocale(request.headers.get('accept-language'))
-  const url = request.nextUrl.clone()
-  url.pathname = `/${locale}${pathname === '/' ? '' : pathname}`
-  return NextResponse.redirect(url)
-}
-
-/**
- * Inlined rather than imported from lib/i18n: proxy code is deployed
- * separately and should not pull in the dictionaries.
- */
-function pickLocale(acceptLanguage: string | null): string {
-  if (!acceptLanguage) return DEFAULT_LOCALE
-  const ranked = acceptLanguage
-    .split(',')
-    .map((part) => {
-      const [tag, q] = part.trim().split(';q=')
-      return { tag: tag.trim().toLowerCase(), q: q ? Number(q) : 1 }
-    })
-    .sort((a, b) => b.q - a.q)
-
-  for (const { tag } of ranked) {
-    const base = tag.split('-')[0]
-    if ((LOCALES as string[]).includes(base)) return base
+  if (pathname === `/${DEFAULT_LOCALE}` || pathname.startsWith(`/${DEFAULT_LOCALE}/`)) {
+    return
   }
-  return DEFAULT_LOCALE
+
+  const url = request.nextUrl.clone()
+  const retired = pathname.match(/^\/en(\/.*)?$/)
+  url.pathname = retired
+    ? `/${DEFAULT_LOCALE}${retired[1] ?? ''}`
+    : `/${DEFAULT_LOCALE}${pathname === '/' ? '' : pathname}`
+  return NextResponse.redirect(url)
 }
 
 export const config = {

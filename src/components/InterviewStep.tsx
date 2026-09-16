@@ -54,7 +54,7 @@ export function InterviewStep({
         </button>
       </div>
 
-      <section className="rounded-2xl border border-line bg-paper-raised p-6">
+      <section className="rounded-[var(--raio-card)] border-2 border-ink bg-paper-raised p-6">
         <h2 className="font-serif text-2xl text-ink">{block.title}</h2>
 
         <div className="mt-6 space-y-8">
@@ -69,7 +69,7 @@ export function InterviewStep({
           ))}
         </div>
 
-        <div className="mt-7 flex items-center gap-3 border-t border-line pt-5">
+        <div className="mt-7 flex items-center gap-3 border-t-2 border-line pt-5">
           <Button
             variant="ghost"
             onClick={() => setBlockIndex((i) => Math.max(0, i - 1))}
@@ -164,8 +164,8 @@ function QuestionField({
                   disabled={used}
                   className={`rounded-full border px-3.5 py-1.5 text-left text-sm transition ${
                     used
-                      ? 'cursor-default border-accent/30 bg-accent-soft text-accent/60'
-                      : 'border-line bg-paper text-ink-soft hover:border-accent hover:text-accent'
+                      ? 'cursor-default border-ink bg-[var(--giz-amarelo)] text-[#5a4413] opacity-70'
+                      : 'border-ink bg-paper text-ink-soft hover:bg-[var(--giz-amarelo)]'
                   }`}
                 >
                   {suggestion}
@@ -204,10 +204,10 @@ function QuestionList({
       onClick={onClose}
     >
       <div
-        className="flex max-h-[85vh] w-full max-w-2xl flex-col rounded-2xl bg-paper-raised shadow-xl"
+        className="flex max-h-[85vh] w-full max-w-2xl flex-col rounded-[var(--raio-card)] border-2 border-ink bg-paper-raised shadow-[var(--sombra-solida-escura)]"
         onClick={(e) => e.stopPropagation()}
       >
-        <header className="flex items-start justify-between gap-4 border-b border-line px-6 py-5">
+        <header className="flex items-start justify-between gap-4 border-b-2 border-line px-6 py-5">
           <div>
             <h2 className="font-serif text-2xl text-ink">{copy.allQuestions}</h2>
             <p className="mt-1 text-sm text-ink-soft">{copy.subtitle}</p>
@@ -234,13 +234,15 @@ function QuestionList({
                 key={block.title}
                 type="button"
                 onClick={() => onPick(i)}
-                className={`mb-1 flex w-full flex-col gap-2 rounded-xl px-4 py-4 text-left transition ${
-                  isCurrent ? 'bg-accent-soft ring-1 ring-accent' : 'hover:bg-paper'
+                className={`mb-1 flex w-full flex-col gap-2 rounded-[var(--raio-folha)] px-4 py-4 text-left transition ${
+                  isCurrent
+                    ? 'bg-[var(--giz-amarelo)] text-[#5a4413]'
+                    : 'hover:bg-paper'
                 }`}
               >
                 <span className="flex items-center justify-between gap-3">
                   <span
-                    className={`font-medium ${isCurrent ? 'text-accent' : 'text-ink'}`}
+                    className={`font-bold ${isCurrent ? '' : 'text-ink'}`}
                   >
                     {block.title}
                   </span>
@@ -271,7 +273,7 @@ function QuestionList({
           })}
         </div>
 
-        <footer className="border-t border-line px-6 py-4">
+        <footer className="border-t-2 border-line px-6 py-4">
           <Button variant="ghost" className="w-full" onClick={onClose}>
             {copy.close}
           </Button>

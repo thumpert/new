@@ -48,7 +48,11 @@ export default async function LandingPage({ params }: PageProps<'/[locale]'>) {
         </div>
       </nav>
 
-      <header className="grid items-center gap-4 pb-6 pt-2.5 md:grid-cols-[1.1fr_0.9fr]">
+      {/* The stage takes the larger half now. The books ARE the argument —
+          the same page in line and in colour — and they were losing to the
+          type at 0.9fr, which made the one thing a stranger needs to see the
+          smallest thing on the screen. */}
+      <header className="grid items-center gap-6 pb-8 pt-2.5 md:grid-cols-[0.95fr_1.05fr]">
         <div className="order-1">
           <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.16em] text-accent">
             {landing.eyebrow}
@@ -93,10 +97,10 @@ export default async function LandingPage({ params }: PageProps<'/[locale]'>) {
         {/* The stage. A yellow chalk blob behind, the two books overlapping in
             front of it, and the sticker on the corner. The books are the same
             scene so the pairing reads as one book in two finishes. */}
-        <div className="relative order-2 grid min-h-[260px] place-items-center py-6">
+        <div className="relative order-2 grid min-h-[380px] place-items-center py-8 sm:min-h-[460px]">
           <div
             aria-hidden="true"
-            className="absolute h-[190px] w-[190px] rounded-[30px] bg-[var(--giz-amarelo)] opacity-60"
+            className="absolute h-[260px] w-[260px] rounded-[46px] bg-[var(--giz-amarelo)] opacity-60 sm:h-[330px] sm:w-[330px]"
             style={{ transform: 'rotate(-6deg)' }}
           />
           <div className="relative flex items-center">
@@ -106,7 +110,7 @@ export default async function LandingPage({ params }: PageProps<'/[locale]'>) {
               width={720}
               height={964}
               priority
-              className="w-[118px] -rotate-[7deg] rounded-[var(--raio-folha)] border-2 border-ink bg-sheet object-cover shadow-[var(--sombra-folha)] sm:w-[136px]"
+              className="w-[168px] -rotate-[7deg] rounded-[var(--raio-folha)] border-2 border-ink bg-sheet object-cover shadow-[var(--sombra-folha)] sm:w-[215px]"
             />
             <Image
               src="/styles/retro-storybook-colour.png"
@@ -114,15 +118,18 @@ export default async function LandingPage({ params }: PageProps<'/[locale]'>) {
               width={720}
               height={964}
               priority
-              className="-ml-6 w-[118px] rotate-[var(--giro-livro)] rounded-[var(--raio-folha)] border-2 border-ink object-cover shadow-[var(--sombra-folha)] sm:w-[136px]"
+              className="-ml-8 w-[168px] rotate-[var(--giro-livro)] rounded-[var(--raio-folha)] border-2 border-ink object-cover shadow-[var(--sombra-folha)] sm:-ml-10 sm:w-[215px]"
             />
+            {/* Anchored to the books rather than to the stage. Pinned to the
+                stage it drifted away from them as the stage grew, and a
+                sticker floating in space is not a sticker. */}
+            <span
+              className="absolute -bottom-3 -right-3 rounded-[var(--raio-pill)] border-2 border-ink bg-[var(--giz-verde)] px-3.5 py-2 text-[13px] font-bold leading-none text-[#12331b]"
+              style={{ transform: 'rotate(var(--giro-adesivo))' }}
+            >
+              {landing.sticker}
+            </span>
           </div>
-          <span
-            className="absolute bottom-3 right-0 rounded-[var(--raio-pill)] border-2 border-ink bg-[var(--giz-verde)] px-[11px] py-[7px] text-[11px] font-bold leading-none text-[#12331b]"
-            style={{ transform: 'rotate(var(--giro-adesivo))' }}
-          >
-            {landing.sticker}
-          </span>
         </div>
       </header>
 

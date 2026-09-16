@@ -36,7 +36,7 @@ export function CharactersStep({
       {characters.map((character, i) => (
         <article
           key={character.id}
-          className="rounded-2xl border border-line bg-paper-raised p-5"
+          className="rounded-[var(--raio-card)] border-2 border-ink bg-paper-raised p-5"
         >
           <div className="mb-4 flex items-center justify-between">
             <h2 className="font-serif text-lg text-ink">
@@ -74,10 +74,10 @@ export function CharactersStep({
                     key={kind}
                     type="button"
                     onClick={() => update(character.id, { kind })}
-                    className={`flex-1 rounded-xl border px-4 py-3 text-sm transition ${
+                    className={`flex-1 rounded-[var(--raio-folha)] border-2 px-4 py-3 text-sm transition ${
                       character.kind === kind
-                        ? 'border-accent bg-accent-soft text-accent'
-                        : 'border-line bg-paper-raised text-ink-soft hover:border-accent/50'
+                        ? 'border-ink bg-[var(--giz-amarelo)] text-[#5a4413]'
+                        : 'border-ink bg-paper-raised text-ink-soft hover:-translate-y-0.5'
                     }`}
                   >
                     {kind === 'person' ? copy.person : copy.pet}
@@ -123,8 +123,8 @@ export function CharactersStep({
                       }
                       className={`rounded-full border px-4 py-2 text-sm transition ${
                         on
-                          ? 'border-accent bg-accent-soft text-accent'
-                          : 'border-line bg-paper text-ink hover:border-accent'
+                          ? 'border-ink bg-[var(--giz-amarelo)] text-[#5a4413]'
+                          : 'border-ink bg-paper text-ink hover:bg-[var(--giz-amarelo)]'
                       }`}
                     >
                       {copy.genders[g]}
@@ -253,13 +253,13 @@ function PhotoUpload({
             <img
               src={url}
               alt=""
-              className="size-16 rounded-xl border border-line object-cover"
+              className="size-16 rounded-[var(--raio-folha)] border-2 border-ink object-cover"
             />
             <button
               type="button"
               aria-label={copy.removePhoto}
               onClick={() => onChange(photoUrls.filter((_, j) => j !== i))}
-              className="absolute -right-1.5 -top-1.5 flex size-5 items-center justify-center rounded-full border border-line bg-paper-raised text-xs leading-none text-ink-soft hover:text-accent"
+              className="absolute -right-1.5 -top-1.5 flex size-5 items-center justify-center rounded-[var(--raio-pill)] border-2 border-ink bg-paper-raised text-xs leading-none text-ink-soft hover:text-accent"
             >
               ×
             </button>
