@@ -83,15 +83,45 @@ const STEPS = [
 
 type Step = (typeof STEPS)[number]
 
-export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
+/**
+ * Where the wizard opens when the home page already asked the first question.
+ *
+ * The two tiles on the home are the finish step, in different clothes: one
+ * says colouring, the other says reading. Landing somebody on a screen that
+ * asks again what they just clicked is the worst kind of step — it reads as
+ * if the click was not registered. So the arriving finish is taken as
+ * answered, and the wizard opens on the screen after it.
+ *
+ * Found by name rather than by number so that reordering STEPS above cannot
+ * quietly send an arriving customer to the wrong screen.
+ */
+function openingStep(initialFinish: BookFinish | undefined): number {
+  if (!initialFinish) return 0
+  // 'age' exists only for a reading book; a colouring book's next real
+  // question is the book's language.
+  return initialFinish === 'reading'
+    ? STEPS.indexOf('age')
+    : STEPS.indexOf('bookLanguage')
+}
+
+export function Wizard({
+  dict,
+  locale,
+  initialFinish,
+}: {
+  dict: Dictionary
+  locale: Locale
+  /** Set when the customer arrived from one of the home page's two tiles. */
+  initialFinish?: BookFinish
+}) {
   const router = useRouter()
 
-  const [step, setStep] = useState(0)
+  const [step, setStep] = useState(() => openingStep(initialFinish))
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const [orderId, setOrderId] = useState<string | null>(null)
-  const [finish, setFinish] = useState<BookFinish>('coloring')
+  const [finish, setFinish] = useState<BookFinish>(initialFinish ?? 'coloring')
   const [ageBandId, setAgeBandId] = useState<AgeBandId>('middle')
   const [bookLanguage, setBookLanguage] = useState<BookLanguageId>(locale)
   const [occasionId, setOccasionId] = useState<OccasionId>('child')
@@ -631,6 +661,7 @@ export function Wizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
             dict={dict}
             characters={characters}
             onChange={setCharacters}
+            preWritten={preWritten}
           />
         </StepShell>
       )}

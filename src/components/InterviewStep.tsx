@@ -5,17 +5,24 @@ import type { Dictionary } from '@/lib/i18n'
 import type { InterviewQuestion } from '@/lib/types'
 import { Button, TextArea } from './ui'
 
-interface Block {
-  title: string
-  questions: InterviewQuestion[]
-}
-
 /**
- * The interview, one themed block per screen.
+ * The interview, written as a conversation.
  *
- * Grouping matters more than it looks: answering three questions about the
- * same thing keeps the customer in one train of thought, where answering nine
- * unrelated ones in a row feels like a form.
+ * It used to be a themed block per screen: three questions stacked in one
+ * panel, each with its own textarea. That worked and read as a form, which is
+ * the one thing this screen cannot afford — the product's whole claim is "we
+ * ask", and a wall of boxes is not somebody asking.
+ *
+ * So: one question at a time, arriving in a bubble, with everything already
+ * said kept above it. That last part is the reason to prefer this over simply
+ * paginating, and it is not decoration. The questions of a pre-written story
+ * refer to each other — the places in the city, where the animal sleeps, what
+ * the room looks like — and being able to see what you answered two questions
+ * ago is what stops the third answer contradicting the first.
+ *
+ * The themes survive as dividers between questions rather than as pages. The
+ * grouping was always a signal about what the next few questions are about,
+ * and a divider says that without costing a screen.
  */
 export function InterviewStep({
   dict,
@@ -29,59 +36,108 @@ export function InterviewStep({
   onAnswer: (questionId: string, answer: string) => void
 }) {
   const copy = dict.wizard.interview
-  const [blockIndex, setBlockIndex] = useState(0)
+  const [index, setIndex] = useState(0)
   const [listOpen, setListOpen] = useState(false)
 
-  const blocks = useMemo(() => groupQuestions(questions), [questions])
-  const block = blocks[blockIndex]
-  if (!block) return null
+  // Kept in the order they arrived. The grouping is read off the sequence
+  // rather than restructured into it, so a question never moves.
+  const ordered = useMemo(
+    () => questions.map((q) => ({ ...q, group: q.group?.trim() || '' })),
+    [questions],
+  )
 
-  const answered = questions.filter((q) => answers[q.id]?.trim()).length
+  const current = ordered[index]
+  if (!current) return null
+
+  const answered = ordered.filter((q) => answers[q.id]?.trim()).length
+  const history = ordered.slice(0, index)
 
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-ink-soft">
-          {copy.block} {blockIndex + 1}/{blocks.length} · {answered}/
-          {questions.length} {copy.answered}
+          {index + 1} {dict.common.of} {ordered.length} · {answered}/
+          {ordered.length} {copy.answered}
         </p>
         <button
           type="button"
           onClick={() => setListOpen(true)}
-          className="text-sm text-accent underline underline-offset-4"
+          className="border-b-2 border-[var(--giz-amarelo)] pb-0.5 text-sm font-semibold text-ink-soft hover:text-ink"
         >
           {copy.allQuestions}
         </button>
       </div>
 
-      <section className="rounded-[var(--raio-card)] border-2 border-ink bg-paper-raised p-6">
-        <h2 className="font-serif text-2xl text-ink">{block.title}</h2>
+      <section className="rounded-[var(--raio-card)] border-2 border-ink bg-paper-raised p-5 sm:p-6">
+        {history.map((question, i) => (
+          <Exchange
+            key={question.id}
+            dict={dict}
+            question={question}
+            answer={answers[question.id] ?? ''}
+            showDivider={question.group !== (ordered[i - 1]?.group ?? null)}
+            onJump={() => setIndex(i)}
+          />
+        ))}
 
-        <div className="mt-6 space-y-8">
-          {block.questions.map((question) => (
-            <QuestionField
-              key={question.id}
-              dict={dict}
-              question={question}
-              value={answers[question.id] ?? ''}
-              onChange={(value) => onAnswer(question.id, value)}
-            />
-          ))}
+        {current.group &&
+          current.group !== (ordered[index - 1]?.group ?? null) && (
+            <Divider title={current.group} />
+          )}
+
+        {/* The question being asked. Warmer and larger than the ones behind
+            it, so the eye lands here on a screen that grows as it is used. */}
+        <div
+          className="max-w-[86%] rounded-[16px_16px_16px_4px] border-2 border-ink bg-[var(--tile-areia)] px-4 py-3.5 sm:max-w-[74%]"
+          style={{ transform: 'rotate(-0.5deg)' }}
+        >
+          <p className="font-bold leading-snug text-[#5a4413]">
+            {current.question}
+            {current.required && (
+              <span className="ml-1" title="Obrigatória">
+                ★
+              </span>
+            )}
+          </p>
+          {current.hint && (
+            <p className="mt-1.5 text-[13px] leading-snug text-[#7a6634]">
+              {current.hint}
+            </p>
+          )}
         </div>
 
-        <div className="mt-7 flex items-center gap-3 border-t-2 border-line pt-5">
+        <div className="mt-3.5">
+          <TextArea
+            value={answers[current.id] ?? ''}
+            onChange={(value) => onAnswer(current.id, value)}
+            placeholder={current.placeholder ?? copy.answerPlaceholder}
+            rows={3}
+            maxLength={2000}
+          />
+        </div>
+
+        {current.suggestions.length > 0 && (
+          <Suggestions
+            dict={dict}
+            suggestions={current.suggestions}
+            value={answers[current.id] ?? ''}
+            onApply={(text) => onAnswer(current.id, text)}
+          />
+        )}
+
+        <div className="mt-6 flex items-center gap-3 border-t-2 border-line pt-5">
           <Button
             variant="ghost"
-            onClick={() => setBlockIndex((i) => Math.max(0, i - 1))}
-            disabled={blockIndex === 0}
+            onClick={() => setIndex((i) => Math.max(0, i - 1))}
+            disabled={index === 0}
           >
             {dict.common.back}
           </Button>
           <Button
             onClick={() =>
-              setBlockIndex((i) => Math.min(blocks.length - 1, i + 1))
+              setIndex((i) => Math.min(ordered.length - 1, i + 1))
             }
-            disabled={blockIndex === blocks.length - 1}
+            disabled={index === ordered.length - 1}
           >
             {dict.common.next}
           </Button>
@@ -91,11 +147,11 @@ export function InterviewStep({
       {listOpen && (
         <QuestionList
           dict={dict}
-          blocks={blocks}
+          questions={ordered}
           answers={answers}
-          currentBlock={blockIndex}
+          currentIndex={index}
           onPick={(i) => {
-            setBlockIndex(i)
+            setIndex(i)
             setListOpen(false)
           }}
           onClose={() => setListOpen(false)}
@@ -105,92 +161,143 @@ export function InterviewStep({
   )
 }
 
-function QuestionField({
+/** The theme changing, said once, where a page break used to be. */
+function Divider({ title }: { title: string }) {
+  return (
+    <div className="mb-4 flex items-center gap-3 first:mt-0">
+      <span className="h-0.5 flex-1 bg-line" />
+      <span className="text-[11px] font-bold uppercase tracking-[0.09em] text-ink-mute">
+        {title}
+      </span>
+      <span className="h-0.5 flex-1 bg-line" />
+    </div>
+  )
+}
+
+/**
+ * One question already asked, with what was said back.
+ *
+ * A question that was walked past without an answer keeps its place and says
+ * so, rather than vanishing. Vanishing would make the count at the top
+ * disagree with the screen, and it would quietly hide the thing the customer
+ * most likely wants to fix.
+ */
+function Exchange({
   dict,
   question,
-  value,
-  onChange,
+  answer,
+  showDivider,
+  onJump,
 }: {
   dict: Dictionary
   question: InterviewQuestion
-  value: string
-  onChange: (value: string) => void
+  answer: string
+  showDivider: boolean
+  onJump: () => void
 }) {
   const copy = dict.wizard.interview
 
-  /** Appends a suggestion, so picking a second one builds on the first. */
-  function applySuggestion(text: string) {
-    const current = value.trim()
-    if (!current) return onChange(text)
-    if (current.includes(text)) return
-    onChange(`${current} ${text}`)
-  }
+  return (
+    <>
+      {showDivider && question.group && <Divider title={question.group} />}
+
+      <button
+        type="button"
+        onClick={onJump}
+        className="mb-2 block max-w-[86%] rounded-[16px_16px_16px_4px] border-2 border-ink bg-[var(--tile-azul)] px-4 py-2.5 text-left sm:max-w-[68%]"
+        style={{ transform: 'rotate(-0.4deg)' }}
+      >
+        <span className="text-sm font-semibold leading-snug text-[var(--tile-azul-ink)]">
+          {question.question}
+        </span>
+      </button>
+
+      {answer.trim() ? (
+        <button
+          type="button"
+          onClick={onJump}
+          className="mb-5 ml-auto block max-w-[86%] rounded-[16px_16px_4px_16px] border-2 border-ink bg-sheet px-4 py-2.5 text-left sm:max-w-[66%]"
+          style={{ transform: 'rotate(0.35deg)' }}
+        >
+          <span className="text-sm leading-snug whitespace-pre-line text-ink-soft">
+            {answer.trim()}
+          </span>
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={onJump}
+          className="mb-5 ml-auto block rounded-[var(--raio-pill)] border-2 border-dashed border-line px-4 py-2 text-left"
+        >
+          <span className="text-[13px] font-semibold text-ink-mute">
+            {copy.unanswered}
+          </span>
+        </button>
+      )}
+    </>
+  )
+}
+
+/** Appends rather than replaces, so a second pick builds on the first. */
+function Suggestions({
+  dict,
+  suggestions,
+  value,
+  onApply,
+}: {
+  dict: Dictionary
+  suggestions: string[]
+  value: string
+  onApply: (next: string) => void
+}) {
+  const copy = dict.wizard.interview
 
   return (
-    <div>
-      <h3 className="font-medium text-ink">
-        {question.question}
-        {question.required && (
-          <span className="ml-1 text-accent" title="Obrigatória">
-            ★
-          </span>
-        )}
-      </h3>
-      {question.hint && (
-        <p className="mt-1 text-sm text-ink-soft">{question.hint}</p>
-      )}
-
-      <div className="mt-3">
-        <TextArea
-          value={value}
-          onChange={onChange}
-          placeholder={question.placeholder ?? copy.answerPlaceholder}
-          rows={3}
-          maxLength={2000}
-        />
+    <div className="mt-3">
+      <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.09em] text-ink-mute">
+        {copy.suggestions}
+      </p>
+      <div className="flex flex-wrap gap-2">
+        {suggestions.map((suggestion, i) => {
+          const used = value.includes(suggestion)
+          return (
+            <button
+              key={i}
+              type="button"
+              onClick={() => {
+                const current = value.trim()
+                if (!current) return onApply(suggestion)
+                if (current.includes(suggestion)) return
+                onApply(`${current} ${suggestion}`)
+              }}
+              disabled={used}
+              className={`rounded-[var(--raio-pill)] border-2 px-3.5 py-1.5 text-left text-sm transition ${
+                used
+                  ? 'cursor-default border-ink bg-[var(--giz-amarelo)] text-[#5a4413] opacity-70'
+                  : 'border-ink bg-paper text-ink-soft hover:bg-[var(--giz-amarelo)]'
+              }`}
+            >
+              {suggestion}
+            </button>
+          )
+        })}
       </div>
-
-      {question.suggestions.length > 0 && (
-        <div className="mt-3">
-          <p className="mb-2 text-xs text-ink-soft">{copy.suggestions}</p>
-          <div className="flex flex-wrap gap-2">
-            {question.suggestions.map((suggestion, i) => {
-              const used = value.includes(suggestion)
-              return (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => applySuggestion(suggestion)}
-                  disabled={used}
-                  className={`rounded-full border px-3.5 py-1.5 text-left text-sm transition ${
-                    used
-                      ? 'cursor-default border-ink bg-[var(--giz-amarelo)] text-[#5a4413] opacity-70'
-                      : 'border-ink bg-paper text-ink-soft hover:bg-[var(--giz-amarelo)]'
-                  }`}
-                >
-                  {suggestion}
-                </button>
-              )
-            })}
-          </div>
-        </div>
-      )}
     </div>
   )
 }
 
 function QuestionList({
   dict,
-  blocks,
+  questions,
   answers,
-  currentBlock,
+  currentIndex,
   onPick,
   onClose,
 }: {
   dict: Dictionary
-  blocks: Block[]
+  questions: InterviewQuestion[]
   answers: Record<string, string>
-  currentBlock: number
+  currentIndex: number
   onPick: (index: number) => void
   onClose: () => void
 }) {
@@ -208,10 +315,9 @@ function QuestionList({
         onClick={(e) => e.stopPropagation()}
       >
         <header className="flex items-start justify-between gap-4 border-b-2 border-line px-6 py-5">
-          <div>
-            <h2 className="font-serif text-2xl text-ink">{copy.allQuestions}</h2>
-            <p className="mt-1 text-sm text-ink-soft">{copy.subtitle}</p>
-          </div>
+          <h2 className="font-serif text-2xl font-extrabold text-ink">
+            {copy.allQuestions}
+          </h2>
           <button
             type="button"
             onClick={onClose}
@@ -223,50 +329,38 @@ function QuestionList({
         </header>
 
         <div className="flex-1 overflow-y-auto px-4 py-3">
-          {blocks.map((block, i) => {
-            const isCurrent = i === currentBlock
-            const done = block.questions.filter((q) =>
-              answers[q.id]?.trim(),
-            ).length
+          {questions.map((question, i) => {
+            const isCurrent = i === currentIndex
+            const done = Boolean(answers[question.id]?.trim())
 
             return (
               <button
-                key={block.title}
+                key={question.id}
                 type="button"
                 onClick={() => onPick(i)}
-                className={`mb-1 flex w-full flex-col gap-2 rounded-[var(--raio-folha)] px-4 py-4 text-left transition ${
+                className={`mb-1 flex w-full items-start gap-3 rounded-[var(--raio-folha)] px-4 py-3 text-left transition ${
                   isCurrent
                     ? 'bg-[var(--giz-amarelo)] text-[#5a4413]'
                     : 'hover:bg-paper'
                 }`}
               >
-                <span className="flex items-center justify-between gap-3">
+                <span
+                  aria-hidden
+                  className={`mt-1 size-3 shrink-0 rounded-full border-2 border-ink ${
+                    done ? 'bg-[var(--giz-verde)]' : 'bg-paper'
+                  }`}
+                />
+                <span className="flex-1">
                   <span
-                    className={`font-bold ${isCurrent ? '' : 'text-ink'}`}
+                    className={`block text-sm font-semibold ${isCurrent ? '' : 'text-ink'}`}
                   >
-                    {block.title}
+                    {question.question}
                   </span>
-                  <span className="text-xs text-ink-soft">
-                    {done}/{block.questions.length}
-                  </span>
-                </span>
-                <span className="space-y-1">
-                  {block.questions.map((q) => (
-                    <span
-                      key={q.id}
-                      className="flex items-center gap-3 text-sm text-ink-soft"
-                    >
-                      <span
-                        aria-hidden
-                        className={`size-3 shrink-0 rounded-full border-2 ${
-                          answers[q.id]?.trim()
-                            ? 'border-accent bg-accent'
-                            : 'border-line'
-                        }`}
-                      />
-                      {q.question}
+                  {done && (
+                    <span className="mt-0.5 block truncate text-xs text-ink-mute">
+                      {answers[question.id].trim()}
                     </span>
-                  ))}
+                  )}
                 </span>
               </button>
             )
@@ -281,16 +375,4 @@ function QuestionList({
       </div>
     </div>
   )
-}
-
-/** Preserves the order the questions arrived in, one entry per theme. */
-function groupQuestions(questions: InterviewQuestion[]): Block[] {
-  const blocks: Block[] = []
-  for (const question of questions) {
-    const title = question.group?.trim() || '—'
-    const existing = blocks.find((b) => b.title === title)
-    if (existing) existing.questions.push(question)
-    else blocks.push({ title, questions: [question] })
-  }
-  return blocks
 }

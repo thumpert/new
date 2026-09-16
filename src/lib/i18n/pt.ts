@@ -1,7 +1,18 @@
 export const pt = {
   meta: {
+    /* A marca, e só ela. É o que o logo escreve. */
     name: 'Por Tintim',
-    tagline: 'Um livro feito de uma pessoa só',
+    /*
+     * O <title> da aba e do Google, que é outra coisa do <h1>.
+     *
+     * Antes daqui saía só "Por Tintim", e ninguém busca por isso: busca por
+     * "livro infantil personalizado". O nome da marca vem depois do que o
+     * produto é, porque é nessa ordem que o resultado de busca é lido.
+     */
+    seoTitle: 'Livro infantil personalizado, para colorir ou para ler | Por Tintim',
+    /* A descrição do resultado de busca. Cabe em ~155 caracteres. */
+    tagline:
+      'Um livro infantil personalizado feito das histórias reais da sua família. Escolha entre livro de colorir ou livro para ler, com 13 páginas ilustradas.',
   },
   common: {
     next: 'Continuar',
@@ -17,13 +28,13 @@ export const pt = {
     of: 'de',
   },
   landing: {
-    eyebrow: 'Livro personalizado',
+    eyebrow: 'Livro infantil personalizado',
     /*
      * O título do hero é vazado e se preenche de cor, então vem quebrado em
      * três linhas curtas em caixa alta: é a mesma frase do `title`, que
      * continua sendo o que vai na aba do navegador e nos buscadores.
      */
-    heroLines: ['FEITO', 'DE UMA', 'PESSOA SÓ'],
+    heroLines: ['SEU FILHO', 'É O HERÓI', 'DA HISTÓRIA'],
     lineBookAlt: 'Uma página em traço preto, para colorir',
     colourBookAlt: 'A mesma página já pintada, para ler',
     sticker: '13 páginas',
@@ -39,11 +50,11 @@ export const pt = {
         body: 'As mesmas treze páginas, já pintadas no estilo que você escolheu, com a história embaixo. Para ler junto na hora de dormir.',
       },
     },
+    reassurance: 'Você lê a história inteira antes de a gente desenhar qualquer página.',
     footnote: 'Impresso em A4 · também para ler no navegador',
-    title: 'Um livro feito de uma pessoa só',
     subtitle:
-      'Não é o nome dela na capa. É o tênis que ela tira ao chegar, a pergunta que a avó sempre devolve, o formigueiro que ela visita todo dia. A gente pergunta, escreve a história e desenha — e o livro sai com essas coisas dentro.',
-    cta: 'Começar o meu',
+      'E não é só o nome na capa. O herói tem o tênis que ela tira ao chegar, a avó que responde pergunta com pergunta, o formigueiro que ela visita todo dia. A gente pergunta, escreve a história e desenha — e o livro chega com essas coisas dentro.',
+    cta: 'Personalizar',
     how: 'Como funciona',
     steps: [
       {
@@ -153,6 +164,8 @@ export const pt = {
       suggestions: 'Sugestões — clique para usar e edite depois',
       block: 'Bloco',
       answered: 'respondidas',
+      /* O balão fantasma de uma pergunta que ficou para trás sem resposta. */
+      unanswered: 'ficou em branco — responder',
     },
     title: {
       title: 'Qual o título do livro?',

@@ -92,6 +92,13 @@ export default async function LandingPage({ params }: PageProps<'/[locale]'>) {
           >
             {landing.cta} →
           </Link>
+
+          {/* Directly under the button, because it answers the question being
+              asked at exactly that moment: what if it comes out generic and I
+              have already paid? */}
+          <p className="mt-3.5 max-w-[42ch] text-[13px] leading-snug text-ink-mute">
+            {landing.reassurance}
+          </p>
         </div>
 
         {/* The stage. A yellow chalk blob behind, the two books overlapping in
@@ -144,10 +151,19 @@ export default async function LandingPage({ params }: PageProps<'/[locale]'>) {
           {landing.kinds.body}
         </p>
 
-        <div className="mt-6 grid gap-3 sm:grid-cols-2">
+        {/* Each tile is the first question of the wizard, answered. Clicking
+            one goes straight past that screen — being asked again which book
+            you want, one click after saying so, reads as the click not having
+            landed.
+
+            Laid out side by side rather than stacked: the picture is the
+            evidence and the words are the caption, and a caption underneath
+            pushes the next tile off the fold. */}
+        <div className="mt-6 grid gap-4 sm:grid-cols-2">
           {[
             {
               ...landing.kinds.colouring,
+              href: `/${lang}/criar?livro=colorir`,
               art: '/styles/retro-storybook.png',
               alt: landing.lineBookAlt,
               tile: 'var(--tile-areia)',
@@ -156,6 +172,7 @@ export default async function LandingPage({ params }: PageProps<'/[locale]'>) {
             },
             {
               ...landing.kinds.reading,
+              href: `/${lang}/criar?livro=ler`,
               art: '/styles/retro-storybook-colour.png',
               alt: landing.colourBookAlt,
               tile: 'var(--tile-verde)',
@@ -163,33 +180,43 @@ export default async function LandingPage({ params }: PageProps<'/[locale]'>) {
               giro: 'giro-b',
             },
           ].map((kind) => (
-            <article
+            <Link
               key={kind.label}
-              className={`${kind.giro} overflow-hidden border-2 border-ink transition-transform duration-[180ms] hover:rotate-0`}
+              href={kind.href}
+              className={`${kind.giro} flex items-stretch gap-0 overflow-hidden border-2 border-ink transition-transform duration-[180ms] hover:rotate-0 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[var(--giz-amarelo)]`}
               style={{
                 borderRadius: 'var(--raio-tile)',
                 background: kind.tile,
               }}
             >
-              <div className="flex h-40 items-center justify-center border-b-2 border-ink bg-sheet">
+              {/* The picture takes the larger share. It is the evidence —
+                  one page in line, one painted — and the words beside it are
+                  the caption; a caption wider than what it captions inverts
+                  which of the two is doing the work. */}
+              <span className="flex w-[58%] shrink-0 items-center justify-center border-r-2 border-ink bg-sheet p-2">
                 <Image
                   src={kind.art}
                   alt={kind.alt}
                   width={720}
                   height={964}
-                  className="h-full w-auto object-contain"
+                  className="h-auto w-full object-contain"
                 />
-              </div>
-              <div className="px-5 py-4">
-                <h3
-                  className="font-serif text-lg font-extrabold"
+              </span>
+              <span className="flex flex-col justify-center px-4 py-5">
+                <span
+                  className="font-serif text-xl font-extrabold leading-tight"
                   style={{ color: kind.ink }}
                 >
                   {kind.label}
-                </h3>
-                <p className="mt-1 text-sm leading-snug text-ink">{kind.body}</p>
-              </div>
-            </article>
+                </span>
+                <span className="mt-2 text-sm leading-snug text-ink">
+                  {kind.body}
+                </span>
+                <span className="mt-3 text-sm font-bold text-ink">
+                  {landing.cta} →
+                </span>
+              </span>
+            </Link>
           ))}
         </div>
       </section>

@@ -6,14 +6,32 @@ import { GENDERS } from '@/lib/types'
 import type { Character, CharacterKind } from '@/lib/types'
 import { Button, Field, TextArea, TextInput } from './ui'
 
+/*
+ * Three of the fields below are asked only when the story is still open.
+ *
+ * A pre-written baby story has its thirteen beats fixed and its parts already
+ * cast by the mould, which takes the ground out from under them: the role is
+ * decided (who finds the mirror, who makes the list), the personality can
+ * only tint a line somebody was always going to say, and "something that has
+ * to be in the book" is the worst of the three — it promises to place a real
+ * detail in a book with no free page to place it on. Either it is quietly
+ * dropped, and the customer answered for nothing, or it is forced into a beat
+ * where it does not belong, and that is a defect they paid for.
+ *
+ * They stay for every other occasion, where the story is invented and those
+ * same answers are most of what it is invented from.
+ */
 export function CharactersStep({
   dict,
   characters,
   onChange,
+  preWritten,
 }: {
   dict: Dictionary
   characters: Character[]
   onChange: (characters: Character[]) => void
+  /** True when a pre-written story will be chosen, i.e. the new-baby path. */
+  preWritten?: boolean
 }) {
   const copy = dict.wizard.characters
 
@@ -86,14 +104,16 @@ export function CharactersStep({
               </div>
             </Field>
 
-            <Field label={copy.role}>
-              <TextInput
-                value={character.role ?? ''}
-                maxLength={120}
-                placeholder={copy.rolePlaceholder}
-                onChange={(role) => update(character.id, { role })}
-              />
-            </Field>
+            {!preWritten && (
+              <Field label={copy.role}>
+                <TextInput
+                  value={character.role ?? ''}
+                  maxLength={120}
+                  placeholder={copy.rolePlaceholder}
+                  onChange={(role) => update(character.id, { role })}
+                />
+              </Field>
+            )}
 
             <Field label={copy.age}>
               <TextInput
@@ -150,25 +170,33 @@ export function CharactersStep({
               />
             </Field>
 
-            <Field label={copy.personality} hint={copy.personalityHint}>
-              <TextArea
-                value={character.personality ?? ''}
-                rows={2}
-                maxLength={1200}
-                placeholder={copy.personalityPlaceholder}
-                onChange={(personality) => update(character.id, { personality })}
-              />
-            </Field>
+            {!preWritten && (
+              <>
+                <Field label={copy.personality} hint={copy.personalityHint}>
+                  <TextArea
+                    value={character.personality ?? ''}
+                    rows={2}
+                    maxLength={1200}
+                    placeholder={copy.personalityPlaceholder}
+                    onChange={(personality) =>
+                      update(character.id, { personality })
+                    }
+                  />
+                </Field>
 
-            <Field label={copy.storyNotes} hint={copy.storyNotesHint}>
-              <TextArea
-                value={character.storyNotes ?? ''}
-                rows={2}
-                maxLength={1200}
-                placeholder={copy.storyNotesPlaceholder}
-                onChange={(storyNotes) => update(character.id, { storyNotes })}
-              />
-            </Field>
+                <Field label={copy.storyNotes} hint={copy.storyNotesHint}>
+                  <TextArea
+                    value={character.storyNotes ?? ''}
+                    rows={2}
+                    maxLength={1200}
+                    placeholder={copy.storyNotesPlaceholder}
+                    onChange={(storyNotes) =>
+                      update(character.id, { storyNotes })
+                    }
+                  />
+                </Field>
+              </>
+            )}
           </div>
 
           <div className="mt-4">
