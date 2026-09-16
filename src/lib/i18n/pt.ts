@@ -34,7 +34,7 @@ export const pt = {
      * três linhas curtas em caixa alta: é a mesma frase do `title`, que
      * continua sendo o que vai na aba do navegador e nos buscadores.
      */
-    heroLines: ['SEU FILHO', 'É O HERÓI', 'DA HISTÓRIA'],
+    heroLines: ['O HERÓI', 'DA HISTÓRIA', 'MORA COM VOCÊ'],
     lineBookAlt: 'Uma página em traço preto, para colorir',
     colourBookAlt: 'A mesma página já pintada, para ler',
     sticker: '13 páginas',

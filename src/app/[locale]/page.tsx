@@ -58,11 +58,21 @@ export default async function LandingPage({ params }: PageProps<'/[locale]'>) {
             {landing.eyebrow}
           </p>
 
-          {/* The signature: the same words twice, the lower layer hollow and
-              the upper one painting itself in from the left. aria-hidden on
-              the painted copy so a screen reader hears the heading once. */}
+          {/*
+            The signature: the same words twice, the lower layer hollow and
+            the upper one painting itself in from the left. aria-hidden on the
+            painted copy so a screen reader hears the heading once.
+
+            The size is tuned to the LONGEST line, not to the viewport. The
+            handoff's clamp tops out at 72px, which was right for its own hero
+            — text in the wider column and three short words. This one gives
+            the larger column to the books, so the text sits in about 480px,
+            and 72px broke "MORA COM VOCÊ" onto a fourth line. 60px fits it
+            with room to spare at every width down to 375. Lengthen a line and
+            this number has to be measured again.
+          */}
           <div className="titulo-vazado mb-4">
-            <h1 className="m-0 font-serif text-[clamp(38px,6.2vw,72px)] font-extrabold leading-[0.98] tracking-[-0.02em] titulo-vazado__contorno">
+            <h1 className="m-0 font-serif text-[clamp(38px,5.2vw,60px)] font-extrabold leading-[0.98] tracking-[-0.02em] titulo-vazado__contorno">
               {landing.heroLines.map((line) => (
                 <span key={line} className="block">
                   {line}
@@ -71,7 +81,7 @@ export default async function LandingPage({ params }: PageProps<'/[locale]'>) {
             </h1>
             <div
               aria-hidden="true"
-              className="m-0 font-serif text-[clamp(38px,6.2vw,72px)] font-extrabold leading-[0.98] tracking-[-0.02em] titulo-vazado__preenchimento"
+              className="m-0 font-serif text-[clamp(38px,5.2vw,60px)] font-extrabold leading-[0.98] tracking-[-0.02em] titulo-vazado__preenchimento"
             >
               {landing.heroLines.map((line) => (
                 <span key={line} className="block">
