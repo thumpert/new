@@ -18,9 +18,27 @@ export const pt = {
   },
   landing: {
     eyebrow: 'Livro personalizado',
-    sampleAlt: 'Uma página dupla de um livro já feito',
-    sampleNarration:
-      'O botão azul-turquesa esperava esse dia desde sempre. Pulou na mesa. Passou entre duas xícaras sem derrubar nenhuma.',
+    /*
+     * O título do hero é vazado e se preenche de cor, então vem quebrado em
+     * três linhas curtas em caixa alta: é a mesma frase do `title`, que
+     * continua sendo o que vai na aba do navegador e nos buscadores.
+     */
+    heroLines: ['FEITO', 'DE UMA', 'PESSOA SÓ'],
+    lineBookAlt: 'Uma página em traço preto, para colorir',
+    colourBookAlt: 'A mesma página já pintada, para ler',
+    sticker: '13 páginas',
+    kinds: {
+      heading: 'Dois livros, a mesma história',
+      body: 'Você escolhe na primeira tela, e a escolha desce até o fundo: muda o traço, a paleta e como a página é diagramada.',
+      colouring: {
+        label: 'Para colorir',
+        body: 'Treze páginas em traço preto sobre branco. A capa já vem colorida — o resto é trabalho de quem ganhar.',
+      },
+      reading: {
+        label: 'Para ler',
+        body: 'As mesmas treze páginas, já pintadas no estilo que você escolheu, com a história embaixo. Para ler junto na hora de dormir.',
+      },
+    },
     footnote: 'Impresso em A4 · também para ler no navegador',
     title: 'Um livro feito de uma pessoa só',
     subtitle:

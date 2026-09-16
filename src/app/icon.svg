@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!--
+    The browser-tab mark. Same book as src/components/Logo.tsx, with two
+    differences forced by the size it is seen at.
+
+    The hex values are repeated here rather than read from the design tokens
+    because this file is served on its own, with no stylesheet behind it. They
+    are --cor-branco, --giz-vermelho and --cor-tinta; if those change, this
+    changes with them.
+
+    The three narration strokes are gone and the outline is heavier: at sixteen
+    pixels the strokes close into a smudge, and a 3.4 outline thins to nothing.
+  -->
+  <path d="M6 15C17 10 27 12 32 16.5V51C27 47 17 45 6 50Z"
+        fill="#FFFFFF" stroke="#2E2A22" stroke-width="5" stroke-linejoin="round"/>
+  <path d="M58 15C47 10 37 12 32 16.5V51C37 47 47 45 58 50Z"
+        fill="#E2574C" stroke="#2E2A22" stroke-width="5" stroke-linejoin="round"/>
+</svg>

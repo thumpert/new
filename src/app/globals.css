@@ -1,40 +1,125 @@
 @import 'tailwindcss';
 
 /*
- * Kraft paper, and a teal cold enough to cut it.
+ * Paper, chalk and ink — the design system in design_handoff_livro_colorir.
  *
- * The product is a printed book, so the site is the material it is printed
- * on — but the off-white a page like this usually reaches for is the same
- * off-white every generated page reaches for, and it reads as nobody's
- * decision. Recycled kraft is a real stock with a real colour, it makes the
- * white book pages sitting on it look like paper rather than like screens,
- * and the one cold accent stops the whole thing going sepia.
+ * The reasoning the old kraft palette carried is still the reasoning here:
+ * the product is a printed book, so the site is the material it is printed
+ * on. What changed is the stock. Kraft was tuned warm to avoid reading as
+ * cheap, and it was always one shade away from doing exactly that; this
+ * paper is lighter, takes a grain, and lets a white book page sitting on it
+ * read as paper rather than as a screen — which was the point of kraft in
+ * the first place, reached with less risk.
  *
- * The risk it carries: kraft a shade too grey or too dark stops reading as
- * handmade and starts reading as cheap. These values are tuned warm and
- * light on purpose, and any change to them should be checked against a real
- * page of the book sitting on top.
+ * The accent moved from a cold teal to chalk red. The teal existed to stop
+ * the page going sepia; the red does that job and also belongs to the
+ * product, because a box of chalk is what the child is about to open.
+ *
+ * SOURCE OF TRUTH: the Portuguese variable names below. They come from
+ * design_handoff_livro_colorir/tokens.css and the handoff README calls them
+ * final — colour, type, radius, shadow and rotation are hifi and are meant
+ * to be reproduced exactly. Change a value here only against that file.
  */
 :root {
-  --paper: #c2a184;
-  --paper-raised: #cdb098;
-  --ink: #241b12;
-  --ink-soft: #57432f;
-  --line: #b08f72;
-  --accent: #0e5f5a;
-  --accent-soft: #d6e6e3;
+  /* ---- Cor: base ---- */
+  --cor-papel: #fdf3e0;
+  --cor-papel-alt: #fffcf4;
+  --cor-branco: #ffffff;
+  --cor-borda: #e3d4b4;
+  --cor-borda-suave: rgba(46, 42, 34, 0.08);
+
+  /* ---- Cor: tinta / texto ---- */
+  --cor-tinta: #2e2a22;
+  --cor-tinta-2: #5c5444;
+  --cor-tinta-3: #6b6252;
+  --cor-tinta-4: #8c8168;
+  --cor-tinta-5: #b6aa90;
+  --cor-tinta-sombra: #1a1710;
+
+  /* ---- Cor: giz (acentos) ---- */
+  --giz-vermelho: #e2574c;
+  --giz-vermelho-sombra: #b33c33;
+  --giz-amarelo: #ffd166;
+  --giz-verde: #7fb685;
+
+  /* ---- Cor: tiles pastel ---- */
+  --tile-areia: #ffe6a8;
+  --tile-areia-ink: #9a8355;
+  --tile-verde: #d6ebd8;
+  --tile-verde-ink: #4e7a55;
+  --tile-rosa: #fbdbd4;
+  --tile-rosa-ink: #a65a4c;
+  --tile-azul: #dce6f5;
+  --tile-azul-ink: #4a6285;
+
+  /* ---- Textura de papel ---- */
+  --grao-papel:
+    repeating-linear-gradient(
+      0deg,
+      rgba(46, 42, 34, 0.045) 0 1px,
+      transparent 1px 4px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(46, 42, 34, 0.035) 0 1px,
+      transparent 1px 5px
+    );
+
+  /* ---- Raio: cantos "desenhados à mão" ---- */
+  --raio-botao: 15px 12px 16px 11px;
+  --raio-tile: 18px;
+  --raio-card: 18px;
+  --raio-folha: 10px;
+  --raio-pill: 999px;
+
+  /* ---- Bordas e sombras ---- */
+  --borda-traco: 2px solid var(--cor-tinta);
+  --sombra-solida-primaria: 0 5px 0 var(--giz-vermelho-sombra);
+  --sombra-solida-escura: 0 5px 0 var(--cor-tinta-sombra);
+  --sombra-folha: 0 6px 0 rgba(46, 42, 34, 0.12);
+
+  /* ---- Rotações ---- */
+  --giro-logo: -1.5deg;
+  --giro-botao: 0.8deg;
+  --giro-tile-a: -2.5deg;
+  --giro-tile-b: 1.8deg;
+  --giro-tile-c: -1.2deg;
+  --giro-livro: 3deg;
+  --giro-adesivo: -9deg;
+
+  /* ---- Movimento ---- */
+  --dur-preenche: 5s;
+  --dur-flutua: 7s;
+  --ease: cubic-bezier(0.45, 0.05, 0.55, 0.95);
 }
 
+/*
+ * The English names below are the ones the components already spell, and
+ * they are kept pointing at the tokens above rather than retired. Around two
+ * hundred and fifty class names across the wizard use them; repointing is
+ * what let the whole flow take the new system without every component being
+ * edited, and an edit that touches nothing is an edit that breaks nothing.
+ */
 @theme inline {
-  --color-paper: var(--paper);
-  --color-paper-raised: var(--paper-raised);
-  --color-ink: var(--ink);
-  --color-ink-soft: var(--ink-soft);
-  --color-line: var(--line);
-  --color-accent: var(--accent);
-  --color-accent-soft: var(--accent-soft);
-  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --font-serif: ui-serif, Georgia, 'Times New Roman', serif;
+  --color-paper: var(--cor-papel);
+  --color-paper-raised: var(--cor-papel-alt);
+  --color-sheet: var(--cor-branco);
+  --color-ink: var(--cor-tinta);
+  --color-ink-soft: var(--cor-tinta-2);
+  --color-ink-mute: var(--cor-tinta-4);
+  --color-ink-faint: var(--cor-tinta-5);
+  --color-line: var(--cor-borda);
+  --color-accent: var(--giz-vermelho);
+  --color-accent-soft: var(--tile-rosa);
+  --color-chalk-yellow: var(--giz-amarelo);
+  --color-chalk-green: var(--giz-verde);
+
+  /* Baloo 2 for headings, Nunito for everything else. `font-serif` is the
+     class the components already carry on every heading, so it is the one
+     pointed at the display face — the name lies now, and renaming it across
+     the app would be churn for a word nobody reads. */
+  --font-sans: var(--fonte-corpo), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--fonte-titulo), ui-rounded, system-ui, sans-serif;
 }
 
 html,
@@ -43,10 +128,97 @@ body {
 }
 
 body {
-  background: var(--paper);
-  color: var(--ink);
-  font-family: var(--font-sans);
+  background-color: var(--cor-papel);
+  background-image: var(--grao-papel);
+  color: var(--cor-tinta);
+  font-family: var(--fonte-corpo), ui-sans-serif, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+}
+
+/*
+ * Nothing is perfectly square to the page. Rule 4 of the system, and the
+ * cheapest way to keep it true without every call site remembering: one
+ * class per angle, applied where a group repeats.
+ */
+.giro-a {
+  transform: rotate(var(--giro-tile-a));
+}
+.giro-b {
+  transform: rotate(var(--giro-tile-b));
+}
+.giro-c {
+  transform: rotate(var(--giro-tile-c));
+}
+
+/* Below 480px the rotations cost width they cannot afford, so they halve. */
+@media (max-width: 480px) {
+  :root {
+    --giro-logo: -0.75deg;
+    --giro-botao: 0.4deg;
+    --giro-tile-a: -1.25deg;
+    --giro-tile-b: 0.9deg;
+    --giro-tile-c: -0.6deg;
+    --giro-livro: 1.5deg;
+    --giro-adesivo: -4.5deg;
+  }
+}
+
+/*
+ * The signature: an outlined heading that paints itself in, left to right.
+ * Two stacked copies of the same words — the lower one hollow, the upper one
+ * solid red and clipped. Where -webkit-text-stroke does not exist the hollow
+ * layer goes solid ink and the painted layer is removed, so the heading is
+ * still a heading rather than an invisible one.
+ */
+.titulo-vazado {
+  position: relative;
+}
+
+.titulo-vazado__contorno {
+  color: transparent;
+  -webkit-text-stroke: 2px var(--cor-tinta);
+}
+
+.titulo-vazado__preenchimento {
+  position: absolute;
+  inset: 0;
+  color: var(--giz-vermelho);
+  animation: preenche-titulo var(--dur-preenche) ease-in-out infinite alternate;
+}
+
+@supports not (-webkit-text-stroke: 2px black) {
+  .titulo-vazado__contorno {
+    color: var(--cor-tinta);
+    -webkit-text-stroke: 0;
+  }
+  .titulo-vazado__preenchimento {
+    display: none;
+  }
+}
+
+@keyframes preenche-titulo {
+  0%,
+  12% {
+    clip-path: inset(0 100% 0 0);
+  }
+  70%,
+  100% {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes flutua {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-7px);
+  }
+}
+
+.flutua {
+  animation: flutua var(--dur-flutua) var(--ease) infinite;
 }
 
 /* The wizard is long; keep step transitions from feeling jumpy. */
@@ -64,5 +236,15 @@ body {
   to {
     opacity: 1;
     transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .titulo-vazado__preenchimento {
+    animation: none !important;
+    clip-path: none !important;
+  }
+  .flutua {
+    animation: none !important;
   }
 }

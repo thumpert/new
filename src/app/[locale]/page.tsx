@@ -1,101 +1,211 @@
 import Image from 'next/image'
 import Link from 'next/link'
+import { Logo } from '@/components/Logo'
 import { getDictionary, normalizeLocale } from '@/lib/i18n'
 
 /**
- * The page leads with the object.
+ * The page leads with the object, and with the fact that the object is two
+ * things.
  *
  * A stranger arriving here has no idea what a "personalized book" is, and no
- * sentence fixes that as fast as one real spread does: two pages from a book
- * that already exists, the words printed onto the picture the way they are
- * printed on paper. The argument for the product is made by showing the
- * product, and the copy beside it only has to say what is inside.
+ * sentence fixes that as fast as the thing itself does. So the stage in the
+ * hero holds the SAME page drawn twice — once in black line, once painted —
+ * which is the whole product decision in one picture: a book to colour in, or
+ * a book to read. Two files of one scene make that argument; two files of two
+ * different scenes would only look like a gallery.
  *
- * The three steps below are numbered because the order is the product. Reading
- * the story before anything is drawn is not a feature that could sit anywhere
- * in the list — it is deliberately between choosing and drawing, and that is
- * where the money is saved.
+ * The three steps below are numbered because the order is the product.
+ * Reading the story before anything is drawn is not a feature that could sit
+ * anywhere in the list — it is deliberately between choosing and drawing, and
+ * that is where the money is saved.
+ *
+ * No price anywhere. The handoff's home carries one, and the handoff's own
+ * README marks it as a placeholder to confirm with the business; there is no
+ * checkout in this product yet, and a price on a page that cannot take money
+ * is a promise made by the design rather than by the company.
  */
 export default async function LandingPage({ params }: PageProps<'/[locale]'>) {
   const { locale } = await params
   const dict = getDictionary(locale)
   const lang = normalizeLocale(locale)
+  const { landing } = dict
 
   return (
-    <main className="mx-auto w-full max-w-5xl flex-1 px-5 pb-16">
-      <header className="flex items-center justify-between py-7">
-        <span className="font-serif text-[15px] text-ink">{dict.meta.name}</span>
-        <Link
-          href={`/${lang}/criar`}
-          className="rounded-full bg-accent px-6 py-3 text-sm font-medium text-white transition hover:brightness-110"
-        >
-          {dict.landing.cta}
-        </Link>
-      </header>
-
-      <div className="grid items-center gap-12 py-10 md:grid-cols-[1.05fr_.95fr] md:gap-14 md:py-16">
-        <div className="flex flex-col items-start gap-6">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-accent">
-            {dict.landing.eyebrow}
-          </p>
-          <h1 className="font-serif text-4xl leading-[1.08] text-ink sm:text-5xl">
-            {dict.landing.title}
-          </h1>
-          <p className="max-w-[52ch] text-[17px] leading-relaxed text-ink-soft">
-            {dict.landing.subtitle}
-          </p>
+    <main className="mx-auto w-full max-w-[1120px] flex-1 px-6 pb-16 sm:px-11">
+      <nav className="flex items-center justify-between py-[18px]">
+        <Logo name={dict.meta.name} size={28} />
+        <div className="flex items-center gap-4">
           <Link
             href={`/${lang}/criar`}
-            className="rounded-full bg-accent px-8 py-4 font-medium text-white transition hover:brightness-110"
+            className="inline-block bg-ink px-[18px] py-2.5 text-[13px] font-semibold text-[var(--cor-papel)] transition-transform duration-[120ms] hover:translate-y-0.5 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[var(--giz-amarelo)]"
+            style={{
+              borderRadius: '14px 12px 15px 11px',
+              transform: 'rotate(var(--giro-botao))',
+            }}
           >
-            {dict.landing.cta}
+            {landing.cta} →
+          </Link>
+        </div>
+      </nav>
+
+      <header className="grid items-center gap-4 pb-6 pt-2.5 md:grid-cols-[1.1fr_0.9fr]">
+        <div className="order-1">
+          <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.16em] text-accent">
+            {landing.eyebrow}
+          </p>
+
+          {/* The signature: the same words twice, the lower layer hollow and
+              the upper one painting itself in from the left. aria-hidden on
+              the painted copy so a screen reader hears the heading once. */}
+          <div className="titulo-vazado mb-4">
+            <h1 className="m-0 font-serif text-[clamp(38px,6.2vw,72px)] font-extrabold leading-[0.98] tracking-[-0.02em] titulo-vazado__contorno">
+              {landing.heroLines.map((line) => (
+                <span key={line} className="block">
+                  {line}
+                </span>
+              ))}
+            </h1>
+            <div
+              aria-hidden="true"
+              className="m-0 font-serif text-[clamp(38px,6.2vw,72px)] font-extrabold leading-[0.98] tracking-[-0.02em] titulo-vazado__preenchimento"
+            >
+              {landing.heroLines.map((line) => (
+                <span key={line} className="block">
+                  {line}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <p className="mb-5 max-w-[46ch] text-[clamp(13px,1.1vw,16px)] leading-[1.65] text-ink-soft text-pretty">
+            {landing.subtitle}
+          </p>
+
+          <Link
+            href={`/${lang}/criar`}
+            className="inline-block bg-accent px-[22px] py-3.5 text-sm font-bold text-[var(--cor-papel)] shadow-[var(--sombra-solida-primaria)] transition-[transform,box-shadow] duration-[120ms] hover:translate-y-0.5 hover:shadow-[0_3px_0_var(--giz-vermelho-sombra)] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[var(--giz-amarelo)]"
+            style={{ borderRadius: 'var(--raio-botao)' }}
+          >
+            {landing.cta} →
           </Link>
         </div>
 
-        {/* A real spread, laid out as the printed book lays it out: art to the
-            edge, and the narration across the calm band the illustration was
-            drawn to leave open.
-            
-            Tilted a degree, as a book left open on the bed rather than a
-            product shot. Straightened on small screens, where the rotation
-            only costs width. */}
-        <figure className="m-0 grid grid-cols-2 overflow-hidden rounded-2xl bg-white shadow-[0_16px_40px_rgba(36,27,18,0.32)] md:-rotate-[1.2deg]">
-          <Image
-            src="/exemplo/pagina-1.jpg"
-            alt={dict.landing.sampleAlt}
-            width={760}
-            height={1074}
-            className="h-full w-full object-cover"
-            priority
+        {/* The stage. A yellow chalk blob behind, the two books overlapping in
+            front of it, and the sticker on the corner. The books are the same
+            scene so the pairing reads as one book in two finishes. */}
+        <div className="relative order-2 grid min-h-[260px] place-items-center py-6">
+          <div
+            aria-hidden="true"
+            className="absolute h-[190px] w-[190px] rounded-[30px] bg-[var(--giz-amarelo)] opacity-60"
+            style={{ transform: 'rotate(-6deg)' }}
           />
-          <div className="relative">
+          <div className="relative flex items-center">
             <Image
-              src="/exemplo/pagina-2.jpg"
-              alt=""
-              width={760}
-              height={1074}
-              className="h-full w-full object-cover"
+              src="/styles/retro-storybook.png"
+              alt={landing.lineBookAlt}
+              width={720}
+              height={964}
               priority
+              className="w-[118px] -rotate-[7deg] rounded-[var(--raio-folha)] border-2 border-ink bg-sheet object-cover shadow-[var(--sombra-folha)] sm:w-[136px]"
             />
-            <figcaption className="absolute inset-x-0 bottom-[8%] mx-auto max-w-[74%] text-center font-serif text-[11px] italic leading-snug text-ink">
-              {dict.landing.sampleNarration}
-            </figcaption>
+            <Image
+              src="/styles/retro-storybook-colour.png"
+              alt={landing.colourBookAlt}
+              width={720}
+              height={964}
+              priority
+              className="-ml-6 w-[118px] rotate-[var(--giro-livro)] rounded-[var(--raio-folha)] border-2 border-ink object-cover shadow-[var(--sombra-folha)] sm:w-[136px]"
+            />
           </div>
-        </figure>
-      </div>
+          <span
+            className="absolute bottom-3 right-0 rounded-[var(--raio-pill)] border-2 border-ink bg-[var(--giz-verde)] px-[11px] py-[7px] text-[11px] font-bold leading-none text-[#12331b]"
+            style={{ transform: 'rotate(var(--giro-adesivo))' }}
+          >
+            {landing.sticker}
+          </span>
+        </div>
+      </header>
 
-      <section>
-        <h2 className="sr-only">{dict.landing.how}</h2>
-        <ol className="grid gap-4 sm:grid-cols-3">
-          {dict.landing.steps.map((step, i) => (
+      {/* The choice, said out loud. It is the first question the wizard asks
+          and the one that changes the most, so the home answers it before the
+          customer has to guess which product this is. */}
+      <section className="-mx-6 bg-white/70 px-6 py-8 sm:-mx-11 sm:px-11">
+        <h2 className="font-serif text-[clamp(21px,2.4vw,32px)] font-extrabold leading-tight">
+          {landing.kinds.heading}
+        </h2>
+        <p className="mt-2 max-w-[56ch] text-sm leading-relaxed text-ink-soft">
+          {landing.kinds.body}
+        </p>
+
+        <div className="mt-6 grid gap-3 sm:grid-cols-2">
+          {[
+            {
+              ...landing.kinds.colouring,
+              art: '/styles/retro-storybook.png',
+              alt: landing.lineBookAlt,
+              tile: 'var(--tile-areia)',
+              ink: 'var(--tile-areia-ink)',
+              giro: 'giro-a',
+            },
+            {
+              ...landing.kinds.reading,
+              art: '/styles/retro-storybook-colour.png',
+              alt: landing.colourBookAlt,
+              tile: 'var(--tile-verde)',
+              ink: 'var(--tile-verde-ink)',
+              giro: 'giro-b',
+            },
+          ].map((kind) => (
+            <article
+              key={kind.label}
+              className={`${kind.giro} overflow-hidden border-2 border-ink transition-transform duration-[180ms] hover:rotate-0`}
+              style={{
+                borderRadius: 'var(--raio-tile)',
+                background: kind.tile,
+              }}
+            >
+              <div className="flex h-40 items-center justify-center border-b-2 border-ink bg-sheet">
+                <Image
+                  src={kind.art}
+                  alt={kind.alt}
+                  width={720}
+                  height={964}
+                  className="h-full w-auto object-contain"
+                />
+              </div>
+              <div className="px-5 py-4">
+                <h3
+                  className="font-serif text-lg font-extrabold"
+                  style={{ color: kind.ink }}
+                >
+                  {kind.label}
+                </h3>
+                <p className="mt-1 text-sm leading-snug text-ink">{kind.body}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="font-serif text-[clamp(21px,2.4vw,32px)] font-extrabold leading-tight">
+          {landing.how}
+        </h2>
+        <ol className="mt-5 grid gap-3 sm:grid-cols-3">
+          {landing.steps.map((step, i) => (
             <li
               key={step.title}
-              className="rounded-2xl bg-paper-raised px-5 pb-5 pt-4.5"
+              className="border-2 border-ink bg-paper-raised px-5 pb-5 pt-4"
+              style={{ borderRadius: 'var(--raio-card)' }}
             >
-              <span className="block font-mono text-[11px] text-ink-soft/80">
+              <span
+                className="inline-block rounded-[var(--raio-pill)] bg-[var(--giz-amarelo)] px-2.5 py-1 text-[11px] font-bold leading-none text-[#5a4413]"
+              >
                 {String(i + 1).padStart(2, '0')}
               </span>
-              <h3 className="mt-2 font-serif text-lg text-ink">{step.title}</h3>
+              <h3 className="mt-3 font-serif text-lg font-extrabold text-ink">
+                {step.title}
+              </h3>
               <p className="mt-1.5 text-sm leading-relaxed text-ink-soft">
                 {step.body}
               </p>
@@ -104,7 +214,7 @@ export default async function LandingPage({ params }: PageProps<'/[locale]'>) {
         </ol>
       </section>
 
-      <p className="mt-10 text-xs text-ink-soft">{dict.landing.footnote}</p>
+      <p className="mt-10 text-xs text-ink-mute">{landing.footnote}</p>
     </main>
   )
 }

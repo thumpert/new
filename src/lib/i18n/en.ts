@@ -20,9 +20,22 @@ export const en: Dictionary = {
   },
   landing: {
     eyebrow: 'A personalized book',
-    sampleAlt: 'A spread from a book already made',
-    sampleNarration:
-      'The turquoise button had been waiting for this day all along. It jumped onto the table. It went between two cups without knocking either over.',
+    heroLines: ['MADE', 'OUT OF', 'ONE PERSON'],
+    lineBookAlt: 'A page in black line, to colour in',
+    colourBookAlt: 'The same page already painted, to read',
+    sticker: '13 pages',
+    kinds: {
+      heading: 'Two books, the same story',
+      body: 'You choose on the first screen, and the choice goes all the way down: it changes the line, the palette, and how the page is laid out.',
+      colouring: {
+        label: 'To colour in',
+        body: 'Thirteen pages in black line on white. The cover arrives coloured — the rest is for whoever gets it.',
+      },
+      reading: {
+        label: 'To read',
+        body: 'The same thirteen pages, already painted in the style you chose, with the story underneath. To read together at bedtime.',
+      },
+    },
     footnote: 'Printed A4 · and a link to read it in the browser',
     title: 'A book made out of one person',
     subtitle:
