@@ -20,9 +20,21 @@ primary_region = 'gru'
 # availability does not apply until orders and images move to shared storage.
 #
 # Enforce it after the first deploy with:  fly scale count 1
+#
+# WATCH THE DISK AFTER THE SHELF LANDS. An order used to be thirteen images on
+# this volume. A colouring book chosen off the shelf is twenty-four, because
+# each beat of the story is drawn twice — so the flagship product now costs
+# nearly double the disk per order, on a volume that is never garbage
+# collected because a customer may come back for their PDF months later.
+#
+# This does not change an existing volume; `initial_size` only applies to one
+# Fly creates. Growing the one already in production is a manual step:
+#     fly volumes list
+#     fly volumes extend <id> --size 10
 [[mounts]]
   source = 'livro_dados'
   destination = '/app/.data'
+  initial_size = '10gb'
 
 [http_service]
   internal_port = 3000

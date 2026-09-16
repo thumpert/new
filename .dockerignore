@@ -6,6 +6,18 @@ node_modules
 .env
 npm-debug.log*
 
-# The reference book copied in for a story brief — 52MB, and nothing at
-# runtime reads it.
-livro-referencia.pdf
+# Working files kept beside the project that nothing at runtime reads. The
+# same set .gitignore already refuses, named again here because the build
+# context is the working directory rather than the git index: a local
+# `fly deploy` uploads whatever is on disk, and there is over a hundred
+# megabytes of reference PDF sitting in this folder right now.
+#
+# It used to name livro-referencia.pdf alone, which stopped being enough the
+# moment a second book was left here.
+*.pdf
+*.zip
+
+# Proposals, notes and design handoffs. They are versioned on purpose and they
+# belong in the repository; they do not belong in a runtime image.
+propostas-historias.md
+design_handoff_livro_colorir/
