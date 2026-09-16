@@ -47,6 +47,13 @@ export type StoryId =
   | 'training'
   | 'waiting'
   | 'the-thing-under-the-house'
+  | 'one-note-a-year'
+  | 'the-case-of-the-shut-door'
+  | 'never-let-go-of-the-rope'
+  | 'the-swap'
+  | 'the-name-only-i-know'
+  | 'the-guide'
+  | 'how-much-further'
 
 export interface Localized {
   pt: string
@@ -1212,6 +1219,1168 @@ export const STORIES: StoryDef[] = [
     ],
   },
 
+  /* ---------------------------------------------------------------- */
+  {
+    id: 'one-note-a-year',
+    occasionId: 'birthday',
+    title: t('Um Bilhete Por Ano', 'A Note For Every Year'),
+    logline: t(
+      'Ela acorda e ninguém canta parabéns — só um envelope no chão, com um lugar escrito dentro.',
+      'She wakes up to nobody singing happy birthday — only an envelope on the floor, with a place written inside.',
+    ),
+    summary: t(
+      'Uma trilha de bilhetes atravessa a cidade, e em cada parada tem um objeto de um ano da vida dela. Ela junta a própria vida numa sacola até chegar na última parada, que está vazia — porque o ano que começa hoje ainda não tem objeto, e quem deixa um ali é ela.',
+      'A trail of notes crosses the city, and at every stop there is an object from one year of her life. She gathers her own life into a bag until she reaches the last stop, which is empty — because the year starting today has no object yet, and she is the one who leaves it there.',
+    ),
+    highlights: [
+      t('Um envelope no chão, com uma letra que ela não reconhece', 'An envelope on the floor, in handwriting she does not recognise'),
+      t('A sacola ficando mais pesada a cada parada', 'The bag getting heavier at every stop'),
+      t('O último pacote da trilha, vazio por dentro', 'The last package of the trail, empty inside'),
+    ],
+    roles: [
+      {
+        id: 'hero',
+        slot: 'THE BIRTHDAY GIRL',
+        cast: 'child',
+        required: true,
+      },
+      {
+        id: 'grown-up',
+        slot: 'WHOEVER HID THE NOTES',
+        cast: 'adult',
+        required: false,
+        fallback:
+          'Nobody in this book claims the trail. It stays unsigned until the last page, which is a better book than one where an adult is caught arranging it — the mystery is worth more unresolved.',
+      },
+      {
+        id: 'companion',
+        slot: 'THE ONE WHO COMES ALONG',
+        cast: 'anyone-else',
+        required: false,
+        fallback:
+          'Nobody was named to come with her. Beat 6 changes its own mechanism to match: instead of being told what the object is, she works it out herself, turning it over — a page of her remembering rather than a page of being told.',
+      },
+    ],
+    questions: [
+      {
+        id: 'places',
+        group: t('A cidade', 'The city'),
+        question: t(
+          'Três ou quatro lugares que a família frequenta de verdade?',
+          'Three or four places the family actually spends time in?',
+        ),
+        hint: t(
+          'São as paradas da trilha. Podem ser banais — a padaria conta tanto quanto o parque.',
+          'These are the stops of the trail. They can be ordinary — the bakery counts as much as the park.',
+        ),
+        placeholder: t(
+          'A padaria da esquina, a praça com o coreto, a casa da avó',
+          'The bakery on the corner, the square with the bandstand, grandma’s house',
+        ),
+        suggestions: [
+          t('A praça, a escola e a casa da avó', 'The square, the school and grandma’s house'),
+          t('O parque, o mercado e a casa do primo', 'The park, the market and her cousin’s house'),
+          t('A padaria, a quadra do prédio e a casa da tia', 'The bakery, the building’s courtyard and her aunt’s house'),
+        ],
+        loadBearing: true,
+      },
+      {
+        id: 'young-keepsake',
+        group: t('Os objetos', 'The objects'),
+        question: t(
+          'Uma coisa que ela não largava quando era bem pequena?',
+          'One thing she would not put down when she was very small?',
+        ),
+        hint: t(
+          'Um sapato, um bicho de pano, uma caneca — vira o primeiro pacote da trilha.',
+          'A shoe, a stuffed animal, a mug — it becomes the trail’s first package.',
+        ),
+        placeholder: t('O sapatinho vermelho que já não serve em ninguém', 'The little red shoe that fits nobody now'),
+        suggestions: [
+          t('A coelha de pano que dormia com ela', 'The stuffed rabbit she slept with'),
+          t('A caneca com a marca dos dentes dela', 'The mug with her teeth marks on it'),
+          t('O chapéu de sol que ela não tirava da cabeça', 'The sun hat she never took off'),
+        ],
+        loadBearing: true,
+      },
+      {
+        id: 'always-carries',
+        group: t('Os objetos', 'The objects'),
+        question: t(
+          'O que ela carrega para todo lado hoje?',
+          'What does she carry everywhere today?',
+        ),
+        hint: t(
+          'É o que sobra no bolso dela quando a trilha chega no fim — o objeto do ano que está começando.',
+          'It is what is left in her pocket when the trail ends — the object of the year that is starting.',
+        ),
+        placeholder: t('Um carrinho vermelho pequeno, sempre num bolso', 'A small red toy car, always in a pocket'),
+        suggestions: [
+          t('Uma pedra lisa que ela achou e não largou mais', 'A smooth stone she found and never put down'),
+          t('Um lápis mastigado que ela não deixa apontar', 'A chewed-up pencil she will not let anyone sharpen'),
+          t('Um botão avulso que virou sorte', 'A loose button that became a lucky charm'),
+        ],
+        loadBearing: true,
+      },
+      {
+        id: 'party-guest',
+        group: t('A festa', 'The party'),
+        question: t('Quem estaria na festa dela?', 'Who would be at her party?'),
+        hint: t(
+          'Aparece na última página, com um objeto na mão.',
+          'They appear on the last page, holding an object.',
+        ),
+        placeholder: t('Os avós, a prima e o melhor amigo do prédio', 'Her grandparents, her cousin and her best friend from the building'),
+        suggestions: [
+          t('Os avós e os tios', 'Her grandparents and aunts and uncles'),
+          t('A turma toda da escola', 'Her whole class from school'),
+          t('Só a família mesmo, sem convidado de fora', 'Just family, no outside guests'),
+        ],
+      },
+    ],
+    want:
+      'THE BIRTHDAY GIRL wants to reach the end of the trail, because whoever built it knows things about her life that she has half forgotten herself.',
+    turn:
+      'On beat 9 the last package is empty on purpose, and the price of closing the trail is giving up the thing she is carrying without being told to.',
+    beats: [
+      {
+        text: '1. The house is too quiet, and there is an envelope on the floor with her name on it, in handwriting she does not know.',
+        frameA: 'Wide, from the doorway of her own room: the bed slept-in and empty, the room dim, ordinary morning light. Nobody else in shot.',
+        frameB: 'Close and low, at floor height: her knees and one hand reaching for the envelope on the floorboards, her face reflected small and curious in a nearby window pane. A different distance and a different subject — the envelope, not the room.',
+      },
+      {
+        text: '2. The note does not say happy birthday. It names a place. THEREFORE she goes.',
+        frameA: 'Over her shoulder, looking down at the note in her two hands, her thumbs holding it open, the handwriting visible but not the room around her.',
+        frameB: 'From outside, through the front door left ajar: her back going down the front steps at a half-run, one shoe already on, the note stuffed in a pocket. Wide, exterior, the opposite of the close interior shot.',
+      },
+      {
+        text: '3. At the first place, a small parcel is tied up: something from when she was very small, that fits nobody in the house any more.',
+        frameA: 'She is crouched at ground level, both hands working at a knot on the parcel, her face in profile, concentrating.',
+        frameB: 'Extreme close-up, top-down: the keepsake resting flat on her open palm, her fingers curled loosely around its edge, out of focus in the background. Nothing of the crouch remains — just hand and object.',
+      },
+      {
+        text: '4. She understands the game — one object for one year. THEREFORE she runs, counting under her breath.',
+        frameA: 'Side-on, mid-stride, comparing the small keepsake against her own hand or arm to see how much she has grown — a measuring gesture, thoughtful.',
+        frameB: 'Wide, from far ahead of her on the pavement, running towards the reader, the keepsake now stowed and both arms pumping, a look of pure momentum rather than thought. Reverse of the measuring stillness in A.',
+      },
+      {
+        text: '5. At the second place, a small everyday object with a mark of her on it — whoever kept it, kept everything.',
+        frameA: 'She is pulling the parcel out from behind or under something ordinary at that place, half-hidden, her whole arm reaching in.',
+        frameB: 'Very close on the object itself, held right up to her own face so a small detail on it and her matching feature are both readable at once — the proof that it is truly hers.',
+      },
+      {
+        text: '6. At the third place, an object she does not recognise at all — BUT THE ONE WHO COMES ALONG does, and tells her the story.',
+        frameA: 'She is holding the mystery object up, brow furrowed, turning it in the light, alone in the frame if nobody was named to come.',
+        frameB: 'Wide two-shot (or, with nobody else, a wider shot of her sitting down with the object in her lap, working it out on her own): whoever is telling the story is mid-gesture, animated, and she is laughing, caught between confusion and delight — a completely different mood from A.',
+      },
+      {
+        text: '7. The bag is heavier now. She is carrying her own life on her back, and there is still a long way to go.',
+        frameA: 'Close on the bag itself, bulging, her hand adjusting the strap on her shoulder, objects just visible poking out of the top.',
+        frameB: 'Very wide, from a high angle looking down a long street: her small figure far below, the bag on her back, the distance still ahead of her drawn out plainly. A different scale entirely from the close strap shot.',
+      },
+      {
+        text: '8. At the fourth place, the last package of the trail. It is empty.',
+        frameA: 'Her hand reaching for a wrapped package that looks the same as all the others, anticipation on her face.',
+        frameB: 'The unwrapped package lying open on the ground, nothing inside, shot from directly above so the emptiness reads at a glance — her hands frozen just above it, not touching.',
+      },
+      {
+        text: '9. THE TURN. The note says this year has no object yet, and she is the one who has to leave one. She only has THE THING SHE CARRIES EVERYWHERE, in her pocket.',
+        frameA: 'Close on the open note in both hands, her eyes moving along the last line.',
+        frameB: 'Her other hand, in the opposite corner of the frame, closed tight around something small inside her pocket — the two hands never in the same shot, the decision visibly still undecided.',
+      },
+      {
+        text: '10. Nobody is making her. She puts the thing inside the empty package and ties it shut herself.',
+        frameA: 'Top-down, close: the small object going into the package, her fingers letting go of it.',
+        frameB: 'Side-on, pulled back to full figure: her tying the last knot with both hands, satisfied rather than reluctant, the tied package now sitting beside her on the ground.',
+      },
+      {
+        text: '11. The last note says to bring the package home. THEREFORE she turns back, lighter and heavier at once.',
+        frameA: 'From behind, her walking away down the same street from beat 7, the package now under one arm instead of in the bag.',
+        frameB: 'Ahead of her, at the corner where her own street begins: the front door of her house just becoming visible in the distance, her small figure approaching it. A destination appearing that beat 7’s wide shot did not have.',
+      },
+      {
+        text: '12. The house is full, and everyone is holding an object of her life. On the table there is one empty place, marked for the year that is just beginning.',
+        frameA: 'The front door opening from her point of view: a room full of the people from her answer about the party, each one holding one of the objects from earlier in the book, mid-cheer.',
+        frameB: 'A quieter close shot on the table itself: her own tied package sitting open in the middle of it, and beside it one empty, waiting space, exactly the size of the package — nobody in frame, just the table and what it is holding.',
+      },
+    ],
+    extras:
+      'Whoever the roles above did not claim is in the crowd on beat 12, holding one of the objects from earlier in the book — one object, one person, so a named character who took no part in the trail still has a job on the last page.',
+    filling: [
+      'THE PLACES ARE THE ONES THE CUSTOMER NAMED, always, in the order that makes a route across their own city rather than a random hop.',
+      'The device is THE THING SHE CARRIES EVERYWHERE, with its colour: introduced nowhere until beat 9, because introducing it earlier would tell the reader what beat 9 is for before it happens.',
+      'Every keepsake beat (3, 5, 6) draws a REAL object from the customer’s own words wherever one was given — the young keepsake for beat 3, and anything else true about this family for 5 and 6 rather than invented objects with no connection to them.',
+    ],
+  },
+
+  /* ---------------------------------------------------------------- */
+  {
+    id: 'the-case-of-the-shut-door',
+    occasionId: 'birthday',
+    title: t('O Caso da Porta Fechada', 'The Case Of The Shut Door'),
+    logline: t(
+      'Todo mundo está agindo normal demais — ela abre uma investigação.',
+      'Everybody is acting too normal — she opens an investigation.',
+    ),
+    summary: t(
+      'Ela junta provas de que a família está escondendo alguma coisa. Resolve o caso rápido demais, na rua, sozinha — e descobre que a surpresa deles é a cara que ela vai fazer. Então fecha o caderno e vai treinar a cara de surpresa na vitrine.',
+      'She gathers proof that the family is hiding something. She solves the case too fast, alone on the pavement — and works out that their surprise is the face she is about to make. So she shuts her notebook and goes to practise looking surprised in a shop window.',
+    ),
+    highlights: [
+      t('A porta dos fundos, que nunca fica fechada, está fechada', 'The back door, which never shuts, is shut'),
+      t('O caderno cheio de provas, fechado de repente na calçada', 'The notebook full of clues, shut suddenly on the pavement'),
+      t('A cara de surpresa ensaiada no vidro de uma vitrine', 'The surprised face rehearsed in a shop window'),
+    ],
+    roles: [
+      { id: 'grown-up', slot: 'THE SUSPECT', cast: 'adult', required: true },
+      {
+        id: 'companion',
+        slot: 'THE ACCOMPLICE',
+        cast: 'pet',
+        required: false,
+        fallback:
+          'The family has no animal, so the third clue is the house itself: a sound that stops the moment she walks into the room, rather than something crossing a doorway with a ribbon on it.',
+      },
+    ],
+    questions: [
+      {
+        id: 'detective-method',
+        group: t('A investigação', 'The investigation'),
+        question: t(
+          'Qual é o jeito dela de descobrir as coisas?',
+          'What is her way of finding things out?',
+        ),
+        hint: t(
+          'Escuta atrás da porta? Revira armário? Interroga direto?',
+          'Does she listen at doors? Search cupboards? Interrogate people outright?',
+        ),
+        placeholder: t('Ela revira gaveta e pergunta sem parar até alguém falhar', 'She goes through drawers and asks question after question until somebody slips up'),
+        suggestions: [
+          t('Ela escuta escondida atrás das portas', 'She listens hidden behind doors'),
+          t('Ela pergunta direto, sem rodeio nenhum', 'She asks straight out, no beating around the bush'),
+          t('Ela anota tudo num caderninho, como um detetive de verdade', 'She writes everything in a little notebook, like a real detective'),
+        ],
+        loadBearing: true,
+      },
+      {
+        id: 'wished-guest',
+        group: t('A festa', 'The party'),
+        question: t(
+          'Quem ela queria muito que aparecesse na festa?',
+          'Who did she really want to turn up at the party?',
+        ),
+        hint: t(
+          'É a surpresa de verdade da última página — alguém que ela não esperava.',
+          'This is the real surprise on the last page — somebody she was not expecting.',
+        ),
+        placeholder: t('O tio que mora longe e ela não vê há um ano', 'Her uncle who lives far away, whom she has not seen in a year'),
+        suggestions: [
+          t('A avó que mora em outra cidade', 'Her grandmother, who lives in another city'),
+          t('O primo com quem ela mais se dá', 'The cousin she gets on with best'),
+          t('O melhor amigo da escola antiga', 'Her best friend from her old school'),
+        ],
+        loadBearing: true,
+      },
+      {
+        id: 'party-food',
+        group: t('A festa', 'The party'),
+        question: t(
+          'Tem uma comida que só aparece em festa nessa casa?',
+          'Is there a food that only appears at parties in this house?',
+        ),
+        placeholder: t('O bolo de fubá que só a avó sabe fazer', 'The cornmeal cake only grandma knows how to make'),
+        suggestions: [
+          t('Brigadeiro, sempre em quantidade absurda', 'Brigadeiro, always an absurd amount of it'),
+          t('Coxinha feita em casa, nunca comprada', 'Homemade coxinha, never bought'),
+          t('Um bolo que muda de sabor todo ano', 'A cake that changes flavour every year'),
+        ],
+      },
+      {
+        id: 'wanted-gift',
+        group: t('A festa', 'The party'),
+        question: t('O que ela mais quer de presente?', 'What does she want most as a present?'),
+        placeholder: t('Uma bicicleta nova, da cor certa desta vez', 'A new bicycle, the right colour this time'),
+        suggestions: [
+          t('Um jogo que ela pediu o ano inteiro', 'A game she has been asking for all year'),
+          t('Um livro da série que ela está lendo', 'A book from the series she is reading'),
+          t('Ela não sabe dizer — só quer ser surpreendida', 'She cannot say — she just wants to be surprised'),
+        ],
+      },
+    ],
+    want:
+      'THE BIRTHDAY GIRL wants to find out what everyone is hiding — she assumes, at first, that they have simply forgotten her birthday.',
+    turn:
+      'On beat 9 she solves the case alone on the pavement and realises the family’s surprise is the face she is about to make — so she chooses to fake not knowing.',
+    beats: [
+      {
+        text: '1. It is her birthday. Nobody has said a word about it, and everybody is acting too normal.',
+        frameA: 'Wide, at the breakfast table: the family going about an ordinary morning, nobody looking at her, deliberately unremarkable.',
+        frameB: 'Close on her face alone, side-eyeing the room from over a cup or a spoon, already suspicious — the only person in the house not pretending.',
+      },
+      {
+        text: '2. First clue: the back door, which never shuts properly, is shut.',
+        frameA: 'Down a hallway towards the door in the distance, ordinary framing, her walking towards it.',
+        frameB: 'Close, her ear pressed flat against the door itself, eyes shut with concentration, one hand flat on the wood beside her head.',
+      },
+      {
+        text: '3. She asks what is in there. THE SUSPECT says "nothing". THEREFORE she knows it is everything.',
+        frameA: 'THE SUSPECT standing in front of the door, smiling too widely, blocking it without seeming to.',
+        frameB: 'Close on a notebook page, her hand mid-sentence, writing the clue down — no adult in the frame at all, just the evidence.',
+      },
+      {
+        text: '4. Second clue: flour on the sleeve of whoever swore they had not been cooking.',
+        frameA: 'A warm hug between her and THE SUSPECT, ordinary and affectionate.',
+        frameB: 'Extreme close-up on the white smudge on the sleeve, her eyes just visible at the top of frame, narrowed at it over the hug that is still happening.',
+      },
+      {
+        text: '5. Third clue: THE ACCOMPLICE slips out of a room with a coloured ribbon caught in its fur.',
+        frameA: 'A door opening a crack, a nose or paw just visible in the gap.',
+        frameB: 'The animal trotting past in the foreground, ribbon plainly visible, her head turning sharply to follow it from the background — reverse of the door-crack framing.',
+      },
+      {
+        text: '6. The case is building, BUT the motive is missing: if it is a party, why has nobody said happy birthday?',
+        frameA: 'The notebook open flat, three clues sketched on the page, seen from directly above.',
+        frameB: 'Her chewing the end of her pencil, staring off past the reader, mid-thought — the notebook closed now, out of focus below.',
+      },
+      {
+        text: '7. She is sent outside on a thin excuse. THEREFORE she is certain now.',
+        frameA: 'THE SUSPECT pointing towards the front door, the excuse plainly weak, one eyebrow raised on her side.',
+        frameB: 'From outside, her walking away down the front path, glancing back once over her shoulder at the house behind her.',
+      },
+      {
+        text: '8. On the pavement, she passes someone heading the other way, carrying a badly hidden parcel.',
+        frameA: 'The two of them crossing paths, mid-stride, both pretending not to notice each other.',
+        frameB: 'Close on the parcel alone under that person’s arm, obviously gift-wrapped, her eyes just entering frame at the very edge, caught looking.',
+      },
+      {
+        text: '9. THE TURN. She has solved it too fast. If she walks back in already knowing, she ruins the one thing that is actually for her: their surprise. She shuts the notebook.',
+        frameA: 'Her standing alone on the pavement, notebook open in both hands, staring at her own conclusion.',
+        frameB: 'Close on the notebook now shut and being pushed into a pocket, her face turned upward, a decision visibly made — different object, different expression.',
+      },
+      {
+        text: '10. She practises looking surprised in a shop window. It is terrible. She tries again.',
+        frameA: 'Her reflection in a shop window, both hands on her cheeks, an exaggerated and unconvincing "surprised" face.',
+        frameB: 'The same window, a beat later: the reflection noticeably better this time, more natural, a small proud smile creeping through the acting.',
+      },
+      {
+        text: '11. She walks back. The front door is shut. She knocks.',
+        frameA: 'Wide, on the shut front door from the pavement, her small figure approaching it.',
+        frameB: 'Very close on just her knuckles against the wood and her two feet planted close together below — nothing else in frame.',
+      },
+      {
+        text: '12. Everyone shouts, and she gives the performance of her life — BUT in the middle of it the surprise turns real, because THE ONE SHE WISHED FOR is standing right there.',
+        frameA: 'The door bursting open on a room full of people and colour, her own face mid-performance, hands flying to her cheeks exactly as rehearsed.',
+        frameB: 'Close on just her face now, the performance gone and something real in its place, looking straight at one particular person in the crowd she was not expecting — the person named in her answer, unmistakably present.',
+      },
+    ],
+    extras:
+      'Everybody named who is not THE SUSPECT is a fellow suspect in the first half of the book and is in the crowd on beat 12 — this is a house-full story, and nobody named is left outside it.',
+    filling: [
+      'THE THREE CLUES (beats 2, 4, 5) are staged in this family’s real house, using whatever the customer told us about how the birthday girl investigates.',
+      'Beat 9 is played in near-silence: the notebook shutting is the whole page, not a caption explaining the decision.',
+      'THE ONE SHE WISHED FOR from the interview appears nowhere before beat 12 — naming them earlier would spoil the real surprise the book is built around.',
+    ],
+  },
+
+  /* ---------------------------------------------------------------- */
+  {
+    id: 'never-let-go-of-the-rope',
+    occasionId: 'space',
+    title: t('Nunca Solte a Corda', 'Never Let Go Of The Rope'),
+    logline: t(
+      'A coisa que a família olha no céu toda noite não está lá hoje. Então eles vão buscar.',
+      'The thing the family looks at in the sky every night is not there tonight. So they go and get it.',
+    ),
+    summary: t(
+      'Amarrados um no outro por uma corda, com uma regra dita em voz alta na primeira página, eles sobem atrás da estrela que apagou. A corda é curta por um braço — e ela desamarra o nó de propósito, a única vez que a regra do livro inteiro é quebrada.',
+      'Tied to each other by a rope, with a rule spoken out loud on the first page, they climb after the star that went out. The rope is one arm short — and she unties the knot on purpose, the one time the whole book’s rule is broken.',
+    ),
+    highlights: [
+      t('O céu vazio, e o dedo apontando para nada', 'The empty sky, and a finger pointing at nothing'),
+      t('A corda esticada até o fim, sem sobra nenhuma', 'The rope pulled taut with nothing left to give'),
+      t('O nó se abrindo, de propósito, no ponto mais alto do livro', 'The knot coming open, on purpose, at the highest point in the book'),
+    ],
+    roles: [
+      {
+        id: 'hero',
+        slot: 'THE CLIMBER',
+        cast: 'child',
+        required: true,
+      },
+      {
+        id: 'companion',
+        slot: 'THE OTHER END OF THE ROPE',
+        cast: 'anyone-else',
+        required: false,
+        fallback:
+          'The other end of the rope is tied to the window frame of home instead of to a person. Beat 11 becomes the whole house pulling her back rather than one person following her up, and beat 9’s untying is her cutting herself loose from home itself for one page — quieter, and honestly the better version.',
+      },
+    ],
+    questions: [
+      {
+        id: 'sky-thing',
+        group: t('O céu', 'The sky'),
+        question: t(
+          'Tem alguma coisa no céu que vocês olham juntos?',
+          'Is there something in the sky you look at together?',
+        ),
+        hint: t(
+          'A lua, uma estrela, o avião das sete. É o que apaga na primeira página.',
+          'The moon, a star, the seven o’clock plane. It is what goes out on the first page.',
+        ),
+        placeholder: t('A estrela mais forte que dá para ver da janela', 'The brightest star you can see from the window'),
+        suggestions: [
+          t('A lua cheia, todo mês', 'The full moon, every month'),
+          t('Uma estrela específica que ele já sabe achar', 'One particular star he already knows how to find'),
+          t('O avião que passa toda noite às sete', 'The plane that goes over every night at seven'),
+        ],
+        loadBearing: true,
+      },
+      {
+        id: 'lookout-spot',
+        group: t('O céu', 'The sky'),
+        question: t('De onde vocês olham?', 'Where do you look from?'),
+        hint: t('Janela, quintal, laje, calçada — é o cenário da primeira e da última página.', 'Window, yard, rooftop, pavement — the setting of the first and last page.'),
+        placeholder: t('Da janela do quarto dele', 'From his bedroom window'),
+        suggestions: [
+          t('Do quintal, deitados na grama', 'From the yard, lying in the grass'),
+          t('Da janela da cozinha', 'From the kitchen window'),
+          t('Da laje, quando sobem depois do jantar', 'From the rooftop, when they go up after dinner'),
+        ],
+        loadBearing: true,
+      },
+      {
+        id: 'dark-fear',
+        group: t('A subida', 'The climb'),
+        question: t('Do que ele tem medo no escuro?', 'What is he afraid of in the dark?'),
+        hint: t('Vira a nuvem que apaga tudo, na metade do livro.', 'It becomes the cloud that erases everything, halfway through the book.'),
+        placeholder: t('De uma poeira que apaga as coisas', 'Of a dust that makes things disappear'),
+        suggestions: [
+          t('Do silêncio total', 'Of complete silence'),
+          t('De perder alguém de vista', 'Of losing sight of someone'),
+          t('De uma sombra grande demais para ver o fim', 'Of a shadow too big to see the end of'),
+        ],
+      },
+      {
+        id: 'always-carried',
+        group: t('A subida', 'The climb'),
+        question: t('O que ele leva para todo lugar?', 'What does he take everywhere?'),
+        placeholder: t('Um cata-vento pequeno preso na blusa', 'A little pinwheel pinned to his shirt'),
+        suggestions: [
+          t('Uma lanterna pequena', 'A small torch'),
+          t('Um bicho de pano na mochila', 'A stuffed animal in his backpack'),
+          t('Nada — ele confia só na própria mão livre', 'Nothing — he trusts only his own free hand'),
+        ],
+      },
+    ],
+    want:
+      'THE CLIMBER wants to light THE SKY THING back up — the one they look at together, every night, from THE LOOKOUT SPOT.',
+    turn:
+      'On beat 9 the rule spoken on page one — never let go of the rope — is broken on purpose, and it is the right thing to do.',
+    beats: [
+      {
+        text: '1. Every night they look at THE SKY THING from THE LOOKOUT SPOT. Tonight there is nothing there.',
+        frameA: 'Both of them side by side, one finger pointing up together, seen from behind at THE LOOKOUT SPOT.',
+        frameB: 'Reverse angle, facing them: the empty patch of sky itself, framed exactly where THE SKY THING should be, their two upturned faces small at the bottom of the frame.',
+      },
+      {
+        text: '2. THE CLIMBER wants to go up after it. THEREFORE they tie the rope — one end to a wrist, the other to THE OTHER END. The rule is said out loud.',
+        frameA: 'Close on the knot being tied around a wrist, two sets of hands working together.',
+        frameB: 'Wide, both of them standing back to check the length of rope between them, taut and straight for the first time, a whole different distance from the close knot shot.',
+      },
+      {
+        text: '3. They climb. The house shrinks below them, and then the whole street does.',
+        frameA: 'Looking straight down past their own climbing hands and feet at the rooftops of the neighbourhood, small and near.',
+        frameB: 'Much higher and further back: the whole town laid out below like a map, their own house marked by something recognisable, tiny now.',
+      },
+      {
+        text: '4. First stop: a place where everything that ever fell out of a pocket floats loose. None of it is THE SKY THING.',
+        frameA: 'Arriving at the edge of a drifting field of small floating objects, both of them reaching the first of it.',
+        frameB: 'Close on THE CLIMBER’s hand closing around one of the objects and turning it over, disappointed — a single object isolated where A showed a whole field.',
+      },
+      {
+        text: '5. The rope is starting to run short. They swap places — THE CLIMBER goes first now. BUT the rule holds.',
+        frameA: 'The rope pulled visibly tauter between them than in beat 2, both straining slightly.',
+        frameB: 'The two of them mid-manoeuvre swapping positions on the rope, now facing the opposite direction from before, THE CLIMBER now in front where THE OTHER END was.',
+      },
+      {
+        text: '6. Second stop: a dark dust that erases anything that passes through it. It is what put THE SKY THING out.',
+        frameA: 'A dark cloud approaching them from one side, both flinching slightly away from it.',
+        frameB: 'THE CLIMBER’s hand and forearm disappearing into the dust up to the elbow, the rest of the body still visible outside it — the moment of vanishing itself, not the cloud approaching.',
+      },
+      {
+        text: '7. On the other side, THE SKY THING is there: gone dark, small, waiting.',
+        frameA: 'The dust cloud thinning and parting directly ahead of them.',
+        frameB: 'THE SKY THING itself, close and still, dark and quiet, filling most of the frame — the payoff the parting dust promised, shown rather than approached.',
+      },
+      {
+        text: '8. It is too far. The rope runs out one arm’s length short.',
+        frameA: 'THE CLIMBER’s arm stretched to its full length, fingers a hand’s width from reaching it.',
+        frameB: 'Close on the rope itself at THE CLIMBER’s wrist, pulled bone-straight with no slack left anywhere along its length — the object of the shot is the rope, not the reach.',
+      },
+      {
+        text: '9. THE TURN. THE CLIMBER looks back at THE OTHER END OF THE ROPE, and unties the knot.',
+        frameA: 'Close on THE OTHER END’s face, watching, uncertain what is about to happen.',
+        frameB: 'Close on the knot itself coming loose under THE CLIMBER’s fingers, the rope beginning to fall slack — a different subject in the same instant, the decision rather than the face behind it.',
+      },
+      {
+        text: '10. THE CLIMBER reaches it, and it lights up in their hand — BUT now they are loose, alone in the dark.',
+        frameA: 'THE CLIMBER’s hand closing around THE SKY THING, the first spark of light catching between the fingers.',
+        frameB: 'Pulled back and wider: the light now fully lit in THE CLIMBER’s open hand, and around it nothing but dark — no rope, no rooftops, no other figure in frame at all.',
+      },
+      {
+        text: '11. The loose rope reaches THE CLIMBER anyway — THE OTHER END never let it drop. It was never the rope that was holding anyone.',
+        frameA: 'The slack rope trailing through the dark, THE OTHER END visible at its far edge, still holding tight and pulling it back in.',
+        frameB: 'The two of them together now, hand in hand, THE SKY THING glowing between them — a warm close two-shot, replacing the dark solitary hand of the beat before.',
+      },
+      {
+        text: '12. They climb down and hang THE SKY THING back where it belongs. From THE LOOKOUT SPOT, far below, it is exactly where it always was.',
+        frameA: 'Close, both of them together at the top, easing THE SKY THING back into its place among real stars or a real sky.',
+        frameB: 'The reverse of beat 1: THE LOOKOUT SPOT from outside, seen from a distance, with THE SKY THING now lit and back in its place above it, and no figures in the frame at all.',
+      },
+    ],
+    extras:
+      'Whoever else was named stays at THE LOOKOUT SPOT for the whole climb, and reappears in the final frame of beat 12 looking up from there — the ones who stayed are what makes the light worth bringing home to.',
+    filling: [
+      'THE SKY THING and THE LOOKOUT SPOT are exactly what the customer named, never invented from nothing — this is the one story on the shelf that is otherwise pure invention, and those two answers are what tie it to this family.',
+      'The device is THE SKY THING itself, with its colour, from the moment it lights up in beat 10 onward.',
+      'Beat 9 is the only place the rope may be untied. Everywhere else it stays tied, including the swap in beat 5 — that beat is a change of position, never a change of what is fastened to what.',
+    ],
+  },
+
+  /* ---------------------------------------------------------------- */
+  {
+    id: 'the-swap',
+    occasionId: 'new-baby',
+    title: t('A Troca', 'The Swap'),
+    logline: t(
+      'Vem alguém morar na casa. Ele pergunta onde. Dizem: no seu quarto.',
+      'Somebody is coming to live in the house. He asks where. They say: in your room.',
+    ),
+    summary: t(
+      'Uma coisa de cada vez é pedida para o irmão mais velho, e cada uma que sai volta maior: entrega o berço, ganha a cama alta. Ele entra no jogo e começa a entregar antes de pedirem — até pedirem a coisa que não tem versão maior, e ele diz não. Ninguém insiste.',
+      'One thing at a time is asked of the older child, and each one that goes out comes back bigger: the cot goes, the big bed arrives. He joins the game and starts handing things over before he is asked — until they ask for the one thing with no bigger version, and he says no. Nobody insists.',
+    ),
+    highlights: [
+      t('O berço saindo, a cama alta entrando', 'The cot going out, the tall bed coming in'),
+      t('Ele entregando coisas antes de pedirem, virou jogo dele', 'Him handing things over before he is asked, turned into his own game'),
+      t('A mão do adulto baixando sem pedir de volta', 'The grown-up’s hand lowering without asking again'),
+    ],
+    roles: [
+      { id: 'grown-up', slot: 'WHOEVER ASKS', cast: 'adult', required: true },
+      {
+        id: 'companion',
+        slot: 'THE ONE THING THAT STAYS PUT',
+        cast: 'pet',
+        required: false,
+        fallback:
+          'A piece of furniture that has never moved from its spot, named by the family’s own answer — a chair, a rug, a shelf — standing in for the pet’s job of being the one constant in a house where everything else is changing hands.',
+      },
+    ],
+    questions: [
+      {
+        id: 'handed-down',
+        group: t('As trocas', 'The trades'),
+        question: t(
+          'O que vai passar do mais velho para o bebê?',
+          'What is going to pass from the older child to the baby?',
+        ),
+        hint: t('Berço, quarto, carrinho, cadeirinha — cada um vira uma página de troca.', 'Cot, room, pram, car seat — each one becomes a page of trading.'),
+        placeholder: t('O berço, o carrinho de passeio e a cadeirinha do carro', 'The cot, the pram and the car seat'),
+        suggestions: [
+          t('O berço e o quarto pequeno', 'The cot and the small bedroom'),
+          t('O carrinho e a cadeirinha de alimentação', 'The pram and the high chair'),
+          t('Praticamente tudo — a casa é pequena', 'Almost everything — the house is small'),
+        ],
+        loadBearing: true,
+      },
+      {
+        id: 'gets-in-return',
+        group: t('As trocas', 'The trades'),
+        question: t(
+          'O que ele ganha de verdade em troca?',
+          'What does he actually get in return?',
+        ),
+        hint: t('Cama grande, beliche, ir a pé, copo de vidro — o upgrade de cada entrega.', 'The big bed, the bunk bed, walking instead of riding, a real glass — the upgrade for each handover.'),
+        placeholder: t('A cama de cima do beliche e um copo de vidro de verdade', 'The top bunk and a real glass cup'),
+        suggestions: [
+          t('A cama grande, alta o bastante para pular', 'The big bed, tall enough to jump on'),
+          t('Ir a pé de mão dada em vez de sentado', 'Walking hand in hand instead of riding'),
+          t('Um quarto novo, só dele', 'A new room, just for him'),
+        ],
+        loadBearing: true,
+      },
+      {
+        id: 'wont-let-go',
+        group: t('A coisa dele', 'His thing'),
+        question: t(
+          'Qual é a coisa que ele não larga?',
+          'What is the one thing he will not let go of?',
+        ),
+        hint: t('É a única coisa pedida que ele recusa entregar — o coração do livro.', 'It is the one thing asked for that he refuses to hand over — the heart of the book.'),
+        placeholder: t('O ursinho surrado que dorme com ele desde bebê', 'The worn-out teddy bear he has slept with since he was a baby'),
+        suggestions: [
+          t('A fralda de pano velha que virou paninho', 'The old cloth nappy that became his comfort blanket'),
+          t('Um carrinho de brinquedo sem uma roda', 'A toy car missing one wheel'),
+          t('Um travesseiro pequeno, gasto de tanto uso', 'A small pillow, worn thin from use'),
+        ],
+        loadBearing: true,
+      },
+      {
+        id: 'thing-name',
+        group: t('A coisa dele', 'His thing'),
+        question: t('Como ele chama essa coisa?', 'What does he call it?'),
+        placeholder: t('Bebê', '"Baby"'),
+        suggestions: [
+          t('Ele não tem nome para ela, é só "a coisa"', 'He has no name for it, it is just "the thing"'),
+          t('Nenê', '"Nen-nen"'),
+          t('Um nome inventado que só ele entende', 'A made-up name only he understands'),
+        ],
+      },
+    ],
+    want:
+      'THE OLDER CHILD wants things to stay exactly as they are.',
+    turn:
+      'On beat 9 he says no, and nobody makes him — the whole book turns on the hand that lowers rather than on the child who refuses.',
+    beats: [
+      {
+        text: '1. They say somebody is coming to live in the house. He asks where. They say: in your room.',
+        frameA: 'The three of them in the living room, the news being given, his face unreadable.',
+        frameB: 'Close on just him, looking at the door of his own bedroom from the hallway — a different room, a different framing, the consequence rather than the announcement.',
+      },
+      {
+        text: '2. First request: the cot. He hands it over — BUT gets the big bed in return, and it is very tall.',
+        frameA: 'The cot being carried out of the room by WHOEVER ASKS, him watching it go.',
+        frameB: 'Him sitting on the edge of the new big bed, feet dangling far off the floor, looking down at the drop — same room, a very different scale.',
+      },
+      {
+        text: '3. He discovers the big bed is good for jumping. The trade was a good one.',
+        frameA: 'Him testing the mattress with one careful foot, weight half on the floor still.',
+        frameB: 'Him fully airborne above the bed, both feet off it, mid-jump, arms out — a completely different energy from the cautious test in A.',
+      },
+      {
+        text: '4. Second request: the pram. THEREFORE he walks now, hand in hand, instead of riding.',
+        frameA: 'The pram being wheeled out of the garage or hallway.',
+        frameB: 'Him and WHOEVER ASKS walking together on the street, hand in hand, from a wider angle further down the same street — a new location and mode of movement entirely.',
+      },
+      {
+        text: '5. Then the car seat, the sippy cup, the bottom drawer. Each thing leaves a gap exactly its own size.',
+        frameA: 'A handful of small objects going out through a doorway, one after another, mid-motion.',
+        frameB: 'The empty drawer left open, close and still, its shape the only thing marking what used to live there — no motion at all, the opposite of A.',
+      },
+      {
+        text: '6. He starts handing things over before he is asked. It has become his own game now.',
+        frameA: 'Him carrying an object across the room by himself, unprompted, focused.',
+        frameB: 'Close on him placing it onto a small pile of other things he has already gathered, satisfaction plain on his face — a different action, a different mood, from carrying to placing.',
+      },
+      {
+        text: '7. Only THE ONE THING THAT STAYS PUT has not moved an inch, and he notices.',
+        frameA: 'THE ONE THING THAT STAYS PUT in its usual corner, seen at a slight distance, unchanged.',
+        frameB: 'Him sitting right up against it, leaning in, close and small next to it — the same object, but now he is beside it rather than looking at it from across the room.',
+      },
+      {
+        text: '8. Then they ask for THE THING HE WILL NOT LET GO OF.',
+        frameA: 'WHOEVER ASKS’s open hand held out, waiting, at a slight distance from him.',
+        frameB: 'Close on his own arms, the thing pressed tight against his chest, his whole body curled protectively around it — the opposite gesture, in the same instant.',
+      },
+      {
+        text: '9. THE TURN. He says no. Nobody insists — the hand lowers.',
+        frameA: 'His face, closed and stubborn, looking straight ahead.',
+        frameB: 'WHOEVER ASKS’s hand lowering, empty, and an arm going around him instead — the hand is the subject of this frame, not his face.',
+      },
+      {
+        text: '10. He puts the thing on the highest shelf he can reach — which is high now, because he is big.',
+        frameA: 'Him standing on the new big bed to stretch up towards a high shelf, the object in one hand.',
+        frameB: 'The object alone on the shelf, high up, small and safe, seen from below — nobody in frame, the achievement shown rather than the effort.',
+      },
+      {
+        text: '11. The baby arrives. It is smaller than anything he ever handed over.',
+        frameA: 'The cot, now occupied, seen from a respectful distance, him standing beside it looking in.',
+        frameB: 'Extreme close-up: the baby’s tiny hand next to his own hand, side by side, the difference in size the entire point of the frame.',
+      },
+      {
+        text: '12. At night, alone, he takes the thing down off the shelf and puts it in the cot. Nobody sees. Then he goes back to the big bed, which is good for jumping.',
+        frameA: 'Him in pyjamas, on tiptoe, lifting the object down off the high shelf in the dark.',
+        frameB: 'The object now resting inside the cot next to the sleeping baby, and him walking away from it in the background, back towards his own bed — a wide, calm, final shot with both beds visible.',
+      },
+    ],
+    extras:
+      'Any other named adult takes one of the handovers in beats 2, 4 or 5 for their own page, so the whole household is doing the moving rather than one person alone.',
+    filling: [
+      'Every object handed over and every upgrade received is exactly what the customer named — never invented substitutes with no connection to this family.',
+      'THE THING HE WILL NOT LET GO OF is named nowhere before beat 8. Introducing it earlier would tell the reader what the book is protecting before it needs protecting.',
+      'The device is THE THING HE WILL NOT LET GO OF, with its colour, from beat 8 to the very last page.',
+    ],
+  },
+
+  /* ---------------------------------------------------------------- */
+  {
+    id: 'the-name-only-i-know',
+    occasionId: 'new-baby',
+    title: t('O Nome Que Só Eu Sei', 'The Name Only I Know'),
+    logline: t(
+      'Falta um nome, e a casa inteira está tentando. Ele quer ser quem escolhe.',
+      'A name is missing, and the whole house is trying to find one. He wants to be the one who chooses it.',
+    ),
+    summary: t(
+      'Ele inventa três testes para os nomes — gritar no corredor, falar perto do bicho, escrever à mão sem desistir no meio. Acha o nome certo, e perde: os adultos já tinham escolhido outro. Então para de dizer o seu nome em voz alta e passa a usá-lo só sozinho, com a boca perto da barriga.',
+      'He invents three tests for names — shouting them down the hallway, saying them near the pet, writing them out by hand without giving up halfway. He finds the right name, and loses: the grown-ups had already chosen another. So he stops saying his name out loud and starts using it only alone, mouth close to the belly.',
+    ),
+    highlights: [
+      t('O teste do corredor, gritando um nome atrás do outro', 'The hallway test, shouting one name after another'),
+      t('O papel com o nome pela metade, largado no meio', 'The paper with the name half-written, abandoned partway'),
+      t('O bebê virando a cabeça — igual o bicho virava', 'The baby turning its head — just like the pet used to'),
+    ],
+    roles: [
+      { id: 'grown-up', slot: 'WHOEVER CHOOSES', cast: 'adult', required: true },
+      {
+        id: 'companion',
+        slot: 'THE JUDGE',
+        cast: 'pet',
+        required: false,
+        fallback:
+          'With no animal to turn its head at a name, the judge becomes the echo itself: a hallway, a stairwell, a bathroom — wherever a shouted name comes back — and beat 12 trades the turning head for the crying stopping instead.',
+      },
+    ],
+    questions: [
+      {
+        id: 'wanted-name',
+        group: t('Os nomes', 'The names'),
+        question: t('Que nome o mais velho queria dar?', 'What name did the older child want to give?'),
+        hint: t('É o nome que ele encontra e perde — o coração do livro.', 'It is the name he finds and loses — the heart of the book.'),
+        placeholder: t('Trovão, porque ele achava que combinava', 'Thunder, because he thought it fit'),
+        suggestions: [
+          t('O nome de um personagem de desenho favorito', 'The name of a favourite cartoon character'),
+          t('Um nome curto que ele mesmo inventou', 'A short name he made up himself'),
+          t('O nome do próprio bicho de estimação', 'The name of his own pet'),
+        ],
+        loadBearing: true,
+      },
+      {
+        id: 'secret-name',
+        group: t('Os nomes', 'The names'),
+        question: t(
+          'Como ele chama o bebê quando ninguém está ouvindo?',
+          'What does he call the baby when nobody is listening?',
+        ),
+        hint: t('Se não existir ainda, é o nome que ele queria dar.', 'If this does not exist yet, it is the name he wanted to give.'),
+        placeholder: t('Ele fala com a barriga e chama de "Chefinho"', 'He talks to the belly and calls it "Boss"'),
+        suggestions: [
+          t('Não existe ainda — usa o nome que ele mesmo escolheu', 'It does not exist yet — he uses the name he chose himself'),
+          t('Ele chama de "amigo" quando fala sozinho', 'He calls it "friend" when talking to it alone'),
+          t('Um apelido bobo que só ele usa', 'A silly nickname only he uses'),
+        ],
+      },
+      {
+        id: 'echo-place',
+        group: t('Os testes', 'The tests'),
+        question: t('Onde a voz dele ecoa na casa?', 'Where does his voice echo in the house?'),
+        hint: t('É o cenário do primeiro teste, gritando um nome atrás do outro.', 'It is the setting of the first test, shouting one name after another.'),
+        placeholder: t('No corredor comprido perto dos quartos', 'The long hallway near the bedrooms'),
+        suggestions: [
+          t('Na escada', 'On the stairs'),
+          t('No banheiro, com a porta fechada', 'In the bathroom, with the door shut'),
+          t('Na garagem vazia', 'The empty garage'),
+        ],
+        loadBearing: true,
+      },
+      {
+        id: 'name-origin',
+        group: t('Os nomes', 'The names'),
+        question: t('De onde veio o nome que os adultos escolheram?', 'Where did the name the grown-ups chose come from?'),
+        hint: t('Uma foto antiga, um parente, uma história de família.', 'An old photograph, a relative, a family story.'),
+        placeholder: t('É o nome da bisavó, numa foto antiga', 'It is the great-grandmother’s name, from an old photograph'),
+        suggestions: [
+          t('O nome de um avô ou avó', 'A grandparent’s name'),
+          t('Um nome que os dois sempre gostaram', 'A name they had both always liked'),
+          t('Uma homenagem a alguém que já morreu', 'A tribute to somebody who has passed away'),
+        ],
+      },
+    ],
+    want:
+      'THE OLDER CHILD wants to be the one who chooses the name.',
+    turn:
+      'On beat 8 he loses the choice, and instead of dropping the name, he hides it — using it alone, in secret, for the rest of the book.',
+    beats: [
+      {
+        text: '1. A name is missing, and the whole house is trying to find one.',
+        frameA: 'A list of names stuck to the fridge or a wall, the whole family gathered around it, discussing.',
+        frameB: 'Him alone in front of the same list, standing on tiptoe, not tall enough to reach the top of it — a different moment, isolated from the group.',
+      },
+      {
+        text: '2. He wants to be the one who chooses. THEREFORE he invents a test.',
+        frameA: 'Him dragging a chair or stool across the floor to reach the list.',
+        frameB: 'Close on his hand crossing names off the list with a pencil, serious concentration on his face just above it.',
+      },
+      {
+        text: '3. Test one: shout the name down THE ECHO PLACE and listen to how it comes back.',
+        frameA: 'Him shouting, mouth wide open, into the hallway or stairwell, whole body leaning into it.',
+        frameB: 'The empty hallway itself, seen from further down it, the sound implied by his stance at the far end — a completely different subject, the echo rather than the shout.',
+      },
+      {
+        text: '4. Test two: say the name near THE JUDGE. Some names get no reaction at all.',
+        frameA: 'Him crouched close, whispering a name near the animal, hopeful.',
+        frameB: 'The animal fast asleep, utterly unmoved, seen from a slightly wider angle that includes his slumping disappointment beside it.',
+      },
+      {
+        text: '5. Test three: write the whole name out by hand. The long ones he abandons halfway.',
+        frameA: 'His hand mid-word, pencil pressed to paper, focused.',
+        frameB: 'The paper alone, close up, the name trailing off unfinished in the middle of a letter — no hand in frame, just the abandoned attempt.',
+      },
+      {
+        text: '6. He finds the name: it is short, THE JUDGE reacts, and it fits on the page.',
+        frameA: 'Him finishing the word on the page with a flourish, triumphant.',
+        frameB: 'THE JUDGE’s ear flicking up or head lifting, alert — cutting to the reaction rather than the writing.',
+      },
+      {
+        text: '7. He presents it. They think it is lovely — BUT they had already chosen another, from THE NAME ORIGIN.',
+        frameA: 'Him holding the paper up proudly to the grown-ups.',
+        frameB: 'One of the grown-ups holding up an old photograph instead, a gentle explanation on their face — a different object entirely occupying the same gesture.',
+      },
+      {
+        text: '8. THE TURN. He loses. THEREFORE he stops saying his name out loud, and starts using it alone, mouth close to the belly.',
+        frameA: 'His own paper being folded away into a drawer, his hand pushing it in.',
+        frameB: 'Him leaning against the belly, mouth close, speaking quietly — a completely different scene, tender rather than disappointed.',
+      },
+      {
+        text: '9. He uses that name every day. He tells it things. He is the only voice that calls the baby by it.',
+        frameA: 'Him lying with his ear or cheek against the belly, mid-conversation.',
+        frameB: 'The same pose, another day entirely — different light, a slightly different angle, showing this has become a habit rather than a single moment.',
+      },
+      {
+        text: '10. The baby is born with the grown-ups’ name written on everything: the wristband, the door, the cake.',
+        frameA: 'Close on the hospital wristband, the chosen name printed on it.',
+        frameB: 'The bedroom door at home, the same name now lettered onto it — a different object, same name, marking the shift from hospital to home.',
+      },
+      {
+        text: '11. The baby cries and will not stop for anyone. BUT he comes close and uses his own name for it.',
+        frameA: 'The baby crying, the whole family gathered and failing to help, mid-attempt.',
+        frameB: 'Him alone stepping closer, mouth near the baby’s ear, everyone else pulled back out of focus behind him — the crowd of A replaced by just the two of them.',
+      },
+      {
+        text: '12. The baby goes quiet, and turns its head — exactly like THE JUDGE used to. Everyone thinks it is luck. Only he knows it was the test.',
+        frameA: 'The baby calm now, head turning towards him.',
+        frameB: 'Him and THE JUDGE side by side, both looking on, a small private and knowing look passed only between the two of them — a wider shot that includes the one other creature who understands what just happened.',
+      },
+    ],
+    extras:
+      'Everyone in the house has a name on the list in beat 1 and a rejected guess somewhere in tests three to five — nobody is left with nothing to have tried.',
+    filling: [
+      'THE WANTED NAME never wins. It is found in beat 6 and lost in beat 7, and it is not spoken again until it becomes the secret name of beats 8 onward.',
+      'THE NAME ORIGIN (a photograph, a relative, a family story) is exactly what the customer told us, never a generic "family tradition" invented with nothing behind it.',
+    ],
+  },
+
+  /* ---------------------------------------------------------------- */
+  {
+    id: 'the-guide',
+    occasionId: 'holiday',
+    title: t('O Guia', 'The Guide'),
+    logline: t(
+      'Ela é baixa demais para ver o mapa. Então aprende a guiar do jeito dela.',
+      'She is too short to see the map. So she learns to guide her own way.',
+    ),
+    summary: t(
+      'Enquanto os adultos andam pelos lugares famosos, ela vai marcando o caminho por sinal — a porta azul, o cachorro do telhado — em vez de por nome. No terceiro dia todo mundo está perdido, e alguém finalmente se abaixa até a altura dela e pergunta.',
+      'While the grown-ups walk between the famous places, she quietly starts marking the route by sign rather than by name — the blue door, the dog on the roof. On the third day everybody is lost, and somebody finally crouches down to her height and asks.',
+    ),
+    highlights: [
+      t('O mapa aberto bem acima da cabeça dela', 'The map held open well above her head'),
+      t('A porta azul, guardada em segredo como um sinal', 'The blue door, kept secretly as a marker'),
+      t('Um adulto se abaixando até os olhos ficarem na mesma linha', 'A grown-up crouching down until their eyes are level'),
+    ],
+    roles: [
+      { id: 'grown-up', slot: 'THE ONES WHO LEAD', cast: 'adult', required: true },
+      {
+        id: 'companion',
+        slot: 'THE ONE WHO FOLLOWS ALONG',
+        cast: 'anyone-else',
+        required: false,
+        fallback:
+          'Nobody else was named for this part, so her collection of signs stays entirely secret until beat 9 — which is the better version anyway, since nobody to tell it to makes the discovery in beat 8 land harder.',
+      },
+    ],
+    questions: [
+      {
+        id: 'trip-destination',
+        group: t('A viagem', 'The trip'),
+        question: t('Para onde a família foi ou vai?', 'Where did or will the family go?'),
+        placeholder: t('Lisboa, para conhecer a cidade da bisavó', 'Lisbon, to see her great-grandmother’s city'),
+        suggestions: [
+          t('Uma praia diferente da de sempre', 'A different beach from their usual one'),
+          t('Uma cidade histórica com ruas estreitas', 'A historic town with narrow streets'),
+          t('A casa de parentes numa cidade grande', 'Relatives’ house in a big city'),
+        ],
+        loadBearing: true,
+      },
+      {
+        id: 'trip-places',
+        group: t('A viagem', 'The trip'),
+        question: t('Três ou quatro lugares dessa viagem?', 'Three or four places from that trip?'),
+        hint: t('São as paradas onde ela guarda um sinal novo.', 'These are the stops where she picks up a new sign.'),
+        placeholder: t('O mirante, o mercado coberto e a igreja da praça', 'The viewpoint, the covered market and the church on the square'),
+        suggestions: [
+          t('A praia, o farol e o mercado de peixe', 'The beach, the lighthouse and the fish market'),
+          t('O castelo, a praça principal e a sorveteria', 'The castle, the main square and the ice cream shop'),
+          t('A casa dos parentes, o parque e o shopping', 'The relatives’ house, the park and the shopping centre'),
+        ],
+        loadBearing: true,
+      },
+      {
+        id: 'only-she-noticed',
+        group: t('Os sinais', 'The signs'),
+        question: t('Alguma coisa que ela reparou e mais ninguém?', 'Something she noticed that nobody else did?'),
+        hint: t('É a primeira coisa que ela guarda, na segunda batida.', 'It is the first thing she keeps, on the second beat.'),
+        placeholder: t('Uma porta azul bem no meio de uma rua cinza', 'A blue door right in the middle of a grey street'),
+        suggestions: [
+          t('Um gato que dorme sempre no mesmo parapeito', 'A cat that always sleeps on the same windowsill'),
+          t('O cheiro de uma padaria numa esquina específica', 'The smell of a bakery on one particular corner'),
+          t('Um sino que toca sempre na mesma hora', 'A bell that rings at the same time every day'),
+        ],
+        loadBearing: true,
+      },
+      {
+        id: 'silly-best-place',
+        group: t('A viagem', 'The trip'),
+        question: t('Qual foi o lugar bobo que virou o melhor da viagem?', 'What was the silly place that turned out to be the best of the trip?'),
+        hint: t('É para onde ela leva todo mundo no final.', 'It is where she leads everybody at the end.'),
+        placeholder: t('Um banco de praça sem graça nenhuma, perto de um chafariz', 'An unremarkable park bench near a fountain'),
+        suggestions: [
+          t('Uma escada qualquer com uma vista boa', 'Some random staircase with a good view'),
+          t('Uma praça pequena sem nome que vira ponto de encontro', 'A small unnamed square that becomes their meeting point'),
+          t('Uma sorveteria de esquina, não a famosa', 'A corner ice cream shop, not the famous one'),
+        ],
+        loadBearing: true,
+      },
+    ],
+    want:
+      'THE BIRTHDAY GIRL — no, THE GUIDE wants somebody to ask her something, for once.',
+    turn:
+      'On beat 8 a grown-up finally crouches down to her height. It is the only beat in the book where the eyes are on the same line.',
+    beats: [
+      {
+        text: '1. They arrive in THE DESTINATION. THE ONES WHO LEAD open a map, and she is too short to see over it.',
+        frameA: 'The arrival, suitcases and all, at street level, ordinary and busy.',
+        frameB: 'Straight up from below her: the underside of the open map held above her head, her small upturned face just visible at the bottom edge.',
+      },
+      {
+        text: '2. At the first place, beautiful and full of a queue, she looks the other way and sees something nobody else noticed.',
+        frameA: 'The famous sight and its queue, everybody else looking at it.',
+        frameB: 'Her turned the opposite direction from the crowd, looking at THE THING ONLY SHE NOTICED, isolated in her own small frame away from the group.',
+      },
+      {
+        text: '3. She tugs a sleeve to show someone. They say "later".',
+        frameA: 'Her hand pulling at an adult’s sleeve, looking up.',
+        frameB: 'The adult’s face, pointed forward at the queue, not looking down — the sleeve released, her hand already falling away in the corner of frame.',
+      },
+      {
+        text: '4. THEREFORE she starts keeping her own record, marking the route by sign instead of by name.',
+        frameA: 'Her stopped in front of THE THING SHE NOTICED, standing very still, taking it in.',
+        frameB: 'Close on her own hand sketching or tracing the sign in a small notebook or just in the air — a private, deliberate act, different from simply standing and looking.',
+      },
+      {
+        text: '5. At the second place, the same thing happens. Her collection grows.',
+        frameA: 'The second named place, crowded, ordinary tourist business happening.',
+        frameB: 'Her small figure slightly apart from the group, adding a new sign to her collection, satisfied and a little proud — a private aside from the crowd shot.',
+      },
+      {
+        text: '6. On the third day everybody is tired, the map does not match the street, and they are lost.',
+        frameA: 'The map held out, turned this way and that, confused adult faces around it.',
+        frameB: 'All their faces together, exhausted and slightly cross with each other — pulled back to a wider shot that includes everyone, replacing the close map confusion.',
+      },
+      {
+        text: '7. She recognises THE THING SHE NOTICED from earlier — BUT nobody thinks to ask her anything.',
+        frameA: 'The sign itself, small in the corner of a busy, unfamiliar-looking street.',
+        frameB: 'Her looking straight up, waiting, hopeful — a close shot on just her face, a private moment inside the group’s confusion.',
+      },
+      {
+        text: '8. THE TURN. Somebody finally crouches down and asks: do you know where we are?',
+        frameA: 'A grown-up crouching down, one knee bent, reaching her eye level.',
+        frameB: 'Extremely close and level: just the two sets of eyes, hers and theirs, on exactly the same line — the only shot in the whole book framed this way.',
+      },
+      {
+        text: '9. She knows. THEREFORE she goes first.',
+        frameA: 'Her first small step forward, determined, everyone still behind her.',
+        frameB: 'The whole family now in a line behind her, following, seen from ahead of her — the reverse of the step, showing the shape of the group now trailing her.',
+      },
+      {
+        text: '10. She leads them by things that are not on any map — the smell of a bakery, a cat asleep on a roof.',
+        frameA: 'The group passing a bakery, her leading confidently, pointing without looking back.',
+        frameB: 'Everybody’s heads tipped up together, following her lead, looking at something above the street — a cat, a sign, a window — a completely different sightline from the street-level bakery shot.',
+      },
+      {
+        text: '11. And she does not lead them home. She leads them to THE SILLY PLACE, which she has kept since the first day.',
+        frameA: 'The group arriving somewhere clearly not grand or expected, faces mildly puzzled.',
+        frameB: 'The same place, now filled with everyone settling in, unhurried and pleased despite themselves — a change of mood entirely from the initial puzzlement.',
+      },
+      {
+        text: '12. It is a small silly place. And it is where they come back to, every day, until the trip is over.',
+        frameA: 'Everybody gathered there together, relaxed, a single day.',
+        frameB: 'The same spot, another day, another light — the family already there and settled, as if it has become a habit, not an event.',
+      },
+    ],
+    extras:
+      'Whoever else came on the trip is part of the line following her from beat 9 onward — the trail behind her is where a named companion, if there is one, gets their page.',
+    filling: [
+      'THE PLACES ARE THE REAL ONES THE CUSTOMER NAMED, in the order that makes an actual route through THE DESTINATION.',
+      'THE SILLY PLACE is not on the itinerary anybody would print — it earns its status entirely from having been noticed first by a child, which is the whole point of the book.',
+    ],
+  },
+
+  /* ---------------------------------------------------------------- */
+  {
+    id: 'how-much-further',
+    occasionId: 'holiday',
+    title: t('Quanto Falta', 'How Much Further'),
+    logline: t(
+      'Ela combinou em voz alta com todo mundo: vai ser a primeira a ver.',
+      'She announced it out loud to everyone: she is going to be the first to see it.',
+    ),
+    summary: t(
+      'A viagem inteira medida em unidades de criança — três músicas, dois túneis, um lanche. Ela se recusa a dormir porque combinou ser a primeira a ver o destino. Dez minutos antes, ela perde. O carro para, e ninguém desce até ela acordar.',
+      'The whole trip measured in child-sized units — three songs, two tunnels, one snack. She refuses to sleep because she announced she would be the first to see the destination. Ten minutes before arriving, she loses. The car stops, and nobody gets out until she wakes up.',
+    ),
+    highlights: [
+      t('Os dedos contando as músicas, uma a uma', 'Fingers counting the songs, one by one'),
+      t('O rosto dela dormindo, encostado no vidro', 'Her face asleep, pressed against the glass'),
+      t('O carro parado, e ninguém descendo', 'The car stopped, and nobody getting out'),
+    ],
+    roles: [
+      { id: 'grown-up', slot: 'WHOEVER DRIVES OR CARRIES', cast: 'adult', required: true },
+      {
+        id: 'companion',
+        slot: 'THE ONE TRAVELLING ALONGSIDE',
+        cast: 'anyone-else',
+        required: false,
+        fallback:
+          'Travelling alone, she spreads her own things out over the empty seat beside her — a bag, a toy, a shoe kicked off — and that empty, cluttered seat is beat 5’s contrast instead of somebody else asleep on it.',
+      },
+    ],
+    questions: [
+      {
+        id: 'how-they-travel',
+        group: t('A viagem', 'The trip'),
+        question: t('Como é a viagem?', 'What is the journey like?'),
+        hint: t('De carro, ônibus, avião — e quantas horas mais ou menos.', 'By car, bus, plane — and roughly how many hours.'),
+        placeholder: t('De carro, umas cinco horas, saindo de madrugada', 'By car, about five hours, leaving before dawn'),
+        suggestions: [
+          t('De avião, duas horas de voo', 'By plane, a two-hour flight'),
+          t('De carro, umas três horas com uma parada', 'By car, about three hours with one stop'),
+          t('De ônibus, uma noite inteira', 'By bus, a whole night'),
+        ],
+        loadBearing: true,
+      },
+      {
+        id: 'trip-ritual',
+        group: t('A viagem', 'The trip'),
+        question: t('O que sempre acontece nessa viagem?', 'What always happens on this trip?'),
+        hint: t('A música, o lanche, o enjoo, a parada de sempre — vira uma das unidades de medida.', 'The song, the snack, the car sickness, the usual stop — becomes one of the units of measure.'),
+        placeholder: t('Sempre para no mesmo posto para comer pastel', 'Always stops at the same service station for a pastel'),
+        suggestions: [
+          t('A mesma playlist toca o caminho inteiro', 'The same playlist plays the whole way'),
+          t('Alguém sempre enjoa depois de uma hora', 'Somebody always gets carsick after an hour'),
+          t('Para sempre no mesmo lugar para o café', 'Always stops at the same place for coffee'),
+        ],
+        loadBearing: true,
+      },
+      {
+        id: 'trip-destination-sight',
+        group: t('A chegada', 'The arrival'),
+        question: t('O que eles vão ver quando chegar?', 'What will they see when they arrive?'),
+        placeholder: t('O mar, pela primeira vez para ela', 'The sea, for the first time for her'),
+        suggestions: [
+          t('A casa da avó, depois de um ano sem ir', 'Grandma’s house, after a year away'),
+          t('Uma montanha coberta de neve', 'A mountain covered in snow'),
+          t('Um parque de diversões enorme', 'A huge theme park'),
+        ],
+        loadBearing: true,
+      },
+      {
+        id: 'always-sleeps',
+        group: t('A viagem', 'The trip'),
+        question: t('Quem sempre dorme no caminho?', 'Who always falls asleep on the way?'),
+        placeholder: t('O pai, sempre, em qualquer viagem', 'Dad, always, on every single trip'),
+        suggestions: [
+          t('Ela mesma, sempre, por mais que resista', 'She herself, always, no matter how hard she fights it'),
+          t('O irmão mais novo, em cinco minutos', 'Her younger brother, within five minutes'),
+          t('Ninguém — a família inteira briga para ficar acordada', 'Nobody — the whole family fights to stay awake'),
+        ],
+      },
+    ],
+    want:
+      'She wants to be the first to see THE SIGHT, and she has said so out loud to everyone.',
+    turn:
+      'On beat 9 her eyes close and she loses — and the book turns to belong to whoever is still awake around her.',
+    beats: [
+      {
+        text: '1. Still dark. She is the first one up in the whole house, because today is the day.',
+        frameA: 'The house in near-darkness, her already dressed and ready by the door.',
+        frameB: 'Everybody else still visibly asleep in another room, seen through a doorway — the contrast, not the readiness itself.',
+      },
+      {
+        text: '2. First question: how much further? Answer: three songs. THEREFORE she counts them.',
+        frameA: 'Her at the window, watching the road go by, listening.',
+        frameB: 'Close on her fingers, one held up, then two — counting in the foreground, the window blurred behind.',
+      },
+      {
+        text: '3. The three end and they have not arrived. New unit: two tunnels.',
+        frameA: 'The car entering the mouth of the first tunnel, darkness closing in ahead.',
+        frameB: 'Inside the tunnel, her face lit only by the passing tunnel lights, striped with light and dark — a completely different lighting condition from the approach shot.',
+      },
+      {
+        text: '4. Then: one snack. It disappears far too fast.',
+        frameA: 'The snack packet being opened, her hands eager.',
+        frameB: 'The empty packet held upside down over her open palm, nothing left to fall out — the same object, entirely emptied.',
+      },
+      {
+        text: '5. Then: one nap — BUT she refuses, and announces it out loud to everyone.',
+        frameA: 'Her sitting bolt upright, one finger raised, declaring something firmly to the car.',
+        frameB: 'THE ONE TRAVELLING ALONGSIDE already fast asleep, head lolling — or, alone, her own things spread messily across the empty seat beside her — a different subject entirely from her declaration.',
+      },
+      {
+        text: '6. The landscape outside starts to change colour. She recognises they are close without anyone saying a word.',
+        frameA: 'The scenery as it has looked for hours, familiar and unremarkable.',
+        frameB: 'The same framing, the scenery visibly different now — new colours, new shapes on the horizon — the same shot repeated to show the world itself has changed rather than the car.',
+      },
+      {
+        text: '7. She asks again, and the answer changes: not far now, just around here.',
+        frameA: 'Her leaning forward between the front seats, asking.',
+        frameB: 'WHOEVER DRIVES OR CARRIES’s eyes in the rear-view mirror, smiling back at her — a completely different angle, from the front of the car looking back rather than the back looking forward.',
+      },
+      {
+        text: '8. And that is exactly when it gets longer. The last stretch is always the longest.',
+        frameA: 'A straight road ahead through the windscreen, seemingly endless.',
+        frameB: 'The identical straight road, now from behind the car, showing how much of it is still ahead — same road, opposite direction, no end in sight either way.',
+      },
+      {
+        text: '9. THE TURN. Her eyes close. She loses.',
+        frameA: 'Her head starting to nod, fighting it, eyes heavy.',
+        frameB: 'Her fully asleep now, cheek against the window glass, mouth slightly open — a full transition from resisting to gone.',
+      },
+      {
+        text: '10. The car stops. Nobody gets out. Everyone waits, without opening a single door.',
+        frameA: 'The car stopped, seen from outside, engine off, nobody moving.',
+        frameB: 'Inside the car, the grown-ups turned around in their seats, looking back at her quietly, patient — an interior view replacing the exterior stillness.',
+      },
+      {
+        text: '11. Somebody wakes her gently, a hand on her knee, the right way.',
+        frameA: 'A hand resting on her knee, still, not shaking her.',
+        frameB: 'Her eyes opening, slow and blinking, the hand still there but her face now the subject rather than the hand.',
+      },
+      {
+        text: '12. She is the first out of the car, and the first to see THE SIGHT. It was promised, and it was kept.',
+        frameA: 'The car door opening, her foot reaching the ground first.',
+        frameB: 'Her from behind, small against the full width of THE SIGHT laid out in front of her — the payoff itself, filling the frame, nobody else visible ahead of her.',
+      },
+    ],
+    extras:
+      'Whoever else is in the car is awake and waiting with everyone else in beat 10 — the whole point of that page is that the car is full of people who chose to let her be first.',
+    filling: [
+      'The units of measurement (songs, tunnels, the snack) are exactly what the customer told us about THIS trip, converted into things a child can count rather than left as hours and kilometres.',
+      'This story is already written in the warm voice the catalog default already uses — measured in arms, distances and small counted things rather than numbers — so no adjustment to tone is needed for it.',
+    ],
+  },
+
 ]
 
 /* ------------------------------------------------------------------ *
@@ -1375,6 +2544,34 @@ export function panelCount(
 ): number | undefined {
   if (!story || brief.finish !== 'coloring' || !isFramed(story)) return undefined
   return story.beats.length * 2
+}
+
+/**
+ * How many pages THIS order is, whichever finish it was ordered in.
+ *
+ * `panelCount` only ever answers for the coloured-in twenty-four; everything
+ * else that has to know how long the book is was defaulting to the catalog's
+ * BOOK_PAGES (13) whenever this was not that one case — which was correct by
+ * accident for the five thirteen-beat baby stories and wrong for a framed
+ * shelf story ordered as a reading book. The dinosaur book has twelve beats.
+ * Asked for a thirteen-page reading storyboard, the model was being told to
+ * fill a page no beat exists for — the mould's own page count and the
+ * ceiling handed to the model disagreed inside a single prompt.
+ *
+ * A story's own beat count is always the right answer once a story has been
+ * chosen, in both finishes: twelve captioned pages for the dinosaur book read
+ * aloud, twenty-four wordless panels for it coloured in, thirteen either way
+ * for a baby story. Nothing here is a product default any more — it is read
+ * off the mould. Callers still fall back to the catalog's BOOK_PAGES
+ * themselves when no story was chosen at all, because that is the one case
+ * this function cannot answer.
+ */
+export function pageCountFor(
+  story: StoryDef | undefined,
+  brief: BookBrief,
+): number | undefined {
+  if (!story) return undefined
+  return panelCount(story, brief) ?? story.beats.length
 }
 
 /**
@@ -1729,6 +2926,5 @@ export function storyIdea(
     highlights: story.highlights.map((h) => say(h, brief)),
     want: story.want,
     turn: story.turn,
-    anchored: true,
   }
 }

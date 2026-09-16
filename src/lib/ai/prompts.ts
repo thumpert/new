@@ -1,4 +1,4 @@
-import { getStory, panelCount, storyPrompt } from '../stories'
+import { getStory, pageCountFor, panelCount, storyPrompt } from '../stories'
 import { readingBookRules } from './reading-book'
 import { twelvePageRules } from './twelve-pages'
 import { BOOK_PAGES, getArtStyle, getBookLanguage, getOccasion, getStoryType, getTone } from '../catalog'
@@ -69,7 +69,7 @@ export function briefContext(brief: BookBrief): string {
   // that lists twenty-four panels is the kind of contradiction a model splits
   // the difference on.
   const story = brief.chosenStoryId ? getStory(brief.chosenStoryId) : undefined
-  const length = panelCount(story, brief) ?? BOOK_PAGES
+  const length = pageCountFor(story, brief) ?? BOOK_PAGES
 
   const lines = [
     `OCCASION: ${occasion.storyAngle}`,
