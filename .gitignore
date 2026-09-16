@@ -49,3 +49,13 @@ next-env.d.ts
 # `npx skills experimental_install`, or re-add the source repo.
 /.agents/
 /.claude/skills/
+
+# Reference and output PDFs kept beside the project while working on it — the
+# printed book a style was judged against, a copy of a book that came out.
+# They are a hundred megabytes together, they are not inputs to anything the
+# app builds, and a git history that carries them never gets lighter again.
+*.pdf
+
+# The design handoff arrived as a zip; the unpacked folder is what is
+# versioned, and keeping both means the two can drift.
+*.zip
