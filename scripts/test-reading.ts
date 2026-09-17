@@ -32,7 +32,8 @@ async function main() {
 
   const brief: BookBrief = {
     locale: 'pt', bookLanguage: 'pt', finish: 'reading', ageBandId: bandId,
-    occasionId: story.occasionId, storyTypeId: 'adventure', toneId: 'warm',
+    occasionId: story.occasionId, chosenStoryId: story.id,
+    storyTypeId: 'adventure', toneId: 'warm',
     artStyleId: 'chibi', title: '', place: 'a casa da avó em Petrópolis, com o quintal de mangueiras',
     characters: [
       { id: 'c1', name: 'Lila', kind: 'person', age: '5 anos',
