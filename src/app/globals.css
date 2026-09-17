@@ -91,6 +91,29 @@
   --dur-preenche: 5s;
   --dur-flutua: 7s;
   --ease: cubic-bezier(0.45, 0.05, 0.55, 0.95);
+
+  /*
+   * Caixa 3D cartoon (formulário de perguntas — direção 7a).
+   * SOURCE: design_handoff_livro_colorir 2/tokens.css. Espessura vem de uma
+   * faixa sólida embaixo (0 Npx 0), nunca de blur; contorno é 2px na tinta,
+   * não preto puro.
+   */
+  --borda-3d: 2px solid var(--cor-tinta);
+  --raio-3d-cartao: 26px;
+  --raio-3d-campo: 18px;
+  --raio-3d-botao: 16px;
+  --sombra-3d-cartao: 0 8px 0 var(--cor-tinta);
+  --sombra-3d-campo: 0 5px 0 var(--cor-tinta);
+  --sombra-3d-botao: 0 4px 0 var(--cor-tinta);
+  --sombra-3d-primaria: 0 4px 0 var(--giz-vermelho-sombra);
+  --sombra-3d-ponto: 0 2px 0 var(--cor-tinta);
+  --sombra-3d-pressionado: 0 2px 0 var(--cor-tinta);
+  --trilha-progresso: #efe4ce;
+
+  --texto-pergunta: 800 clamp(21px, 2.6vw, 28px)/1.12 var(--fonte-titulo);
+  --texto-campo: 600 15px/1.55 var(--fonte-corpo);
+  --texto-sugestao: 700 13px/1.3 var(--fonte-corpo);
+  --texto-rotulo: 800 11px/1 var(--fonte-corpo);
 }
 
 /*

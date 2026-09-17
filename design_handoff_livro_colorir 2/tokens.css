@@ -1,0 +1,111 @@
+/* Design system — Livro de Colorir (direção 5a: papel texturado + título vazado)
+   Fontes: Baloo 2 (títulos), Nunito (corpo/UI), IBM Plex Mono (rótulos técnicos, opcional)
+   https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@400;600;700&display=swap */
+
+:root {
+  /* ---- Cor: base ---- */
+  --cor-papel:        #FDF3E0; /* fundo da página (recebe o grão) */
+  --cor-papel-alt:    #FFFCF4; /* cartões sobre o papel */
+  --cor-branco:       #FFFFFF; /* páginas do livro, superfícies "folha" */
+  --cor-borda:        #E3D4B4;
+  --cor-borda-suave:  rgba(46, 42, 34, 0.08);
+
+  /* ---- Cor: tinta / texto ---- */
+  --cor-tinta:        #2E2A22; /* texto principal, contorno, botão escuro */
+  --cor-tinta-2:      #5C5444; /* corpo de texto */
+  --cor-tinta-3:      #6B6252; /* texto secundário, nav */
+  --cor-tinta-4:      #8C8168; /* legendas */
+  --cor-tinta-5:      #B6AA90; /* placeholder, texto em superfície vazia */
+  --cor-tinta-sombra: #1A1710; /* sombra sólida do botão escuro */
+
+  /* ---- Cor: giz (acentos) ---- */
+  --giz-vermelho:        #E2574C; /* ação primária */
+  --giz-vermelho-sombra: #B33C33; /* sombra sólida do botão primário */
+  --giz-amarelo:         #FFD166;
+  --giz-verde:           #7FB685;
+
+  /* ---- Cor: tiles pastel (fundo de página/categoria) ---- */
+  --tile-areia:  #FFE6A8; --tile-areia-ink:  #9A8355;
+  --tile-verde:  #D6EBD8; --tile-verde-ink:  #4E7A55;
+  --tile-rosa:   #FBDBD4; --tile-rosa-ink:   #A65A4C;
+  --tile-azul:   #DCE6F5; --tile-azul-ink:   #4A6285;
+
+  /* ---- Textura de papel (aplicar no fundo da página) ---- */
+  --grao-papel:
+    repeating-linear-gradient(0deg, rgba(46,42,34,.045) 0 1px, transparent 1px 4px),
+    repeating-linear-gradient(90deg, rgba(46,42,34,.035) 0 1px, transparent 1px 5px);
+
+  /* ---- Tipografia ---- */
+  --fonte-titulo: 'Baloo 2', system-ui, sans-serif;
+  --fonte-corpo:  'Nunito', system-ui, sans-serif;
+  --fonte-mono:   'IBM Plex Mono', ui-monospace, monospace;
+
+  --texto-hero:    800 clamp(38px, 6.2vw, 72px)/0.98 var(--fonte-titulo); /* tracking -.02em */
+  --texto-secao:   800 clamp(21px, 2.4vw, 32px)/1.2 var(--fonte-titulo);
+  --texto-preco:   800 clamp(30px, 3.2vw, 40px)/1 var(--fonte-titulo);
+  --texto-card:    700 13px/1.25 var(--fonte-corpo);
+  --texto-corpo:   400 clamp(13px, 1.1vw, 16px)/1.65 var(--fonte-corpo);
+  --texto-legenda: 400 12px/1.5 var(--fonte-corpo);
+  --texto-botao:   700 14px/1 var(--fonte-corpo);
+  --texto-nav:     600 13px/1 var(--fonte-corpo);
+  --texto-adesivo: 700 11px/1 var(--fonte-corpo); /* letter-spacing .1em, uppercase */
+
+  /* ---- Espaçamento (escala 4) ---- */
+  --esp-1: 4px;  --esp-2: 8px;  --esp-3: 12px; --esp-4: 16px;
+  --esp-5: 20px; --esp-6: 26px; --esp-7: 32px; --esp-8: 44px; --esp-9: 64px;
+
+  /* ---- Raio: cantos "desenhados à mão" (assimétricos de propósito) ---- */
+  --raio-botao: 15px 12px 16px 11px;
+  --raio-tile:  18px;
+  --raio-card:  18px;
+  --raio-folha: 10px;  /* páginas do livro */
+  --raio-pill:  999px;
+
+  /* ---- Bordas e sombras ---- */
+  --borda-traco: 2px solid var(--cor-tinta);        /* contorno "de giz" */
+  --sombra-solida-primaria: 0 5px 0 var(--giz-vermelho-sombra);
+  --sombra-solida-escura:   0 5px 0 var(--cor-tinta-sombra);
+  --sombra-folha: 0 6px 0 rgba(46, 42, 34, 0.12);
+
+  /* ---- Caixa 3D cartoon (formulário de perguntas — direção 7a) ----
+     Espessura vem de uma faixa sólida EMBAIXO (0 Npx 0), nunca de blur.
+     Contorno é 2px na cor da tinta — não preto puro. */
+  --borda-3d:            2px solid var(--cor-tinta);
+  --raio-3d-cartao:      26px; /* cartão da pergunta */
+  --raio-3d-campo:       18px; /* campo de resposta escrita */
+  --raio-3d-botao:       16px;
+  --sombra-3d-cartao:    0 8px 0 var(--cor-tinta);
+  --sombra-3d-campo:     0 5px 0 var(--cor-tinta);
+  --sombra-3d-botao:     0 4px 0 var(--cor-tinta);
+  --sombra-3d-primaria:  0 4px 0 var(--giz-vermelho-sombra);
+  --sombra-3d-ponto:     0 2px 0 var(--cor-tinta); /* bolinha da lista de sugestões */
+  --sombra-3d-pressionado: 0 2px 0 var(--cor-tinta); /* + translateY(2px) no :active */
+  --trilha-progresso:    #EFE4CE;
+
+  --texto-pergunta: 800 clamp(21px, 2.6vw, 28px)/1.12 var(--fonte-titulo);
+  --texto-campo:    600 15px/1.55 var(--fonte-corpo);
+  --texto-sugestao: 700 13px/1.3 var(--fonte-corpo);
+  --texto-rotulo:   800 11px/1 var(--fonte-corpo); /* letter-spacing .14em, uppercase */
+
+  /* ---- Rotações (nunca alinhar tudo no eixo) ---- */
+  --giro-logo: -1.5deg; --giro-botao: 0.8deg;
+  --giro-tile-a: -2.5deg; --giro-tile-b: 1.8deg; --giro-tile-c: -1.2deg;
+  --giro-livro: 3deg; --giro-adesivo: -9deg;
+
+  /* ---- Movimento ---- */
+  --dur-preenche: 5s;   /* título vazado que se pinta */
+  --dur-flutua:   7s;   /* livro/adesivo flutuando */
+  --ease: cubic-bezier(.45, .05, .55, .95);
+}
+
+@keyframes preenche-titulo { /* pincelada da esquerda p/ direita */
+  0%, 12%  { clip-path: inset(0 100% 0 0); }
+  70%, 100%{ clip-path: inset(0 0 0 0); }
+}
+@keyframes flutua { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  /* título já pintado, sem flutuação */
+  .titulo-vazado__preenchimento { animation: none !important; clip-path: none !important; }
+  .flutua { animation: none !important; }
+}

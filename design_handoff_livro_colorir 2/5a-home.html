@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Livro de Colorir — home (referência 5a)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tokens.css">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--cor-papel);
+    background-image: var(--grao-papel);
+    font-family: var(--fonte-corpo);
+    color: var(--cor-tinta);
+  }
+  a { color: var(--cor-tinta); text-decoration: none; }
+  a:hover { color: var(--giz-vermelho); }
+  .pagina { max-width: 1120px; margin: 0 auto; }
+
+  nav { display: flex; align-items: center; justify-content: space-between; padding: 18px var(--esp-6); }
+  .logo { font: 800 17px/1 var(--fonte-titulo); transform: rotate(var(--giro-logo)); display: inline-block; }
+  .logo span { color: var(--giz-vermelho); }
+  .nav-links { display: flex; gap: var(--esp-4); align-items: center; font: var(--texto-nav); color: var(--cor-tinta-3); }
+
+  .btn { border: 0; cursor: pointer; font: var(--texto-botao); border-radius: var(--raio-botao); transition: transform .12s, box-shadow .12s; }
+  .btn:hover { transform: translateY(2px); }
+  .btn:focus-visible { outline: 3px solid var(--giz-amarelo); outline-offset: 2px; }
+  .btn--primario { background: var(--giz-vermelho); color: var(--cor-papel); padding: 14px 22px; box-shadow: var(--sombra-solida-primaria); }
+  .btn--primario:hover { box-shadow: 0 3px 0 var(--giz-vermelho-sombra); }
+  .btn--escuro { background: var(--cor-tinta); color: var(--cor-papel); padding: 14px 24px; box-shadow: var(--sombra-solida-escura); }
+  .btn--escuro:hover { box-shadow: 0 3px 0 var(--cor-tinta-sombra); }
+  .btn--nav { background: var(--cor-tinta); color: var(--cor-papel); padding: 10px 18px; border-radius: 14px 12px 15px 11px; transform: rotate(var(--giro-botao)); font: 600 13px/1 var(--fonte-corpo); }
+  .link-sublinhado { font: 600 13px/1 var(--fonte-corpo); border-bottom: 2px solid var(--giz-amarelo); padding-bottom: 3px; }
+
+  .hero { display: grid; grid-template-columns: 1.1fr .9fr; gap: var(--esp-4); align-items: center; padding: 10px var(--esp-6) var(--esp-6); }
+  .titulo-vazado { position: relative; margin: 0 0 var(--esp-4); }
+  .titulo-vazado h1,
+  .titulo-vazado__preenchimento {
+    margin: 0; font: var(--texto-hero); letter-spacing: -.02em; text-wrap: pretty;
+  }
+  .titulo-vazado h1 { color: transparent; -webkit-text-stroke: 2px var(--cor-tinta); }
+  .titulo-vazado__preenchimento {
+    position: absolute; inset: 0; color: var(--giz-vermelho);
+    animation: preenche-titulo var(--dur-preenche) ease-in-out infinite alternate;
+  }
+  @supports not (-webkit-text-stroke: 2px black) {
+    .titulo-vazado h1 { color: var(--cor-tinta); }
+    .titulo-vazado__preenchimento { display: none; }
+  }
+  .hero p { margin: 0 0 var(--esp-5); font: var(--texto-corpo); color: var(--cor-tinta-2); max-width: 30ch; text-wrap: pretty; }
+
+  .palco { position: relative; display: grid; place-items: center; min-height: 200px; }
+  .palco__blob { position: absolute; width: 150px; height: 150px; border-radius: 30px; background: var(--giz-amarelo); opacity: .6; transform: rotate(-6deg); }
+  .livro { position: relative; width: 112px; aspect-ratio: 3/4; border-radius: var(--raio-folha); background: var(--cor-branco); border: var(--borda-traco); transform: rotate(var(--giro-livro)); display: grid; place-items: center; text-align: center; font: 600 11px/1.5 var(--fonte-corpo); color: var(--cor-tinta-5); }
+  .adesivo { position: absolute; right: 2px; bottom: 22px; transform: rotate(var(--giro-adesivo)); padding: 7px 11px; border-radius: var(--raio-pill); background: var(--giz-verde); color: #12331B; font: 700 11px/1 var(--fonte-corpo); }
+
+  .secao-paginas { padding: var(--esp-5) var(--esp-6); background: rgba(255,255,255,.72); }
+  .grade { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: var(--esp-3); }
+  .grade figure { margin: 0; text-align: center; }
+  .tile { aspect-ratio: 1; border-radius: var(--raio-tile); border: var(--borda-traco); display: grid; place-items: center; font: 600 11px/1.4 var(--fonte-corpo); transition: transform .18s var(--ease); }
+  .tile:hover { transform: rotate(0deg) scale(1.02); }
+  .tile--a { background: var(--tile-areia); color: var(--tile-areia-ink); transform: rotate(var(--giro-tile-a)); }
+  .tile--b { background: var(--tile-verde); color: var(--tile-verde-ink); transform: rotate(var(--giro-tile-b)); }
+  .tile--c { background: var(--tile-rosa);  color: var(--tile-rosa-ink);  transform: rotate(var(--giro-tile-c)); }
+  .grade figcaption { margin-top: var(--esp-3); font: var(--texto-legenda); color: var(--cor-tinta-3); }
+
+  .preco { display: flex; align-items: center; justify-content: space-between; gap: var(--esp-4); padding: 22px var(--esp-6); flex-wrap: wrap; }
+  .preco__valor { font: var(--texto-preco); }
+  .preco__apoio { margin-top: 6px; font: var(--texto-legenda); color: var(--cor-tinta-4); }
+
+  @media (max-width: 760px) {
+    .hero { grid-template-columns: 1fr; }
+    .palco { order: 2; }
+  }
+  @media (max-width: 640px) {
+    .grade { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="pagina">
+  <nav>
+    <span class="logo">tintim<span>colorir</span></span>
+    <div class="nav-links">
+      <a href="#paginas">Páginas</a>
+      <button class="btn btn--nav">Criar livro →</button>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div>
+      <div class="titulo-vazado">
+        <h1>PINTA<br>DO JEITO<br>DELA</h1>
+        <div class="titulo-vazado__preenchimento" aria-hidden="true">PINTA<br>DO JEITO<br>DELA</div>
+      </div>
+      <p>Oito perguntas, 24 contornos em papel 180g. A cor é trabalho dela.</p>
+      <button class="btn btn--primario">Começar →</button>
+    </div>
+    <div class="palco">
+      <div class="palco__blob" aria-hidden="true"></div>
+      <div class="livro">[ livro ]</div>
+      <span class="adesivo">24 páginas!</span>
+    </div>
+  </header>
+
+  <section class="secao-paginas" id="paginas">
+    <div class="grade">
+      <figure>
+        <div class="tile tile--a">[ dinossauro ]</div>
+        <figcaption>O dinossauro de pelúcia.</figcaption>
+      </figure>
+      <figure>
+        <div class="tile tile--b">[ cachorro ]</div>
+        <figcaption>O Bidu no sofá.</figcaption>
+      </figure>
+      <figure>
+        <div class="tile tile--c">[ praia ]</div>
+        <figcaption>A praia com balde amarelo.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="preco">
+    <div>
+      <div class="preco__valor">R$ 89</div>
+      <div class="preco__apoio">impresso + PDF · só PDF R$ 49</div>
+    </div>
+    <button class="btn btn--escuro">Criar o livro dela</button>
+  </section>
+</div>
+</body>
+</html>

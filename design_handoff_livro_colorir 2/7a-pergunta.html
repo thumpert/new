@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Livro de Colorir — pergunta do fluxo (referência 7a)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tokens.css">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh;
+    display: grid; place-items: center;
+    padding: var(--esp-6);
+    background: var(--cor-papel);
+    background-image: var(--grao-papel);
+    font-family: var(--fonte-corpo);
+    color: var(--cor-tinta);
+  }
+  a { color: var(--cor-tinta); } a:hover { color: var(--giz-vermelho); }
+
+  /* ---- Cartão da pergunta ---- */
+  .pergunta {
+    width: min(100%, 460px);
+    background: var(--cor-papel-alt);
+    border: var(--borda-3d);
+    border-radius: var(--raio-3d-cartao);
+    box-shadow: var(--sombra-3d-cartao);
+    padding: var(--esp-6);
+  }
+  .progresso { display: flex; align-items: center; gap: var(--esp-3); margin-bottom: var(--esp-5); }
+  .progresso__trilha { flex: 1; height: 12px; border-radius: var(--raio-pill); background: var(--trilha-progresso); overflow: hidden; }
+  .progresso__barra { height: 100%; border-radius: var(--raio-pill); background: var(--cor-tinta); transition: width .3s var(--ease); }
+  .progresso__contador { font: 800 13px/1 var(--fonte-corpo); }
+
+  .pergunta__titulo { margin: 0 0 6px; font: var(--texto-pergunta); text-wrap: pretty; }
+  .pergunta__ajuda { margin: 0 0 var(--esp-4); font: 400 12.5px/1.5 var(--fonte-corpo); color: var(--cor-tinta-4); }
+
+  /* ---- Campo de resposta escrita: elemento principal, sempre presente ---- */
+  .campo {
+    display: block; width: 100%; min-height: 104px; resize: vertical;
+    border: var(--borda-3d); border-radius: var(--raio-3d-campo);
+    box-shadow: var(--sombra-3d-campo);
+    background: var(--cor-branco);
+    padding: 14px 16px;
+    font: var(--texto-campo); color: var(--cor-tinta);
+  }
+  .campo::placeholder { color: var(--cor-tinta-5); }
+  .campo:focus { outline: 3px solid var(--giz-amarelo); outline-offset: 2px; }
+
+  /* ---- Sugestões: sempre abaixo do campo; clicar adiciona ao texto ---- */
+  .sugestoes__rotulo { margin: var(--esp-4) 0 10px; font: var(--texto-rotulo); letter-spacing: .14em; text-transform: uppercase; color: var(--cor-tinta-5); }
+  .sugestoes { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 9px; }
+  .sugestao { display: flex; align-items: center; gap: 10px; background: none; border: 0; padding: 4px 0; cursor: pointer; font: var(--texto-sugestao); color: var(--cor-tinta); text-align: left; }
+  .sugestao__ponto { flex: none; width: 13px; height: 13px; border-radius: 50%; border: var(--borda-3d); box-shadow: var(--sombra-3d-ponto); transition: transform .12s; }
+  .sugestao:nth-child(1) .sugestao__ponto { background: var(--giz-amarelo); }
+  .sugestao:nth-child(2) .sugestao__ponto { background: var(--giz-verde); }
+  .sugestao:nth-child(3) .sugestao__ponto { background: var(--giz-vermelho); }
+  .sugestao:hover .sugestao__ponto { transform: translateY(2px); box-shadow: 0 0 0 var(--cor-tinta); }
+  .sugestao:focus-visible { outline: 3px solid var(--giz-amarelo); outline-offset: 2px; border-radius: 6px; }
+
+  /* ---- Ações ---- */
+  .acoes { display: flex; gap: 10px; margin-top: var(--esp-5); }
+  .btn { cursor: pointer; border: var(--borda-3d); border-radius: var(--raio-3d-botao); padding: 13px 16px; font: 800 12.5px/1 var(--fonte-corpo); transition: transform .12s, box-shadow .12s; }
+  .btn:active { transform: translateY(2px); box-shadow: var(--sombra-3d-pressionado); }
+  .btn:focus-visible { outline: 3px solid var(--giz-amarelo); outline-offset: 2px; }
+  .btn--secundario { background: var(--cor-papel-alt); color: var(--cor-tinta); box-shadow: var(--sombra-3d-botao); }
+  .btn--primario { flex: 1; background: var(--giz-vermelho); color: var(--cor-papel-alt); box-shadow: var(--sombra-3d-primaria); }
+  .btn--primario:active { box-shadow: 0 2px 0 var(--giz-vermelho-sombra); }
+</style>
+</head>
+<body>
+<form class="pergunta">
+  <div class="progresso">
+    <div class="progresso__trilha"><div class="progresso__barra" style="width:12%"></div></div>
+    <span class="progresso__contador">1 / 8</span>
+  </div>
+
+  <h1 class="pergunta__titulo">Qual bicho ela desenha sem ninguém pedir?</h1>
+  <p class="pergunta__ajuda" id="ajuda-1">Escreva com as palavras dela — é isso que vira desenho.</p>
+
+  <textarea class="campo" id="resposta-1" aria-describedby="ajuda-1"
+    placeholder="Ex.: o gato do vizinho, que ela chama de Tarzan"></textarea>
+
+  <div class="sugestoes__rotulo" id="rotulo-sugestoes">Sugestões</div>
+  <ul class="sugestoes" aria-labelledby="rotulo-sugestoes">
+    <li><button type="button" class="sugestao"><span class="sugestao__ponto"></span>o cachorro de casa</button></li>
+    <li><button type="button" class="sugestao"><span class="sugestao__ponto"></span>dinossauro, sempre</button></li>
+    <li><button type="button" class="sugestao"><span class="sugestao__ponto"></span>gato, e ele tem nome</button></li>
+  </ul>
+
+  <div class="acoes">
+    <button type="button" class="btn btn--secundario">Voltar</button>
+    <button type="submit" class="btn btn--primario">Próxima →</button>
+  </div>
+</form>
+
+<script>
+  // Sugestão ADICIONA ao texto — nunca substitui o que o usuário escreveu.
+  const campo = document.getElementById('resposta-1');
+  document.querySelectorAll('.sugestao').forEach(b => b.addEventListener('click', () => {
+    const texto = b.textContent.trim();
+    campo.value = campo.value.trim() ? campo.value.trim().replace(/[.,]$/, '') + ', ' + texto : texto;
+    campo.focus();
+  }));
+</script>
+</body>
+</html>

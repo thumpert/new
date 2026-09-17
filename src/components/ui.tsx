@@ -16,7 +16,7 @@ export function Button({
   children: ReactNode
   onClick?: () => void
   type?: 'button' | 'submit'
-  variant?: 'primary' | 'dark' | 'ghost' | 'quiet'
+  variant?: 'primary' | 'dark' | 'ghost' | 'quiet' | 'primary3d' | 'secondary3d'
   disabled?: boolean
   className?: string
 }) {
@@ -26,6 +26,11 @@ export function Button({
    * rendered. Hover presses it down: the button moves 2px into its own
    * shadow and the shadow shortens to match, which is a thing made of paper
    * being pushed, not a colour change.
+   *
+   * `primary3d`/`secondary3d` are the same idea with the deeper "3D cartoon"
+   * shadow from design_handoff_livro_colorir 2 — used only where that
+   * direction was actually specified (the interview question card), not as
+   * a replacement for the two above.
    */
   const styles = {
     primary:
@@ -35,14 +40,24 @@ export function Button({
       'border-2 border-ink bg-paper-raised text-ink hover:bg-[var(--giz-amarelo)] disabled:border-line disabled:text-ink-faint',
     quiet:
       'text-ink-soft hover:text-ink border-b-2 border-[var(--giz-amarelo)] rounded-none pb-1 px-1',
+    primary3d:
+      'border-2 border-ink bg-accent text-[var(--cor-papel-alt)] shadow-[var(--sombra-3d-primaria)] hover:shadow-[0_2px_0_var(--giz-vermelho-sombra)] disabled:bg-line disabled:border-line disabled:text-ink-soft disabled:shadow-none',
+    secondary3d:
+      'border-2 border-ink bg-paper-raised text-ink shadow-[var(--sombra-3d-botao)] hover:shadow-[0_2px_0_var(--cor-tinta)] disabled:border-line disabled:text-ink-faint disabled:shadow-none',
   }[variant]
+
+  const raio3d = variant === 'primary3d' || variant === 'secondary3d'
 
   return (
     <button
       type={type}
       onClick={onClick}
       disabled={disabled}
-      style={variant === 'quiet' ? undefined : { borderRadius: 'var(--raio-botao)' }}
+      style={
+        variant === 'quiet'
+          ? undefined
+          : { borderRadius: raio3d ? 'var(--raio-3d-botao)' : 'var(--raio-botao)' }
+      }
       className={`px-6 py-3.5 text-sm font-bold transition-[transform,box-shadow] duration-[120ms] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[var(--giz-amarelo)] disabled:cursor-not-allowed disabled:hover:translate-y-0 ${
         variant === 'quiet' ? '' : 'hover:translate-y-0.5'
       } ${styles} ${className}`}

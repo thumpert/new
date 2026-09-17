@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react'
 import type { Dictionary } from '@/lib/i18n'
 import type { InterviewQuestion } from '@/lib/types'
-import { Button, TextArea } from './ui'
+import { Button } from './ui'
 
 /**
  * The interview, written as a conversation.
@@ -54,10 +54,30 @@ export function InterviewStep({
 
   return (
     <div>
+      {/* Barra da direção 7a: mostra a posição na entrevista. A contagem de
+          respondidas é uma coisa diferente — dá para pular perguntas — então
+          fica como legenda à parte, não escondida atrás da barra. */}
+      <div className="mb-3 flex items-center gap-3">
+        <div
+          className="h-3 flex-1 overflow-hidden rounded-[var(--raio-pill)]"
+          style={{ background: 'var(--trilha-progresso)' }}
+        >
+          <div
+            className="h-full rounded-[var(--raio-pill)] transition-all duration-300"
+            style={{
+              width: `${((index + 1) / ordered.length) * 100}%`,
+              background: 'var(--cor-tinta)',
+            }}
+          />
+        </div>
+        <span className="text-[13px] font-extrabold whitespace-nowrap text-ink">
+          {index + 1} / {ordered.length}
+        </span>
+      </div>
+
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-ink-soft">
-          {index + 1} {dict.common.of} {ordered.length} · {answered}/
-          {ordered.length} {copy.answered}
+          {answered}/{ordered.length} {copy.answered}
         </p>
         <button
           type="button"
@@ -68,7 +88,13 @@ export function InterviewStep({
         </button>
       </div>
 
-      <section className="rounded-[var(--raio-card)] border-2 border-ink bg-paper-raised p-5 sm:p-6">
+      <section
+        className="border-2 border-ink bg-paper-raised p-5 sm:p-6"
+        style={{
+          borderRadius: 'var(--raio-3d-cartao)',
+          boxShadow: 'var(--sombra-3d-cartao)',
+        }}
+      >
         {history.map((question, i) => (
           <Exchange
             key={question.id}
@@ -102,12 +128,22 @@ export function InterviewStep({
         </div>
 
         <div className="mt-3.5">
-          <TextArea
+          <textarea
             value={answers[current.id] ?? ''}
-            onChange={(value) => onAnswer(current.id, value)}
+            onChange={(e) => onAnswer(current.id, e.target.value)}
             placeholder={current.placeholder ?? copy.answerPlaceholder}
             rows={3}
             maxLength={2000}
+            // Campo da direção 7a: mesmo contorno de tinta do resto do
+            // sistema, mas com a sombra sólida "3D" e o raio de 18px que
+            // marcam esta caixa como a do formulário de perguntas.
+            className="block w-full resize-y border-2 border-ink bg-[var(--cor-branco)] px-4 py-3.5 text-ink placeholder:text-[var(--cor-tinta-5)] outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[var(--giz-amarelo)]"
+            style={{
+              minHeight: '104px',
+              borderRadius: 'var(--raio-3d-campo)',
+              boxShadow: 'var(--sombra-3d-campo)',
+              font: 'var(--texto-campo)',
+            }}
           />
         </div>
 
@@ -120,15 +156,17 @@ export function InterviewStep({
           />
         )}
 
-        <div className="mt-6 flex items-center gap-3 border-t-2 border-line pt-5">
+        <div className="mt-6 flex items-center gap-2.5 border-t-2 border-line pt-5">
           <Button
-            variant="ghost"
+            variant="secondary3d"
             onClick={() => setIndex((i) => Math.max(0, i - 1))}
             disabled={index === 0}
           >
             {dict.common.back}
           </Button>
           <Button
+            variant="primary3d"
+            className="flex-1"
             onClick={() =>
               setIndex((i) => Math.min(ordered.length - 1, i + 1))
             }
@@ -233,7 +271,13 @@ function Exchange({
   )
 }
 
-/** Appends rather than replaces, so a second pick builds on the first. */
+/**
+ * Appends rather than replaces, so a second pick builds on the first —
+ * joined by a comma, per the 7a reference (`campo.value = ...trim() + ', '
+ * + texto`). Rendered as the dot-list of 7a rather than the old pill chips:
+ * a bullet coloured yellow, green, red of chalk, in that fixed order, cycled
+ * if a question ever has more than three.
+ */
 function Suggestions({
   dict,
   suggestions,
@@ -246,37 +290,53 @@ function Suggestions({
   onApply: (next: string) => void
 }) {
   const copy = dict.wizard.interview
+  const dotColors = [
+    'var(--giz-amarelo)',
+    'var(--giz-verde)',
+    'var(--giz-vermelho)',
+  ]
 
   return (
-    <div className="mt-3">
-      <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.09em] text-ink-mute">
+    <div className="mt-4">
+      <p
+        className="mb-2.5 uppercase text-[var(--cor-tinta-5)]"
+        style={{ font: 'var(--texto-rotulo)', letterSpacing: '.14em' }}
+      >
         {copy.suggestions}
       </p>
-      <div className="flex flex-wrap gap-2">
+      <ul className="m-0 flex list-none flex-col gap-2 p-0">
         {suggestions.map((suggestion, i) => {
           const used = value.includes(suggestion)
           return (
-            <button
-              key={i}
-              type="button"
-              onClick={() => {
-                const current = value.trim()
-                if (!current) return onApply(suggestion)
-                if (current.includes(suggestion)) return
-                onApply(`${current} ${suggestion}`)
-              }}
-              disabled={used}
-              className={`rounded-[var(--raio-pill)] border-2 px-3.5 py-1.5 text-left text-sm transition ${
-                used
-                  ? 'cursor-default border-ink bg-[var(--giz-amarelo)] text-[#5a4413] opacity-70'
-                  : 'border-ink bg-paper text-ink-soft hover:bg-[var(--giz-amarelo)]'
-              }`}
-            >
-              {suggestion}
-            </button>
+            <li key={i}>
+              <button
+                type="button"
+                onClick={() => {
+                  const current = value.trim()
+                  if (!current) return onApply(suggestion)
+                  if (current.includes(suggestion)) return
+                  onApply(`${current.replace(/[.,]$/, '')}, ${suggestion}`)
+                }}
+                disabled={used}
+                className={`group flex w-full items-center gap-2.5 border-0 bg-transparent py-1 text-left transition focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[var(--giz-amarelo)] ${
+                  used ? 'cursor-default opacity-60' : 'cursor-pointer'
+                }`}
+                style={{ font: 'var(--texto-sugestao)', color: 'var(--cor-tinta)' }}
+              >
+                <span
+                  aria-hidden
+                  className="size-[13px] shrink-0 rounded-full border-2 border-ink transition-transform group-hover:translate-y-0.5"
+                  style={{
+                    background: dotColors[i % dotColors.length],
+                    boxShadow: used ? 'none' : 'var(--sombra-3d-ponto)',
+                  }}
+                />
+                {suggestion}
+              </button>
+            </li>
           )
         })}
-      </div>
+      </ul>
     </div>
   )
 }
