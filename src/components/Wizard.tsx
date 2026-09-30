@@ -64,13 +64,15 @@ import {
 const STEPS = [
   // The finish comes first: it is the biggest fork in the product, and every
   // later screen reads differently once you know which book you are making.
+  // Most orders never see this screen at all — the two tiles on the home
+  // page already answer it, and the wizard opens past it (openingStep,
+  // below) — so it is not the early-friction question it looks like here.
   'finish',
   // Only a reading book asks this, so the step is skipped for the other two
   // rather than existing twice or being hidden inside another screen.
   'age',
   'bookLanguage',
   'occasion',
-  'artStyle',
   'characters',
   // Which pre-written story this is. It comes before every question, because
   // it is what decides which questions there are — but after the cast, and
@@ -80,6 +82,12 @@ const STEPS = [
   // is no cast to filter by, and it renders empty — which is exactly what it
   // did the first time it was tried in a browser.
   'shelf',
+  // Comes after the shelf on purpose, not before: it is the one screen here
+  // that asks for a taste rather than a fact, and it reads easier once there
+  // is already a story on the table to picture it drawing. Nothing downstream
+  // of 'shelf' needs an art style to render — storiesFor and questionsFor
+  // never look at artStyleId — so moving this cost nothing to check.
+  'artStyle',
   // 'place' used to sit here: one screen, one big empty box, asking where the
   // story happens. It is the same question it always was and it is now the
   // first bubble of the conversation below, because a form field standing
