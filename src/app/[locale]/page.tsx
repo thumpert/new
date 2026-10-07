@@ -1,7 +1,9 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { Logo } from '@/components/Logo'
+import { EXAMPLE_BW_COVER_ORDER, EXAMPLE_ORDERS, lineArtUrl, sceneCoverUrl } from '@/lib/examples'
 import { getDictionary, normalizeLocale } from '@/lib/i18n'
+import { getOrder } from '@/lib/store'
 
 /**
  * The page leads with the object, and with the fact that the object is two
@@ -29,6 +31,22 @@ export default async function LandingPage({ params }: PageProps<'/[locale]'>) {
   const dict = getDictionary(locale)
   const lang = normalizeLocale(locale)
   const { landing } = dict
+
+  // The hero's three covers are real pages off the one example book — see
+  // src/lib/examples.ts — not style samples, so a stranger's first look at
+  // the product is the product. Missing any one of the three (an order id
+  // still 'PENDENTE') just drops that card rather than breaking the page.
+  const [retroOrder, fineLineOrder, bwOrder] = await Promise.all([
+    [EXAMPLE_ORDERS['retro-storybook'], 'retro-storybook'] as const,
+    [EXAMPLE_ORDERS['fine-line'], 'fine-line'] as const,
+    [EXAMPLE_BW_COVER_ORDER, 'bw'] as const,
+  ].map(async ([id]) => (id && id !== 'PENDENTE' ? getOrder(id) : null)))
+
+  const heroCovers = [
+    { url: lineArtUrl(bwOrder), alt: landing.lineBookAlt },
+    { url: sceneCoverUrl(retroOrder), alt: landing.colourBookAlt },
+    { url: sceneCoverUrl(fineLineOrder), alt: landing.colourBookAlt },
+  ].filter((c): c is { url: string; alt: string } => Boolean(c.url))
 
   return (
     <main className="mx-auto w-full max-w-[1120px] flex-1 px-6 pb-16 sm:px-11">
@@ -95,13 +113,21 @@ export default async function LandingPage({ params }: PageProps<'/[locale]'>) {
             {landing.subtitle}
           </p>
 
-          <Link
-            href={`/${lang}/criar`}
-            className="inline-block bg-accent px-[22px] py-3.5 text-sm font-bold text-[var(--cor-papel)] shadow-[var(--sombra-solida-primaria)] transition-[transform,box-shadow] duration-[120ms] hover:translate-y-0.5 hover:shadow-[0_3px_0_var(--giz-vermelho-sombra)] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[var(--giz-amarelo)]"
-            style={{ borderRadius: 'var(--raio-botao)' }}
-          >
-            {landing.cta} →
-          </Link>
+          <div className="flex flex-wrap items-center gap-4">
+            <Link
+              href={`/${lang}/criar`}
+              className="inline-block bg-accent px-[22px] py-3.5 text-sm font-bold text-[var(--cor-papel)] shadow-[var(--sombra-solida-primaria)] transition-[transform,box-shadow] duration-[120ms] hover:translate-y-0.5 hover:shadow-[0_3px_0_var(--giz-vermelho-sombra)] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[var(--giz-amarelo)]"
+              style={{ borderRadius: 'var(--raio-botao)' }}
+            >
+              {landing.cta} →
+            </Link>
+            <Link
+              href={`/${lang}/exemplo`}
+              className="text-sm font-bold text-ink underline decoration-2 underline-offset-4 hover:text-accent"
+            >
+              {landing.exampleCta}
+            </Link>
+          </div>
 
           {/* Directly under the button, because it answers the question being
               asked at exactly that moment: what if it comes out generic and I
@@ -111,9 +137,12 @@ export default async function LandingPage({ params }: PageProps<'/[locale]'>) {
           </p>
         </div>
 
-        {/* The stage. A yellow chalk blob behind, the two books overlapping in
-            front of it, and the sticker on the corner. The books are the same
-            scene so the pairing reads as one book in two finishes. */}
+        {/* The stage. A yellow chalk blob behind, and the actual example
+            book's cover fanned out in every finish it was drawn in — one
+            black-line edition plus every colour style on the shelf, real
+            pages rather than a generic style sample. Rotation and overlap
+            scale with how many of the three are actually ready, so a missing
+            cover shrinks the fan instead of leaving a gap in it. */}
         <div className="relative order-2 grid min-h-[380px] place-items-center py-8 sm:min-h-[460px]">
           <div
             aria-hidden="true"
@@ -121,22 +150,25 @@ export default async function LandingPage({ params }: PageProps<'/[locale]'>) {
             style={{ transform: 'rotate(-6deg)' }}
           />
           <div className="relative flex items-center">
-            <Image
-              src="/styles/retro-storybook.png"
-              alt={landing.lineBookAlt}
-              width={720}
-              height={964}
-              priority
-              className="w-[168px] -rotate-[7deg] rounded-[var(--raio-folha)] border-2 border-ink bg-sheet object-cover shadow-[var(--sombra-folha)] sm:w-[215px]"
-            />
-            <Image
-              src="/styles/retro-storybook-colour.png"
-              alt={landing.colourBookAlt}
-              width={720}
-              height={964}
-              priority
-              className="-ml-8 w-[168px] rotate-[var(--giro-livro)] rounded-[var(--raio-folha)] border-2 border-ink object-cover shadow-[var(--sombra-folha)] sm:-ml-10 sm:w-[215px]"
-            />
+            {/* Always the rightmost N of the three rotations, so two covers
+                fan gently and three fan wider, rather than two covers using
+                the two steepest angles meant for the far ends of a trio. */}
+            {heroCovers.map((cover, i) => {
+              const rotations = ['-10deg', '-2deg', '6deg'].slice(-heroCovers.length)
+              const rotate = rotations[i]
+              return (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  key={cover.url}
+                  src={cover.url}
+                  alt={cover.alt}
+                  className={`w-[140px] rounded-[var(--raio-folha)] border-2 border-ink object-cover shadow-[var(--sombra-folha)] sm:w-[180px] ${
+                    i > 0 ? '-ml-9 sm:-ml-12' : ''
+                  }`}
+                  style={{ transform: `rotate(${rotate})` }}
+                />
+              )
+            })}
             {/* Anchored to the books rather than to the stage. Pinned to the
                 stage it drifted away from them as the stage grew, and a
                 sticker floating in space is not a sticker. */}
@@ -147,6 +179,14 @@ export default async function LandingPage({ params }: PageProps<'/[locale]'>) {
               {landing.sticker}
             </span>
           </div>
+          {heroCovers.length > 0 && (
+            <Link
+              href={`/${lang}/exemplo`}
+              className="mt-5 text-sm font-bold text-ink underline decoration-2 underline-offset-4 hover:text-accent"
+            >
+              {landing.heroCaption}
+            </Link>
+          )}
         </div>
       </header>
 

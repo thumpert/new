@@ -55,6 +55,8 @@ export const pt = {
     subtitle:
       'Um livro personalizado, seja para colorir ou para ler com seu herói. Cada história é única, com os detalhes que só vocês sabem reconhecer. O herói tem o tênis que ela tira ao chegar, a avó que responde pergunta com pergunta, o formigueiro que ela visita todo dia. A gente pergunta, escreve a história e desenha. O livro chega impresso com uma história única para você.',
     cta: 'Personalizar',
+    exampleCta: 'Ver um exemplo de verdade →',
+    heroCaption: 'Ver o livro inteiro →',
     how: 'Como funciona',
     steps: [
       {
@@ -164,6 +166,8 @@ export const pt = {
       subtitle: 'Pode mudar depois, quando você escolher a história.',
       placeholder: 'Ex.: As Grandes Aventuras da Lila',
       suggest: 'Sugestões para esta história — clique para escolher',
+      seeExample: 'Quer ver como fica um livro pronto antes de finalizar?',
+      seeExampleCta: 'Veja um exemplo →',
     },
     dedication: {
       title: 'Quer escrever uma dedicatória?',
@@ -244,6 +248,17 @@ export const pt = {
     notReady: 'Este livro ainda está sendo desenhado.',
     seeProgress: 'Ver como está',
     open: 'Ler aqui',
+  },
+  example: {
+    back: '← Por Tintim',
+    eyebrow: 'UM LIVRO DE VERDADE, PÁGINA POR PÁGINA',
+    madeFor: 'Feito para {name} · {pages} páginas',
+    hint: 'Folheie: arraste, use as setas, ou os botões abaixo.',
+    styleLabel: 'Estilo de desenho',
+    ctaHeading: 'O seu livro, com a sua história',
+    ctaBody:
+      'Escolha a ocasião, conte quem são os personagens e responda algumas perguntas — a gente escreve e desenha um livro assim, mas com a família de vocês.',
+    cta: 'Personalizar o seu →',
   },
   finishes: {
     coloring: {

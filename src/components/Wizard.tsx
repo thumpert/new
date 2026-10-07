@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ART_STYLES, BOOK_LANGUAGES, OCCASIONS, getOccasion } from '@/lib/catalog'
 import {
@@ -631,6 +632,24 @@ export function Wizard({
           }
         >
           <div className="space-y-5">
+            {/* The last screen before the pages are actually drawn — the
+                moment "what do I actually get" is loudest, and the one place
+                in the wizard a link away from it costs nothing, since nothing
+                here has been submitted yet. Opens in a new tab so the brief
+                filled in across the last seven screens is still here on
+                return. */}
+            <p className="text-sm text-ink-soft">
+              {dict.wizard.title.seeExample}{' '}
+              <Link
+                href={`/${locale}/exemplo`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-bold text-ink underline decoration-2 underline-offset-4 hover:text-accent"
+              >
+                {dict.wizard.title.seeExampleCta}
+              </Link>
+            </p>
+
             <Field label={dict.wizard.title.title}>
               <TextInput
                 value={title}
