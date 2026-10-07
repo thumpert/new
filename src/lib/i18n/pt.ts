@@ -255,6 +255,8 @@ export const pt = {
       newCode: 'Gerar novo código',
       expired: 'Esse código expirou.',
       rejected: 'O pagamento não foi aprovado. Tente de novo.',
+      skipPayment: 'Pular pagamento (modo teste) →',
+      skipping: 'Pulando…',
     },
   },
   reader: {

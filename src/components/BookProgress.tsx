@@ -33,6 +33,7 @@ export function BookProgress({
   const [email, setEmail] = useState('')
   const [payingForBook, setPayingForBook] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [skipping, setSkipping] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -168,6 +169,22 @@ export function BookProgress({
     await navigator.clipboard.writeText(code)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  /** Local testing only — see the route's own comment for why this is safe to leave wired up. */
+  async function skipPayment() {
+    setSkipping(true)
+    setError(null)
+    try {
+      const res = await fetch(`/api/orders/${orderId}/skip-payment`, { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? dict.common.error)
+      setReloadKey((k) => k + 1)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : dict.common.error)
+    } finally {
+      setSkipping(false)
+    }
   }
 
   const renders = order?.renders ?? []
@@ -439,6 +456,21 @@ export function BookProgress({
                     </Button>
                   )}
                   <p className="mt-4 text-sm text-ink-soft">{dict.progress.payment.waiting}</p>
+
+                  {/* NODE_ENV is inlined at build time, so this is absent
+                      from the production bundle entirely — not just hidden
+                      by CSS — and the route it calls refuses in production
+                      independently of whether this link ever rendered. */}
+                  {process.env.NODE_ENV !== 'production' && (
+                    <button
+                      type="button"
+                      onClick={() => void skipPayment()}
+                      disabled={skipping}
+                      className="mt-6 block text-xs text-ink-faint underline decoration-dotted underline-offset-4 hover:text-ink-soft"
+                    >
+                      {skipping ? dict.progress.payment.skipping : dict.progress.payment.skipPayment}
+                    </button>
+                  )}
                 </>
               )}
             </div>
