@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import type { Dictionary } from '@/lib/i18n'
+import { BOOK_PRICE_LABEL } from '@/lib/pricing'
 import type { CoverKind, CoverVariant, Order } from '@/lib/types'
-import { Button, ErrorNote } from './ui'
+import { Button, ErrorNote, Field, TextInput } from './ui'
 
 /** One card's identity: kind alone stopped being unique at two takes each. */
 function coverId(kind: CoverKind, variant: CoverVariant): string {
@@ -29,6 +30,9 @@ export function BookProgress({
   )
   /** Bumped after a redraw so the poller restarts and picks the page up. */
   const [reloadKey, setReloadKey] = useState(0)
+  const [email, setEmail] = useState('')
+  const [payingForBook, setPayingForBook] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -136,6 +140,36 @@ export function BookProgress({
     }
   }
 
+  /**
+   * Opens the Pix charge. Re-postable on purpose — the server hands back the
+   * same QR code for a charge already open, so reloading this screen after
+   * paying never opens a second one.
+   */
+  async function startCheckout() {
+    setPayingForBook(true)
+    setError(null)
+    try {
+      const res = await fetch(`/api/orders/${orderId}/checkout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? dict.common.error)
+      setReloadKey((k) => k + 1)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : dict.common.error)
+    } finally {
+      setPayingForBook(false)
+    }
+  }
+
+  async function copyPixCode(code: string) {
+    await navigator.clipboard.writeText(code)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
   const renders = order?.renders ?? []
   const selectedRender = renders.find((r) => r.index === selected)
   const done = renders.filter((r) => r.status === 'done').length
@@ -151,7 +185,12 @@ export function BookProgress({
 
   const readingStory = order?.status === 'storyboard-review'
   const pickingCover = order?.status === 'choosing-cover'
+  const awaitingPayment = order?.status === 'payment-pending'
   const frontCovers = (order?.covers ?? []).filter((c) => c.kind !== 'back')
+  const chosenCover = frontCovers.find(
+    (c) => c.kind === order?.chosenCoverKind && (c.variant ?? 1) === (order?.chosenCoverVariant ?? 1),
+  )
+  const payment = order?.payment
 
   const stage = !order?.storyboard
     ? dict.progress.writing
@@ -331,6 +370,83 @@ export function BookProgress({
         </section>
       )}
 
+      {awaitingPayment && (
+        <section className="mt-9">
+          <h2 className="font-serif text-xl text-ink">{dict.progress.payment.title}</h2>
+          <p className="mt-1 text-sm text-ink-soft">{dict.progress.payment.hint}</p>
+
+          <div className="mt-5 flex flex-col gap-5 sm:flex-row">
+            {chosenCover?.imageUrl && (
+              // Not next/image: see the note on the cover cards above.
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={chosenCover.imageUrl}
+                alt={dict.progress.coverKinds[chosenCover.kind as CoverKind].label}
+                className="aspect-[3/4] w-full max-w-[220px] rounded-[var(--raio-card)] border-2 border-ink object-cover sm:w-[220px]"
+              />
+            )}
+
+            <div className="flex-1">
+              {!payment || payment.status === 'rejected' || payment.status === 'expired' ? (
+                <>
+                  {payment?.status === 'expired' && (
+                    <p className="mb-3 text-sm text-ink-soft">{dict.progress.payment.expired}</p>
+                  )}
+                  {payment?.status === 'rejected' && (
+                    <p className="mb-3 text-sm text-ink-soft">{dict.progress.payment.rejected}</p>
+                  )}
+                  <Field label={dict.progress.payment.emailLabel}>
+                    <TextInput
+                      value={email}
+                      onChange={setEmail}
+                      placeholder={dict.progress.payment.emailPlaceholder}
+                      maxLength={200}
+                    />
+                  </Field>
+                  <p className="mt-4 text-sm text-ink">
+                    {dict.progress.payment.priceLabel}: <strong>{BOOK_PRICE_LABEL}</strong>
+                  </p>
+                  <Button
+                    className="mt-4"
+                    disabled={payingForBook || !email.includes('@')}
+                    onClick={() => void startCheckout()}
+                  >
+                    {payingForBook
+                      ? dict.progress.payment.payingButton
+                      : dict.progress.payment.payButton}
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm text-ink-soft">{dict.progress.payment.qrHint}</p>
+                  {payment.qrCodeBase64 && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={`data:image/png;base64,${payment.qrCodeBase64}`}
+                      alt="QR code Pix"
+                      className="mt-4 h-[220px] w-[220px] rounded-[var(--raio-folha)] border-2 border-ink bg-white p-2"
+                    />
+                  )}
+                  {payment.qrCode && (
+                    <Button
+                      variant="ghost"
+                      className="mt-4"
+                      onClick={() => void copyPixCode(payment.qrCode!)}
+                    >
+                      {copied
+                        ? dict.progress.payment.copiedButton
+                        : dict.progress.payment.copyButton}
+                    </Button>
+                  )}
+                  <p className="mt-4 text-sm text-ink-soft">{dict.progress.payment.waiting}</p>
+                </>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {!awaitingPayment && (
       <div className="mt-9 rounded-[var(--raio-card)] border-2 border-ink bg-paper-raised p-6">
         <div className="flex items-baseline justify-between">
           <span className="text-sm text-ink">{stage}</span>
@@ -422,6 +538,7 @@ export function BookProgress({
           </div>
         )}
       </div>
+      )}
 
       {(ready || done > 0) && (
         <div className="mt-8 flex gap-3">

@@ -64,7 +64,12 @@ export function Flipbook({ sheets, title, labels }: Props) {
         width: 420,
         height: 594,
         size: 'stretch',
-        minWidth: 280,
+        // The library falls back to one page at a time below minWidth*2 (see
+        // page-flip's Render.calculateBoundsRect) — 220 rather than the
+        // library's 280 default so an un-maximised laptop window still gets
+        // the open-book spread instead of a single page, while a phone
+        // (well under 440px of container) still correctly gets one.
+        minWidth: 220,
         maxWidth: 520,
         minHeight: 396,
         maxHeight: 735,

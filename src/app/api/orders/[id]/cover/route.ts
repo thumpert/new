@@ -1,4 +1,4 @@
-import { chooseCover } from '@/lib/render'
+import { recordCoverChoice } from '@/lib/render'
 import { getOrder } from '@/lib/store'
 import { chooseCoverSchema } from '@/lib/validation'
 import type { CoverKind, CoverVariant } from '@/lib/types'
@@ -7,10 +7,9 @@ import { badRequest, jsonError, notFound } from '../../../_lib/respond'
 type Context = { params: Promise<{ id: string }> }
 
 /**
- * Locks in the front cover and starts drawing the book.
- *
- * Returns immediately: the pages take minutes, so the client goes back to
- * polling GET /api/orders/[id] exactly as it does for the covers.
+ * Locks in the front cover. Drawing the rest of the book waits on payment
+ * now — this only moves the order to 'payment-pending'. See
+ * /api/orders/[id]/checkout for what starts the pages.
  */
 export async function POST(request: Request, { params }: Context) {
   const { id } = await params
@@ -40,11 +39,12 @@ export async function POST(request: Request, { params }: Context) {
     }
 
     const variant = (parsed.data.variant ?? 1) as CoverVariant
-    await chooseCover(id, parsed.data.kind as CoverKind, variant)
+    await recordCoverChoice(id, parsed.data.kind as CoverKind, variant)
 
     return Response.json({
       chosenCoverKind: parsed.data.kind,
       chosenCoverVariant: variant,
+      status: 'payment-pending',
     })
   } catch (err) {
     return jsonError(err)

@@ -239,6 +239,23 @@ export const pt = {
           'Um momento largo da história, com os personagens dentro do mundo deles.',
       },
     },
+    payment: {
+      title: 'Essa vai ser a capa',
+      hint:
+        'Confirme o pagamento e a gente desenha as páginas de verdade — do jeito que você acabou de ver, com a cara de vocês.',
+      emailLabel: 'Seu email',
+      emailPlaceholder: 'para onde mandamos o link do livro',
+      priceLabel: 'Valor',
+      payButton: 'Pagar com Pix',
+      payingButton: 'Gerando o Pix…',
+      qrHint: 'Abra o app do seu banco e escaneie o código, ou copie e cole.',
+      copyButton: 'Copiar código',
+      copiedButton: 'Copiado!',
+      waiting: 'Esperando o pagamento cair…',
+      newCode: 'Gerar novo código',
+      expired: 'Esse código expirou.',
+      rejected: 'O pagamento não foi aprovado. Tente de novo.',
+    },
   },
   reader: {
     previous: 'Voltar',

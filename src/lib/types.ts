@@ -449,6 +449,13 @@ export type OrderStatus =
   | 'covers'
   /** Both covers are up; nothing else is drawn until the customer picks one. */
   | 'choosing-cover'
+  /**
+   * The cover is chosen — the customer has seen the characters' faces — and
+   * nothing past it is drawn until the book is paid for. This is the one
+   * status a page render never follows automatically; only a webhook telling
+   * `startPageRender` the Pix landed moves it on. See src/lib/payments/.
+   */
+  | 'payment-pending'
   | 'rendering'
   | 'ready'
   | 'failed'
@@ -501,4 +508,28 @@ export interface Order {
   /** Relative path of the generated PDF once the book is ready. */
   pdfPath?: string
   error?: string
+  /** Taken at checkout, not in the wizard — see the note on `OrderPayment`. */
+  email?: string
+  payment?: OrderPayment
+}
+
+/**
+ * One Pix charge against this order.
+ *
+ * There is exactly one of these per order, not an array: a new QR code
+ * overwrites the last rather than joining it, because only one payment can
+ * ever be the one that unlocks the pages, and keeping a history of abandoned
+ * or expired codes is a ledger this product does not need yet.
+ */
+export interface OrderPayment {
+  provider: 'mercadopago'
+  /** The provider's own payment id — what a webhook's `data.id` refers to. */
+  paymentId: string
+  status: 'pending' | 'approved' | 'rejected' | 'expired'
+  /** The copia-e-cola string, shown with a copy button. */
+  qrCode?: string
+  /** Base64 PNG of the QR itself, rendered straight into an <img src>. */
+  qrCodeBase64?: string
+  amountCents: number
+  createdAt: string
 }

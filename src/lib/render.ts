@@ -207,8 +207,17 @@ export async function renderPageStage(orderId: string): Promise<void> {
   await settleStatus(orderId);
 }
 
-/** Records the choice and starts the second half. */
-export async function chooseCover(
+/**
+ * Records the cover choice alone, without starting the pages.
+ *
+ * This is the paywall's exact shape: a customer has now seen the characters'
+ * faces (the covers, drawn off the model sheets) but nothing past it exists
+ * yet, and nothing past it is drawn until something else — a paid order, or
+ * a script that does not care about payment — says so. See the customer
+ * route at /api/orders/[id]/cover, which calls this and stops, versus
+ * `chooseCover` below, which calls this and does not.
+ */
+export async function recordCoverChoice(
   orderId: string,
   kind: CoverKind,
   variant: CoverVariant = 1,
@@ -226,10 +235,24 @@ export async function chooseCover(
     ...current,
     chosenCoverKind: kind,
     chosenCoverVariant: variant,
+    status: "payment-pending",
     // A rebuild has to pick the new cover up.
     pdfPath: undefined,
   }));
+}
 
+/**
+ * Records the choice and starts the second half directly, with no payment in
+ * between — what the drawing scripts use (`draw-book.mts`,
+ * `make-example-book.mts`) to keep producing free books for testing and for
+ * the site's own example. The customer-facing route never calls this.
+ */
+export async function chooseCover(
+  orderId: string,
+  kind: CoverKind,
+  variant: CoverVariant = 1,
+): Promise<void> {
+  await recordCoverChoice(orderId, kind, variant);
   startPageRender(orderId);
 }
 

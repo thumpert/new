@@ -123,7 +123,8 @@ export default async function LandingPage({ params }: PageProps<'/[locale]'>) {
             </Link>
             <Link
               href={`/${lang}/exemplo`}
-              className="text-sm font-bold text-ink underline decoration-2 underline-offset-4 hover:text-accent"
+              className="inline-block rounded-[var(--raio-pill)] border-2 border-ink bg-[var(--giz-amarelo)] px-5 py-2.5 text-sm font-bold text-[#5a4413] shadow-[var(--sombra-3d-botao)] transition-[transform,box-shadow] duration-[120ms] hover:-translate-y-0.5"
+              style={{ transform: 'rotate(2deg)' }}
             >
               {landing.exampleCta}
             </Link>
@@ -182,7 +183,8 @@ export default async function LandingPage({ params }: PageProps<'/[locale]'>) {
           {heroCovers.length > 0 && (
             <Link
               href={`/${lang}/exemplo`}
-              className="mt-5 text-sm font-bold text-ink underline decoration-2 underline-offset-4 hover:text-accent"
+              className="mt-5 inline-block rounded-[var(--raio-pill)] border-2 border-ink bg-[var(--giz-amarelo)] px-5 py-2.5 text-sm font-bold text-[#5a4413] shadow-[var(--sombra-3d-botao)] transition-[transform,box-shadow] duration-[120ms] hover:-translate-y-0.5"
+              style={{ transform: 'rotate(-2deg)' }}
             >
               {landing.heroCaption}
             </Link>

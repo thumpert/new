@@ -74,4 +74,8 @@ export const chooseCoverSchema = z.object({
   variant: z.union([z.literal(1), z.literal(2)]).optional(),
 })
 
+export const checkoutSchema = z.object({
+  email: z.string().email().max(200),
+})
+
 export type BriefInput = z.infer<typeof briefSchema>
