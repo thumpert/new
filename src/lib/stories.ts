@@ -1,3 +1,4 @@
+import { GROWN_UP_RELATIONSHIPS } from './types'
 import type {
   BookBrief,
   Character,
@@ -54,6 +55,7 @@ export type StoryId =
   | 'the-name-only-i-know'
   | 'the-guide'
   | 'how-much-further'
+  | 'the-map'
 
 export interface Localized {
   pt: string
@@ -190,6 +192,21 @@ export interface StoryQuestionDef {
    */
   loadBearing?: boolean
   showIf?: QuestionCondition
+  /**
+   * This question IS the setting, so the generic one is not asked as well.
+   *
+   * `PLACE_QUESTION` is prepended to every story, which is right for a book
+   * set in a house and wrong for a book about a trip: "where does this story
+   * happen?" and "where did the family go?" have one answer between them, and
+   * asking both is how a customer ends up typing Praia do Forte into two
+   * bubbles in a row.
+   *
+   * A story that declares its own takes the slot over entirely — the generic
+   * question is dropped from the interview, and this answer is what the wizard
+   * lifts into `brief.place`. So there is still exactly one setting, asked in
+   * the words this particular book needs. See `placeQuestionId`.
+   */
+  isPlace?: boolean
 }
 
 /**
@@ -2090,6 +2107,10 @@ export const STORIES: StoryDef[] = [
       t('Um adulto se abaixando até os olhos ficarem na mesma linha', 'A grown-up crouching down until their eyes are level'),
     ],
     roles: [
+      // Same fix as `the-map`: the book is hers, so the part is declared and
+      // required. Undeclared, the story was offered to families with no child
+      // in them and the writer was never told who the guide was.
+      { id: 'hero', slot: 'THE GUIDE', cast: 'child', required: true },
       { id: 'grown-up', slot: 'THE ONES WHO LEAD', cast: 'adult', required: true },
       {
         id: 'companion',
@@ -2104,7 +2125,11 @@ export const STORIES: StoryDef[] = [
       {
         id: 'trip-destination',
         group: t('A viagem', 'The trip'),
-        question: t('Para onde a família foi ou vai?', 'Where did or will the family go?'),
+        question: t('Onde se passa a história?', 'Where does this story happen?'),
+        hint: t(
+          'O destino da viagem. É o cenário do livro inteiro, e os desenhos saem daqui.',
+          'The destination. It is the setting of the whole book, and the drawings come from it.',
+        ),
         placeholder: t('Lisboa, para conhecer a cidade da bisavó', 'Lisbon, to see her great-grandmother’s city'),
         suggestions: [
           t('Uma praia diferente da de sempre', 'A different beach from their usual one'),
@@ -2112,6 +2137,7 @@ export const STORIES: StoryDef[] = [
           t('A casa de parentes numa cidade grande', 'Relatives’ house in a big city'),
         ],
         loadBearing: true,
+        isPlace: true,
       },
       {
         id: 'trip-places',
@@ -2154,7 +2180,7 @@ export const STORIES: StoryDef[] = [
       },
     ],
     want:
-      'THE BIRTHDAY GIRL — no, THE GUIDE wants somebody to ask her something, for once.',
+      'THE GUIDE wants somebody to ask her something, for once.',
     turn:
       'On beat 8 a grown-up finally crouches down to her height. It is the only beat in the book where the eyes are on the same line.',
     beats: [
@@ -2246,6 +2272,9 @@ export const STORIES: StoryDef[] = [
       t('O carro parado, e ninguém descendo', 'The car stopped, and nobody getting out'),
     ],
     roles: [
+      // Same fix as `the-map`: the book is hers, so the part is declared and
+      // required rather than left for the writer to find somebody for.
+      { id: 'hero', slot: 'THE ONE WHO WILL NOT SLEEP', cast: 'child', required: true },
       { id: 'grown-up', slot: 'WHOEVER DRIVES OR CARRIES', cast: 'adult', required: true },
       {
         id: 'companion',
@@ -2381,6 +2410,196 @@ export const STORIES: StoryDef[] = [
     ],
   },
 
+  /* ---------------------------------------------------------------- */
+  {
+    id: 'the-map',
+    occasionId: 'holiday',
+    title: t('O Mapa Que Ela Desenhou', 'The Map She Drew'),
+    logline: t(
+      'Enquanto o avô segue um mapa de ruas, ela desenha o próprio — de portas, árvores e sorveterias.',
+      'While the grandfather follows a map of streets, she draws her own — of doors, trees and ice-cream shops.',
+    ),
+    summary: t(
+      'Enquanto os adultos seguem o mapa de papel pelas ruas da viagem, ela desenha o dela: sem nenhum nome de rua, só as coisas que foi reparando pelo caminho. Quando o vento leva o mapa do adulto e ninguém sabe voltar, é o mapa dela — feito de portas, árvores e cheiros — que acha o caminho.',
+      'While the grown-ups follow the paper map through the streets of the trip, she draws her own: no street names at all, just the things she noticed along the way. When the wind takes the grown-up’s map and nobody can find the way back, it is her map — made of doors, trees and smells — that does.',
+    ),
+    highlights: [
+      t('O mapa dela não tem nenhuma rua, só coisas', 'Her map has no streets at all, only things'),
+      t('O mapa do avô voando por cima do muro', 'The grown-up’s map going over the wall on the wind'),
+      t('A estrela nova no mapa dela, marcando onde a aventura começou', 'The new star on her map, marking where the adventure began'),
+    ],
+    roles: [
+      // Declared, and required, because this book is hers. Left undeclared it
+      // was offered to a family with no child in it at all, the writer was
+      // never told who she was, and the grandfather got cast as the little one
+      // riding in somebody's arms.
+      { id: 'hero', slot: 'THE MAP-MAKER', cast: 'child', required: true },
+      { id: 'grown-up', slot: 'THE ONE WITH THE MAP', cast: 'adult', required: true },
+      // No third role on purpose. The part that used to be here — a little one
+      // carried along — was cast 'anyone-else', which picks the first adult,
+      // and the adult slot above already takes every adult: the grandfather
+      // ended up playing both the man with the map and the baby in arms.
+      // Whoever else came on the trip is placed by `extras` instead.
+    ],
+    questions: [
+      {
+        id: 'trip-destination',
+        group: t('A viagem', 'The trip'),
+        question: t('Onde se passa a história?', 'Where does this story happen?'),
+        hint: t(
+          'O destino da viagem. É o cenário do livro inteiro, e os desenhos saem daqui.',
+          'The destination. It is the setting of the whole book, and the drawings come from it.',
+        ),
+        placeholder: t(
+          'Uma cidade praiana que a família visita todo verão, onde querem passar as férias',
+          'A seaside town the family visits every summer, where they want to spend the holidays',
+        ),
+        suggestions: [
+          t('A casa de praia dos avós', 'The grandparents’ beach house'),
+          t('Uma cidade histórica cheia de ruas estreitas', 'A historic town full of narrow streets'),
+          t('A casa de parentes numa cidade grande', 'Relatives’ house in a big city'),
+        ],
+        loadBearing: true,
+        isPlace: true,
+      },
+      {
+        id: 'landmark',
+        group: t('A viagem', 'The trip'),
+        question: t('Onde gostam de ir?', 'Where do they like to go?'),
+        hint: t(
+          'O passeio da família nesse lugar. É a única página do livro em que todo mundo está junto e se divertindo, antes do mapa se perder.',
+          'The family’s outing in that place. It is the one page of the book where everybody is together and enjoying themselves, before the map is lost.',
+        ),
+        placeholder: t(
+          'O Projeto Tamar, pra ver as tartarugas',
+          'The turtle project, to see the turtles',
+        ),
+        suggestions: [
+          t('O Cristo Redentor', 'The Christ the Redeemer statue'),
+          t('O aquário da cidade', 'The city aquarium'),
+          t('A feirinha de artesanato da praça', 'The craft market on the square'),
+        ],
+        loadBearing: true,
+      },
+      {
+        id: 'noticed-things',
+        group: t('O mapa dela', 'Her map'),
+        question: t(
+          'Que coisas pequenas pelo caminho ela ia reparando — não os pontos turísticos, os detalhes?',
+          'What small things along the way did she keep noticing — not the sights, the details?',
+        ),
+        hint: t(
+          'Três ou quatro. São o que vira o mapa dela: uma porta, uma árvore torta, uma vitrine — nunca o nome da rua.',
+          'Three or four. These become her map: a door, a crooked tree, a shop window — never the name of the street.',
+        ),
+        placeholder: t('Uma porta azul, uma árvore torta e uma sorveteria pequena', 'A blue door, a crooked tree and a small ice-cream shop'),
+        suggestions: [
+          t('Uma padaria com cheiro bom, uma praça com fonte e uma janela cheia de vasos', 'A bakery that smelled good, a square with a fountain and a window full of plant pots'),
+          t('Um cachorro que dormia num telhado e uma loja de bugigangas', 'A dog that slept on a roof and a shop full of odds and ends'),
+          t('Uma escada estreita e um muro pintado', 'A narrow staircase and a painted wall'),
+        ],
+        loadBearing: true,
+      },
+      {
+        id: 'special-place',
+        group: t('O lugar', 'The place'),
+        question: t(
+          'Qual foi o lugar simples — nada turístico — que a família acabou visitando todo dia?',
+          'What simple, non-touristy place did the family end up visiting every day?',
+        ),
+        hint: t(
+          'É pra onde o mapa dela leva todo mundo no final, quando ela é quem está guiando.',
+          'It is where her map leads everybody at the end, once she is the one guiding.',
+        ),
+        placeholder: t('Uma sorveteria pequena numa esquina qualquer', 'A small ice-cream shop on an ordinary corner'),
+        suggestions: [
+          t('Um quiosque de praia sem nome', 'An unnamed beach kiosk'),
+          t('Uma padaria de bairro', 'A neighbourhood bakery'),
+          t('Um banco de praça perto de um chafariz', 'A park bench near a fountain'),
+        ],
+        loadBearing: true,
+      },
+    ],
+    want:
+      'THE MAP-MAKER wants her own way of knowing the place to count for something — not a smaller, worse copy of the grown-up’s map, but a different and equally true one.',
+    turn:
+      'On beat 8 THE ONE WITH THE MAP crouches down and asks her to show the way. It is not simply somebody finally asking her something — it is a grown-up admitting her map might be the better one. From there the book stops being about two different maps and becomes about one map, drawn together.',
+    beats: [
+      {
+        text: '1. They arrive at THE DESTINATION after lunch. THE ONE WITH THE MAP opens a huge paper map on the porch and sets a stone on one corner of it so the wind cannot have it, and she tries to see over the table. — Where are we going? she asks. He points at a line on the map: first here, then here, then home. She looks at the map, then at the street. The street looks nothing like the drawing.',
+        frameA: 'Wide, at the porch table: the big map spread flat with a stone holding one corner down, THE ONE WITH THE MAP pointing at a line on it, suitcases still by the door.',
+        frameB: 'Low, from her own height: the underside of the table and the edge of the map just visible above her, and beyond it through the porch rail, the real street — drawn plainly, so a reader can see for themselves that it looks nothing like a line on paper.',
+      },
+      {
+        text: '2. THE OUTING. The whole family goes to THE LANDMARK together, and it is the best day of the trip: everybody in the same place at the same time, looking at the same thing, nobody hurrying anybody along. On the way there and on the way back she stops for a blue door, a crooked tree, a boat lying on its side — she is the only one who looks at those, and she is not unhappy about it, because today nobody is leaving her behind.',
+        frameA: 'Wide at THE LANDMARK: the whole family together in one frame, all of them turned the same way at the thing they came to see, plainly enjoying it. The only page in the book where nobody is leading and nobody is trailing.',
+        frameB: 'The same spot and the same people, the camera much closer: their faces, laughing or absorbed in it — and at the very edge of the frame her head turned the other way, at something small and ordinary that none of them has noticed. Same moment, attention split.',
+      },
+      {
+        text: '3. HER MAP. Back at the house she draws all of it on a sheet of paper, in the order she found it. It does not look like a map. It looks like a collection of things. At the top she writes her own title for it. — What is this? asks the other grown-up. — It is the way, she says. On the paper there is a door, a crooked tree, a boat lying on its side — every one of THE NOTICED THINGS she has found so far, and not one street. — But there is no road here. — There is. — Where? — Here. Nobody understands. She puts the paper away.',
+        frameA: 'Close on the finished sheet held up in her own two hands: a loose, unordered drawing of objects — a door, a tree, a boat — with her handwritten title at the top, her face above it, pleased with what she has made.',
+        frameB: 'The same room and the same two people, the camera pulled well back: the other grown-up holding the sheet at arm’s length and turning it slightly, as if a street might appear from a different angle, and her hand already coming up to take it back, face closed. The drawing is a small thing in a wide frame now instead of filling it.',
+      },
+      {
+        text: '4. Over the days that follow she keeps adding to it: THE NOTICED THINGS, one by one, in the order she found them. She does not know the names of the streets. She knows what is on each of them. Meanwhile THE ONE WITH THE MAP keeps to his own.',
+        frameA: 'Her kneeling or sitting somewhere out of the way, adding a new small drawing to the growing sheet, tongue between her teeth with concentration.',
+        frameB: 'The same sheet, now fuller, laid out flat and seen from above — a private top-down shot of the whole drawing so far, nobody else in frame, the collection visibly grown since beat 3.',
+      },
+      {
+        text: '5. THE TROUBLE. On the way home the wind gets up. THE ONE WITH THE MAP opens it to check the route — and the wind takes the paper straight out of his hands. It turns over in the air, clears a wall and is gone round the corner. He runs after it. Nothing. — And now? says the other grown-up. She holds up her own drawing. — I still have mine. Nobody hears her.',
+        frameA: 'The instant of the loss, from behind him: the big map already out of his hands and up in the air above the wall, both his arms still raised where it was. She is small at the edge of the frame, the only one not reaching for it.',
+        frameB: 'Close, at her height, a moment later: her two hands holding her own sheet up towards the adults, and behind her the empty corner where the map went, the adults’ backs already turned to it. Her face hopeful and completely unseen.',
+      },
+      {
+        text: '6. THE GROWN-UP METHOD FAILS. They walk it back from memory, because there is nothing left to check. He goes in front, naming corners he half recognises. — This street... I think it is this way. They are certain they are right, until they reach a corner none of them knows. — I think we are lost, says the other grown-up.',
+        frameA: 'Him in front at the unfamiliar corner, one hand raised pointing one way, the other grown-up pointing the other way, both certain and disagreeing. His hands are empty — there is no map in this frame or in any frame after it.',
+        frameB: 'The same corner from much further back and higher up: three small figures stopped in a street that goes four ways, nobody pointing any more, shoulders down. She is the only one looking at paper.',
+      },
+      {
+        text: '7. HER MAP. The other grown-up looks one way down the street, then the other. — Is it this way? Or that way? Her own drawing has a crooked tree, a blue door, a boat lying on its side. She looks at the corner. Then at the drawing. — I know this place. — Are you sure? he asks. She points at a house. — That is the door. Then at something else. — And there is the tree. The other grown-up comes over. — Let me see that drawing. Takes the paper carefully, looks at the street, then at the paper again. He looks at her drawing too. It is the first time he has really looked at it.',
+        frameA: 'Her crouched on the pavement with the sheet spread flat on the stones, one finger on a drawn object and her head turned up at the real street, checking one against the other. The adults still standing, still looking at each other rather than at her.',
+        frameB: 'Three heads bent over the one sheet of paper, close and level with each other, the drawing filling the middle of the frame between them — the first time in the book that the adults and the child look at the same thing from the same height. No printed map anywhere in shot, because there is not one any more.',
+      },
+      {
+        text: '8. THE TURN. THE ONE WITH THE MAP bends his knees until he is level with her. — Can you show us the way? She looks at her drawing. Then at him. — I can. He looks around at the street, with nothing left in his hands to check it against. — Then it is the only map we have. And he smiles. — We will go by yours.',
+        frameA: 'Him crouching down, one knee bent, reaching her eye level, her sheet held open between them, his empty hands resting on his knees.',
+        frameB: 'Extremely close and level: just the two faces, his and hers, eyes on exactly the same line — the only shot in the whole book framed this way.',
+      },
+      {
+        text: '9. SHE GOES FIRST. — Here is the crooked tree. Further on: — Here is the blue door. Further still: — And there is the boat. The grown-ups come behind her, and so does anybody else who came on this trip. His hands are free and empty now, with no map to check. Half way along he points at THE ANIMAL SIGN, asleep in a window. — Look at that, he says. This time he is the one who noticed first. The only map that counts now is hers, open in both hands.',
+        frameA: 'Her first step forward past the corner, decided, the sheet held open ahead of her like a lantern, the group falling in behind.',
+        frameB: 'Further along the same street, and the camera has turned round to face them: the whole group strung out in a line behind her, and him with one arm up pointing at THE ANIMAL SIGN above their heads — the only frame in the book where a grown-up is the one pointing at something small. His other hand is open and empty.',
+      },
+      {
+        text: '10. ONE THING LEADS TO ANOTHER. She reaches the last of THE NOTICED THINGS. Stops. Thinks. — This is the one we passed after THE SPECIAL PLACE. She looks at the corner. — So we went that way. — How do you know that? he asks. She shrugs. — Because I drew it. For the first time, everybody is looking at exactly what she is looking at.',
+        frameA: 'Her stopped in front of the last of THE NOTICED THINGS, head tilted, working something out, the group waiting a step behind.',
+        frameB: 'Every head in the group turned the same way she is looking, all following her sightline toward that same thing — a group shot built entirely around her point of view instead of around her.',
+      },
+      {
+        text: '11. SHE ARRIVES. At the end of the street is THE SPECIAL PLACE. She stops. — It is here. They arrive exactly where she said they would, with no street name used anywhere along the way — only the things she had kept. — You brought us home, he says. She smiles. — I did not bring you home. I brought you to my favourite place.',
+        frameA: 'The group arriving at THE SPECIAL PLACE from the street, her a step ahead of them, the adults seeing where she has brought them.',
+        frameB: 'Close, right up against the place: her face and his, hers pleased with herself and his caught out — and all around them the real details of THE SPECIAL PLACE, drawn in full for the first time in the book.',
+      },
+      {
+        text: '12. ONE MAP. That night she lays her drawing on the table. There is no big map to set beside it any more, and for the first time that does not feel like anything is missing. He picks up a pencil. — May I draw something on your map? She hands it over. He draws a small star. — What is that? — Where you brought us back from. She thinks, and draws a second star of her own. — And that one? — Where our adventure started. From that night on there was only one map in the house. And it was hers.',
+        frameA: 'The single sheet alone in the middle of the table under a lamp, his hand coming in with a pencil, and the empty half of the table where the big map used to lie in plain view beside it.',
+        frameB: 'Close on the two small stars newly drawn on her sheet, one by him and one by her, side by side — the last image of the book.',
+      },
+    ],
+    extras:
+      'A SECOND NAMED ADULT is the other grown-up who speaks in beats 3, 5, 6 and 7 — the one who does not understand the drawing, who asks what they do now when the map goes, and who is the first to actually ask to see it. Those lines are written for a second voice; with only one adult named, THE ONE WITH THE MAP says them himself and the beats run exactly as written. Any additional named child walks the line behind her from beat 9 onward and gets a page of their own in it, pointing out one of her noticed things themselves. A named baby or very young sibling is carried throughout and appears in the group shots without dialogue — visible on at least two pages, never left out of the line.',
+    filling: [
+      'THE NOTICED THINGS ARE THE CUSTOMER’S OWN, in the order given, and no object outside that list may appear on her map at any point. She notices them in beat 2, draws them in beat 3, adds the rest through beat 4, and recognises them again in beats 7, 9 and 10 — the same objects every time, never a new one invented for a page that felt empty. Beat 10 uses the LAST one she drew, because that is the one that tells her which way they turned.',
+      'THE LANDMARK IS DRAWN AS ITSELF WHEN IT IS A REAL, RECOGNISABLE PLACE — the actual statue, building, sight or attraction, drawn so that somebody who knows it would name it without being told. When what the customer named is small, local or known only to them, draw the KIND of place it is instead, plainly and generically, and invent no famous detail it does not have. A made-up monument is worse than an honest ordinary one.',
+      'BEAT 2 IS THE ONE HAPPY PAGE, AND IT IS SPENT BEFORE ANYTHING GOES WRONG. The whole family is together at THE LANDMARK, enjoying the same thing at the same time, and she is not being ignored on it — she simply notices more than they do. Everything from beat 5 onward is earned against this page, so it must not be hurried, and nobody may be sulking on it.',
+      'THE SPECIAL PLACE IS THE CUSTOMER’S OWN, and it is where she chooses to lead everybody on beat 11 — not simply somewhere pleasant passed on the way, and never her own house.',
+      'THE ANIMAL SIGN on beat 9 is the family’s own animal if they named one, asleep in a window or on a wall along the route. If they named none, it is a street dog, caramel-coloured, asleep in the sun. Never invent a pet for a family that does not have one.',
+      'THE WIND TAKES THE MAP ON BEAT 5 AND IT IS NEVER RECOVERED. From that page onward no printed map appears in any frame of the book, and nobody suggests fetching another one. The stone on the corner of the map in beat 1 is what makes the wind something the book warned about rather than an accident.',
+      'The device is her own drawn map, with its colour: drawn in beat 3, growing through beat 4, the only paper left after beat 5, carried open through beats 9 and 10, and finished — with both their marks on it — in beat 12.',
+      'DO NOT STATE THE MORAL. The book ends on the two stars and the one remaining map, not on a line explaining what either map means. If a sentence explains the lesson, delete the sentence and keep the stars.',
+    ],
+  },
+
 ]
 
 /* ------------------------------------------------------------------ *
@@ -2444,25 +2663,70 @@ function pets(brief: BookBrief): Character[] {
  * who is not the baby and already knows this family", and the role text never
  * calls anybody a brother or a sister unless the customer did.
  */
-function child(brief: BookBrief): Character | undefined {
-  const candidates = people(brief).filter((c) => {
-    const years = Number((c.age ?? '').match(/\d+/)?.[0])
-    if (Number.isFinite(years)) return years <= 14
-    return /filh|irm|crian|sobrin|prim|amig|child|sibling|niece|nephew|cousin|friend/i.test(
-      c.role ?? '',
-    )
-  })
-  // Youngest first, so a nine-year-old carries it rather than a fifteen-year-old.
-  return candidates.sort((a, b) => {
-    const ay = Number((a.age ?? '').match(/\d+/)?.[0] ?? 99)
-    const by = Number((b.age ?? '').match(/\d+/)?.[0] ?? 99)
-    return ay - by
-  })[0]
+/**
+ * Whether this named person reads as a child rather than a grown-up.
+ *
+ * Pulled out of `child` because `adults` needs the same test. It used to be
+ * inside it, and `adults` was simply "everybody except the one child we
+ * picked" — so in a family with two children, the second one was a grown-up. A
+ * five-year-old was cast as one of the pair holding the road map while her
+ * two-year-old brother was handed the part of drawing one.
+ */
+function looksLikeChild(c: Character): boolean {
+  // The picked relation is the only unambiguous signal, so it goes first — a
+  // grandmother is a grown-up whether or not anybody typed her age.
+  if (c.relationship && GROWN_UP_RELATIONSHIPS.includes(c.relationship)) {
+    return false
+  }
+  // Then the age, which the form now requires. A son or a grandchild can be
+  // any age at all, which is exactly why this field stopped being optional.
+  const years = Number((c.age ?? '').match(/\d+/)?.[0])
+  if (Number.isFinite(years)) return years <= 14
+  // An age that is not a number — "recém-nascido", "3 em anos de cachorro" —
+  // falls back to the relation, and then to whatever free text we were given.
+  if (c.relationship && c.relationship !== 'outro') return true
+  return /filh|irm|crian|sobrin|prim|amig|net[oa]|beb[êe]|child|sibling|niece|nephew|cousin|friend|grandchild|granddaughter|grandson|baby/i.test(
+    c.role ?? '',
+  )
 }
 
+/**
+ * Whoever is going to be the child in this book.
+ *
+ * The customer is never asked "is there an older sibling?", because they have
+ * just filled in a form that answers it. What matters is that this is the
+ * only place that decides, so a story cannot quietly acquire a child on page
+ * four that the casting did not grant on page one.
+ *
+ * A cousin and a friend are as good as a sibling here: the part is "a child
+ * who is not the baby and already knows this family", and the role text never
+ * calls anybody a brother or a sister unless the customer did.
+ */
+function child(
+  brief: BookBrief,
+  /**
+   * Which child, when the family named more than one.
+   *
+   * 'youngest' is right for the baby shelf, where the part is the newborn's
+   * sibling and a nine-year-old should carry it rather than a fifteen-year-old.
+   * It is wrong everywhere the book is ABOUT the child: a family with a
+   * five-year-old and a two-year-old had the two-year-old cast as the girl who
+   * draws a map and writes her own title on it, while the five-year-old was
+   * pushed into the leftovers. See `castingFor`, which picks by role id.
+   */
+  prefer: 'youngest' | 'oldest' = 'youngest',
+): Character | undefined {
+  const candidates = people(brief).filter(looksLikeChild)
+  const years = (c: Character) =>
+    Number((c.age ?? '').match(/\d+/)?.[0] ?? (prefer === 'oldest' ? 0 : 99))
+  return candidates.sort((a, b) =>
+    prefer === 'oldest' ? years(b) - years(a) : years(a) - years(b),
+  )[0]
+}
+
+/** The grown-ups of the house: named, a person, and not a child. */
 function adults(brief: BookBrief): Character[] {
-  const kid = child(brief)
-  return people(brief).filter((c) => c.id !== kid?.id)
+  return people(brief).filter((c) => !looksLikeChild(c))
 }
 
 /**
@@ -2474,8 +2738,13 @@ function adults(brief: BookBrief): Character[] {
  * says it is a cow bone is if anything the better version.
  */
 function someoneElse(brief: BookBrief): Character | undefined {
-  const others = adults(brief)
-  return others[0]
+  const grown = adults(brief)
+  if (grown.length > 0) return grown[0]
+  // Nobody grown-up was named, so another child plays it, as the role text
+  // allows. `adults` no longer counts children, so this fallback has to be
+  // written out rather than falling out of the filter the way it used to.
+  const kid = child(brief)
+  return people(brief).find((c) => c.id !== kid?.id)
 }
 
 /**
@@ -2596,12 +2865,28 @@ export function isWordless(brief: BookBrief): boolean {
  * yet, so half of them fed nothing. These are the slots of a story that
  * already exists, and every one of them lands somewhere on a page.
  */
+/**
+ * Which question carries the setting for this story.
+ *
+ * One place that knows it, because three callers need the same answer: the
+ * interview decides whether to prepend the generic question, the wizard lifts
+ * that answer into `brief.place`, and `assumptionsFor` has to recognise it as
+ * answered. A story declaring its own place question moves all three at once —
+ * see `isPlace`.
+ */
+export function placeQuestionId(story?: StoryDef): string {
+  return story?.questions.find((q) => q.isPlace)?.id ?? PLACE_QUESTION_ID
+}
+
 export function questionsFor(
   story: StoryDef,
   brief: BookBrief,
 ): InterviewQuestion[] {
   const hasPet = pets(brief).length > 0
-  return [PLACE_QUESTION, ...story.questions]
+  // A story that asks for the setting in its own words replaces the generic
+  // question rather than joining it.
+  const ownPlace = story.questions.some((q) => q.isPlace)
+  return [...(ownPlace ? [] : [PLACE_QUESTION]), ...story.questions]
     .filter((q) => {
       if (q.showIf === 'has-pet') return hasPet
       if (q.showIf === 'no-pet') return !hasPet
@@ -2656,7 +2941,7 @@ export function assumptionsFor(story: StoryDef, brief: BookBrief): string[] {
   // lifts it out of the interview into `brief.place`, so it is never in the
   // list above however plainly it was answered. Without this the prompt told
   // the writer to invent a city the customer had just typed.
-  if (brief.place.trim()) answered.add(PLACE_QUESTION_ID)
+  if (brief.place.trim()) answered.add(placeQuestionId(story))
   const shown = new Set(questionsFor(story, brief).map((q) => q.id))
   const missing = [PLACE_QUESTION, ...story.questions].filter(
     (q) => q.loadBearing && shown.has(q.id) && !answered.has(q.id),
@@ -2710,11 +2995,16 @@ export function castingFor(story: StoryDef, brief: BookBrief): string[] {
 
   for (const role of story.roles) {
     if (role.cast === 'child') {
-      if (kid) {
-        cast.add(kid.id)
+      // 'hero' means the book is about them, so the oldest child plays it:
+      // the part reads, writes, draws and leads. 'older-child' is the baby's
+      // sibling, where the youngest is the right one. The role id already
+      // carries the distinction, so nothing extra has to be declared.
+      const player = role.id === 'hero' ? child(brief, 'oldest') : kid
+      if (player) {
+        cast.add(player.id)
         lines.push(
-          `- ${role.slot} is ${kid.name}${kid.age ? `, ${kid.age}` : ''}${
-            kid.role ? ` (${kid.role})` : ''
+          `- ${role.slot} is ${player.name}${player.age ? `, ${player.age}` : ''}${
+            player.role ? ` (${player.role})` : ''
           }. Refer to them by name, and never as "the sister" or "the brother" unless the customer's own words for them say so.`,
         )
       } else if (role.fallback) {

@@ -243,6 +243,34 @@ export function TextInput({
   )
 }
 
+/**
+ * A native select, styled like the text inputs beside it.
+ *
+ * Native on purpose: on a phone this opens the system picker, which is the
+ * one list control a customer already knows how to use. `appearance-none`
+ * drops the platform chrome so it sits level with the other fields, and the
+ * chevron is drawn back in as a background image.
+ */
+export function Select({
+  value,
+  onChange,
+  children,
+}: {
+  value: string
+  onChange: (value: string) => void
+  children: React.ReactNode
+}) {
+  return (
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className={`${inputBase} cursor-pointer appearance-none bg-[length:1.1rem] bg-[right_0.9rem_center] bg-no-repeat pr-11 [background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27%23221d18%27%20stroke-width%3D%272.5%27%20stroke-linecap%3D%27round%27%3E%3Cpath%20d%3D%27M6%209l6%206%206-6%27%2F%3E%3C%2Fsvg%3E")]`}
+    >
+      {children}
+    </select>
+  )
+}
+
 export function TextArea({
   value,
   onChange,

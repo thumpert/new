@@ -5,8 +5,8 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ART_STYLES, BOOK_LANGUAGES, OCCASIONS, getOccasion } from '@/lib/catalog'
 import {
-  PLACE_QUESTION_ID,
   getStory,
+  placeQuestionId,
   questionsFor,
   say,
   storiesFor,
@@ -190,6 +190,13 @@ export function Wizard({
     [occasionId],
   )
 
+  // Which bubble asked for the setting. Usually the generic one; a story that
+  // asks for it in its own words — a trip, rather than a house — answers the
+  // same slot under its own id, and `brief.place` has to come off whichever
+  // one was actually shown.
+  const placeId = () =>
+    placeQuestionId(chosenStoryId ? getStory(chosenStoryId) : undefined)
+
   const brief = (): BookBrief => ({
     locale,
     bookLanguage,
@@ -204,14 +211,14 @@ export function Wizard({
     // Asked as the first bubble of the conversation now, and lifted back out
     // of it here. Everything downstream still reads `brief.place`, which is
     // what it always read — the question moved, the field did not.
-    place: answers[PLACE_QUESTION_ID]?.trim() ?? '',
+    place: answers[placeId()]?.trim() ?? '',
     dedication: dedication.trim() || undefined,
     characters: characters.map((c) => ({ ...c, name: c.name.trim() })),
     interview: questions
       // The setting is a fact about the book, not something somebody said
       // about it. Sending it as both would state it twice in one prompt, in
       // two registers that are read differently.
-      .filter((q) => q.id !== PLACE_QUESTION_ID && answers[q.id]?.trim())
+      .filter((q) => q.id !== placeId() && answers[q.id]?.trim())
       .map((q) => ({
         questionId: q.id,
         question: q.question,
@@ -366,8 +373,16 @@ export function Wizard({
       router.push(`/${locale}/livro/${orderId}`)
     })
 
+  // Age is in here now, and it is not padding: it is what decides who the
+  // children are, which decides which stories can be told at all. Left blank,
+  // a granddaughter was read as a grown-up and cast as the one holding the
+  // map. People also need their relation picked, for the same reason.
   const charactersReady = characters.every(
-    (c) => c.name.trim() && c.appearance.trim(),
+    (c) =>
+      c.name.trim() &&
+      c.appearance.trim() &&
+      c.age?.trim() &&
+      (c.kind === 'pet' || c.relationship),
   )
 
   const footer = (

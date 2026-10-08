@@ -117,6 +117,118 @@ export type GenderId = 'male' | 'female' | 'neutral'
 export const GENDERS: GenderId[] = ['male', 'female', 'neutral']
 
 /**
+ * How this person is related to the rest of the book, picked from a list.
+ *
+ * It replaces a free-text box that the casting then had to guess at. The guess
+ * was a regex over whatever the customer typed, it did not know the word
+ * "neta", and — worse — the box was hidden entirely for the shelf stories,
+ * which are the ones whose casting depends on it. So a book off the shelf was
+ * cast from the age field alone, and the age field was optional.
+ *
+ * Picked rather than typed because only two things are needed from it and both
+ * have to be reliable: whether this person is one of the children, and the
+ * kinship word the book should use for them. A list gives both; "mãe da
+ * aniversariante" gives neither without a parser.
+ */
+export type RelationshipId =
+  | 'bisavo'
+  | 'bisava'
+  | 'avo'
+  | 'ava'
+  | 'pai'
+  | 'mae'
+  | 'filho'
+  | 'filha'
+  | 'neto'
+  | 'neta'
+  | 'irmao'
+  | 'irma'
+  | 'tio'
+  | 'tia'
+  | 'sobrinho'
+  | 'sobrinha'
+  | 'primo'
+  | 'prima'
+  | 'amigo'
+  | 'amiga'
+  | 'outro'
+
+/** Shown in this order, grown-ups first, because that is how a family lists itself. */
+export const RELATIONSHIPS: RelationshipId[] = [
+  'bisavo',
+  'bisava',
+  'avo',
+  'ava',
+  'pai',
+  'mae',
+  'tio',
+  'tia',
+  'filho',
+  'filha',
+  'neto',
+  'neta',
+  'irmao',
+  'irma',
+  'sobrinho',
+  'sobrinha',
+  'primo',
+  'prima',
+  'amigo',
+  'amiga',
+  'outro',
+]
+
+/**
+ * The relationships that are a grown-up whatever else is true.
+ *
+ * Only the unambiguous ones are listed. A son, a grandchild, a niece, a
+ * sibling, a cousin or a friend can be any age at all, so those are left to
+ * the age field — which is why the age field is no longer optional. 'outro'
+ * says nothing either way on purpose.
+ */
+export const GROWN_UP_RELATIONSHIPS: readonly RelationshipId[] = [
+  'bisavo',
+  'bisava',
+  'avo',
+  'ava',
+  'pai',
+  'mae',
+  'tio',
+  'tia',
+]
+
+/**
+ * The gender the relationship already implies, for the ones where it does.
+ *
+ * Portuguese kinship words are gendered, so picking "Avó" has already answered
+ * the question the gender buttons ask. It is applied only as a default: the
+ * buttons stay, because 'neutral' is a real answer that no kinship word can
+ * express, and somebody who sets it explicitly must not have it overwritten.
+ */
+export const RELATIONSHIP_GENDER: Partial<Record<RelationshipId, GenderId>> = {
+  bisavo: 'male',
+  bisava: 'female',
+  avo: 'male',
+  ava: 'female',
+  pai: 'male',
+  mae: 'female',
+  tio: 'male',
+  tia: 'female',
+  filho: 'male',
+  filha: 'female',
+  neto: 'male',
+  neta: 'female',
+  irmao: 'male',
+  irma: 'female',
+  sobrinho: 'male',
+  sobrinha: 'female',
+  primo: 'male',
+  prima: 'female',
+  amigo: 'male',
+  amiga: 'female',
+}
+
+/**
  * The language the *book* is written in — independent of the language the
  * site is shown in. A Brazilian buying a gift for someone learning English
  * browses in Portuguese and orders an English book.
@@ -179,6 +291,14 @@ export interface Character {
   kind: CharacterKind
   /** Free text: "mãe da aniversariante", "melhor amigo", "golden retriever". */
   role?: string
+  /**
+   * Which relation they are, picked from a list. People only — a pet's `role`
+   * is its breed and there is nothing to pick.
+   *
+   * This is what the casting reads. `role` stays for the free-text detail the
+   * writer gets, and for 'outro', where the list has nothing to offer.
+   */
+  relationship?: RelationshipId
   /** Free text so "6 anos", "recém-nascido" and "3 (em anos de cachorro)" all work. */
   age?: string
   /**
@@ -511,6 +631,8 @@ export interface Order {
   /** Taken at checkout, not in the wizard — see the note on `OrderPayment`. */
   email?: string
   payment?: OrderPayment
+  /** Every chargeable AI/image call this order has paid for so far. */
+  costs?: OrderCostEntry[]
 }
 
 /**
@@ -532,4 +654,19 @@ export interface OrderPayment {
   qrCodeBase64?: string
   amountCents: number
   createdAt: string
+  /** Set by the webhook the moment Mercado Pago reports this as 'approved'. */
+  paidAt?: string
+}
+
+/**
+ * One AI or image-generation call billed against this order, recorded as it
+ * is spent — the backoffice's only source for "what did this book cost to
+ * make", so every chargeable call appends one of these rather than only
+ * feeding the process-wide ledger in `ai/usage.ts`.
+ */
+export interface OrderCostEntry {
+  /** What the charge was for — "roteiro (rascunho)", "capa portrait1", "página 4". */
+  label: string
+  usd: number
+  at: string
 }

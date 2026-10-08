@@ -2,9 +2,13 @@
 
 import { useRef, useState } from 'react'
 import type { Dictionary } from '@/lib/i18n'
-import { GENDERS } from '@/lib/types'
-import type { Character, CharacterKind } from '@/lib/types'
-import { Button, Field, TextArea, TextInput } from './ui'
+import {
+  GENDERS,
+  RELATIONSHIPS,
+  RELATIONSHIP_GENDER,
+} from '@/lib/types'
+import type { Character, CharacterKind, RelationshipId } from '@/lib/types'
+import { Button, Field, Select, TextArea, TextInput } from './ui'
 
 /*
  * Three of the fields below are asked only when the story is still open.
@@ -104,7 +108,42 @@ export function CharactersStep({
               </div>
             </Field>
 
-            {!preWritten && (
+            {/* Asked for people on every path, including the shelf. It used
+                to be a free-text box hidden on exactly the shelf stories whose
+                casting depends on it, so a book off the shelf was cast from
+                the age field alone. A pet keeps the free-text box: its role is
+                its breed, and the list has nothing to offer it. */}
+            {character.kind === 'person' ? (
+              <Field label={copy.relationship} hint={copy.relationshipHint}>
+                <Select
+                  value={character.relationship ?? ''}
+                  onChange={(value) => {
+                    const relationship = (value || undefined) as
+                      | RelationshipId
+                      | undefined
+                    const implied = relationship
+                      ? RELATIONSHIP_GENDER[relationship]
+                      : undefined
+                    update(character.id, {
+                      relationship,
+                      // Fills the gender buttons in rather than asking the
+                      // same thing twice, but never overrides a choice already
+                      // made — 'neutral' is a real answer no kinship word has.
+                      ...(implied && !character.gender
+                        ? { gender: implied }
+                        : {}),
+                    })
+                  }}
+                >
+                  <option value="">{copy.relationshipEmpty}</option>
+                  {RELATIONSHIPS.map((r) => (
+                    <option key={r} value={r}>
+                      {copy.relationships[r]}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+            ) : (
               <Field label={copy.role}>
                 <TextInput
                   value={character.role ?? ''}
@@ -115,7 +154,11 @@ export function CharactersStep({
               </Field>
             )}
 
-            <Field label={copy.age}>
+            {/* Required, because it is what decides who the children are and
+                therefore which stories can be told at all. Left blank, a
+                granddaughter was read as a grown-up and the book came out
+                about the wrong person. */}
+            <Field label={copy.age} hint={copy.ageHint}>
               <TextInput
                 value={character.age ?? ''}
                 maxLength={60}
@@ -123,6 +166,18 @@ export function CharactersStep({
                 onChange={(age) => update(character.id, { age })}
               />
             </Field>
+
+            {character.kind === 'person' &&
+              character.relationship === 'outro' && (
+                <Field label={copy.role}>
+                  <TextInput
+                    value={character.role ?? ''}
+                    maxLength={120}
+                    placeholder={copy.rolePlaceholder}
+                    onChange={(role) => update(character.id, { role })}
+                  />
+                </Field>
+              )}
 
             {/* Optional on purpose. Left blank it does not mean "male" — it
                 means the book writes around the marking, which is also what
