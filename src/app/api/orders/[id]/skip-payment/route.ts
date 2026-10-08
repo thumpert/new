@@ -5,17 +5,20 @@ import { badRequest, jsonError, notFound } from '../../../_lib/respond'
 type Context = { params: Promise<{ id: string }> }
 
 /**
- * Starts drawing without a payment. Local testing only.
+ * Starts drawing without a payment.
  *
- * Refuses outright in production, independent of whether the client-side
- * link that calls this is visible — see BookProgress.tsx, which only
- * renders that link when NODE_ENV !== 'production'. Belt and suspenders:
- * the whole point of the payment gate is that it cannot be skipped by
- * anyone who finds the URL on the live site.
+ * Off by default everywhere, including production — gated on
+ * ALLOW_PAYMENT_SKIP rather than NODE_ENV, because the product is still
+ * pre-launch and the person testing it needs to unstick a real order that
+ * really got paid but whose webhook never confirmed (no
+ * MERCADOPAGO_WEBHOOK_SECRET yet). Turn it off the moment real customers
+ * might reach this screen: `fly secrets unset ALLOW_PAYMENT_SKIP`. See the
+ * matching check in BookProgress.tsx, which decides whether the link even
+ * renders.
  */
 export async function POST(request: Request, { params }: Context) {
-  if (process.env.NODE_ENV === 'production') {
-    return badRequest('Not available in production.')
+  if (process.env.ALLOW_PAYMENT_SKIP !== 'true') {
+    return badRequest('Not available.')
   }
 
   const { id } = await params

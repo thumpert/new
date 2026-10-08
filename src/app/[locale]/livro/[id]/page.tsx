@@ -14,7 +14,11 @@ export default async function BookPage({
 
   return (
     <main className="flex flex-1 flex-col">
-      <BookProgress dict={getDictionary(locale)} orderId={id} />
+      <BookProgress
+        dict={getDictionary(locale)}
+        orderId={id}
+        allowSkipPayment={process.env.ALLOW_PAYMENT_SKIP === 'true'}
+      />
     </main>
   )
 }

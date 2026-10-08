@@ -15,9 +15,12 @@ function coverId(kind: CoverKind, variant: CoverVariant): string {
 export function BookProgress({
   dict,
   orderId,
+  allowSkipPayment = false,
 }: {
   dict: Dictionary
   orderId: string
+  /** Mirrors ALLOW_PAYMENT_SKIP — see the route this flag's link calls. */
+  allowSkipPayment?: boolean
 }) {
   const [order, setOrder] = useState<Order | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -457,11 +460,12 @@ export function BookProgress({
                   )}
                   <p className="mt-4 text-sm text-ink-soft">{dict.progress.payment.waiting}</p>
 
-                  {/* NODE_ENV is inlined at build time, so this is absent
-                      from the production bundle entirely — not just hidden
-                      by CSS — and the route it calls refuses in production
-                      independently of whether this link ever rendered. */}
-                  {process.env.NODE_ENV !== 'production' && (
+                  {/* Mirrors ALLOW_PAYMENT_SKIP, read server-side in
+                      livro/[id]/page.tsx — the route this calls checks the
+                      same flag independently, so hiding the link here is
+                      not the only thing standing between this and a free
+                      book. */}
+                  {allowSkipPayment && (
                     <button
                       type="button"
                       onClick={() => void skipPayment()}
